@@ -1,0 +1,69 @@
+  $option
+     tmax=160.01 ntgraf=20  stepsz=0.4 start=.f. tsave=40.
+         isotropic=.f. 
+  $end
+
+ $earth
+     xdip=0.00001 ydip=0.00000 zdip=0.000000 rearth=10.0 
+          tilt1=10.0 tilt2=10.0 tilting =.t. 
+          rmassq=1. rmassh=16. rmasso=32.
+          $end
+ $speeds
+     cs_inner=0.001 alf_inner1=31.0 alf_inner2=31.0 alpha_e=6.0
+         den_earth=400. den_lunar=16.0 o_conc=0.125 gravity=22.9 
+         ti_te=5. gamma=1.6666 ringo=.t. update=.f. reload=.f.
+         divb_lores=.t. divb_hires=.f.  reduct=0.80
+         t_torus=2.  aniso_factor=0.0625
+         ani_q=1.00 ani_h=1.00 ani_o=1.00
+          $end
+ $windy
+     re_wind=35. cs_wind=0.010 vx_wind1=0.45 vx_wind2=0.45 
+     vy_wind1=0.000 vy_wind2=0.000 vz_wind1=-0.00 vz_wind2=-0.00
+     alfx_wind1=0.00000 alfx_wind2=0.00000
+     alfy_wind1=-0.005 alfy_wind2=-0.005
+     alfz_wind1=-0.00125 alfz_wind2=-0.00125
+     den_wind1=1.3 den_wind2=1.3 
+     reynolds=256.0  resist=64.  rho_frac=0.001
+     bfrac=1.0 vfrac=1.0
+           $end
+
+ &lunar
+     orbit_moon=6.00 theta_moon=00.0 cs_moon=0.040 
+     qden_moon=4.00e4 hden_moon=6.0e5 oden_moon=6.0e5
+     alf_moon=0. ti_te_moon=4.0
+     xdip_moon=0. ydip_moon=0. zdip_moon=0.
+     offset=0.50
+          $end
+
+ $physical
+     re_equiv=0.20 b_equiv=20.79 v_equiv=1000. rho_equiv=0.2
+     spacecraft=.f. warp=.f.  utstart=80.03631
+          $end
+
+ $smooth
+    chirho=2.0 chipxyz=2.0  chierg=0.0    
+    difrho=0.008 difpxyz=0.000 diferg=0.004 
+    chirho_n=2.0 chipxyz_n=2.0  chierg_n=0.0    
+    difrho_n=0.008 difpxyz_n=0.000 diferg_n=0.004 
+          $end
+
+ $subgrid
+    main_grd_n=1 
+          $end
+
+  -60.  60.    -60.  60.     -30.  30.    1.  
+ -120. 120.  -120.   120.    -60.  60.    2.   
+ -240. 240.  -240.   240.    -120. 120.   4.   
+ -480. 480.  -480.   480.    -240  240    8.   
+ -640. 1280. -960.   960.    -480  480    16.  
+ -960. 2880. -1920. 1920.    -960  960    32.   
+ -1216. 6464. -3840. 3840.   -1920 1920   64.   
+
+ -0.375  0.375  -30.375  -29.625  -0.375  0.375  0.015625
+  -0.75   0.75   -30.75  -29.25   -0.75    0.75  0.03125    
+  -1.5     1.5   -31.5   -28.5    -1.5     1.5   0.0625     
+  -3.0     3.0   -33.    -27.     -3.00    3.00   0.125      
+  -6.0     6.0   -36.    -24.     -6.0     6.0    0.25      
+  -12.     12.   -42.    -18.      -12.    12.    0.5       
+
+Width of the torus is reduced by half so the amount of plasma added to the system is reduced to a 1000 kg/s
