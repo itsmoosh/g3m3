@@ -8,9 +8,9 @@ FC = ncargf90
 FCFLAGS = -zero -save -openmp 
 FCFLAGS += -liomp5 
 FILES = saturn3d_main.f90 \
-	    saturns_main.f90 \
+		saturnd_main.f90 \
 		saturng_main.f90 \
-		saturnd_main.f90
+		saturns_main.f90
 LIBS = -L/opt/intel/composer_xe_2013/lib/intel64
 
 saturn.x: $(OBJECTS)
@@ -20,6 +20,6 @@ clean:
 	rm -f *.o
 	rm -f *.mod
 	rm -f *.x
-	rm -f fluid*
+#	rm -f fluid*
 	rm -f gmeta
 	rm -f *.dat

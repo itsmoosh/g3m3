@@ -1,5 +1,5 @@
   $option
-     tmax=160.01 ntgraf=20  stepsz=0.4 start=.f. tsave=40.
+     tmax=160.01 ntgraf=20  stepsz=0.4 start=.t. tsave=40.
          isotropic=.f. 
   $end
 
