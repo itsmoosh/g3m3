@@ -9,10 +9,6 @@ FCFLAGS = -zero -save -openmp
 FCFLAGS += -liomp5 
 FILES = saturn3d_main.f saturns_main.f \
 		saturng_main.f saturnd_main.f
-#OBJECTS = sat_titans_mvgd.o sat_titang_mvgd.o \
-		  sat_titand_mvgd.o sat_titan3d_mvgd.o
-#INCLUDE = -I/usr/local/ncarg/include \
-		  -I/opt/intel/fce/10.0.023/include
 LIBS = -L/opt/intel/composer_xe_2013/lib/intel64
 
 saturn.x: $(OBJECTS)
