@@ -3226,8 +3226,8 @@ program multifluid
                 grd_zmin,grd_zmax)
             !
             srho=0.
-            do j=1,ny
-                do k=1,nz
+            do k=1,nz
+                do j=1,ny
                     dut=(ut-utold)/(future(j,k)-utold)
                     bxp(j,k)=bxp(j,k)+dut*(bxf(j,k)-bxp(j,k))
                     byp(j,k)=byp(j,k)+dut*(byf(j,k)-byp(j,k))
