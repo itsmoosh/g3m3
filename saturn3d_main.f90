@@ -20,7 +20,7 @@
 !       grid within grid size nt = 2*ngrd
 !       ncts is the size of the data array for the imf data file
 !
-    program multifluid
+program multifluid
     parameter (nx=121,ny=121,nz=61,ngrd=7, &
     mbndry=1,msrf=2000,mmid=1500,mzero=5000, &
     nx_n=49,ny_n=49,nz_n=49,ngrd_n=6,mbndry_n=1, &
