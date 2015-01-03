@@ -1526,8 +1526,12 @@ end
         enddo
     enddo
     !
-    delta(nx,j,k)=delta(nx-1,j,k)
-    delta1(nx,j,k)=delta1(nx-1,j,k)
+    do k=1,nz
+        do j=1,ny
+            delta(nx,j,k)=delta(nx-1,j,k)
+            delta1(nx,j,k)=delta1(nx-1,j,k)
+        enddo
+    enddo
     !
     !$omp  parallel do
     do k=1,nz
@@ -1540,8 +1544,12 @@ end
         enddo
     enddo
     !
-    fn(1,j,k)=fn(2,j,k)
-    fn(nx,j,k)=fn(nx-1,j,k)
+    do k=1,nz
+        do j=1,ny
+            fn(1,j,k)=fn(2,j,k)
+            fn(nx,j,k)=fn(nx-1,j,k)
+        enddo
+    enddo
     !
     !$omp  parallel do
     do k=1,nz
@@ -1589,8 +1597,14 @@ end
         enddo
     enddo
     !
-    delta(i,ny,k)=delta(i,ny-1,k)
-    delta1(i,ny,k)=delta1(i,ny-1,k)
+    !$omp  parallel do
+    do k=1,nz
+        do i=1,nx
+            delta(i,ny,k)=delta(i,ny-1,k)
+            delta1(i,ny,k)=delta1(i,ny-1,k)
+        enddo
+    enddo
+
     !$omp  parallel do
     do k=1,nz
         do j=2,ny-1
@@ -1602,8 +1616,14 @@ end
         enddo
     enddo
     !
-    fn(i,1,k)=fn(i,2,k)
-    fn(i,ny,k)=fn(i,ny-1,k)
+    !$omp  parallel do
+    do k=1,nz
+        do i=1,nx
+            fn(i,1,k)=fn(i,2,k)
+            fn(i,ny,k)=fn(i,ny-1,k)
+        enddo
+    enddo
+
     !$omp  parallel do
     do k=1,nz
         do j=2,ny-1
