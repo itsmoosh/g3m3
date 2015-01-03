@@ -2340,6 +2340,8 @@ program multifluid
                         endif
                         rvy=rx*v_rot*vfrac
                         rvx=-ry*v_rot*vfrac
+                        rvz=0.
+                        corotate=sqrt(rvx**2+rvy**2)
                         !
                         !        for jupiter top hat distribution
     
@@ -2367,8 +2369,6 @@ program multifluid
                         !
                         arho=amax1(rho_iono,d_min)
                         vt=amax1(sqrt(rvy**2+rvx**2),cs_inner)
-                        !        vt=amin1(vt,20.*cs_inner)
-                        !
                         !
                         !
                         qrho(i,j,k,m)=arho*rmassq/zheight
@@ -2382,7 +2382,7 @@ program multifluid
                         qpy(i,j,k,m)=qrho(i,j,k,m)*rvy
                         qpz(i,j,k,m)=0.
                         !
-                        !          add 1% heavies everywhere
+                        ! add small amount of heavies everywhere
                         !
     
                         hrho(i,j,k,m)=0.005*qrho(i,j,k,m)*rmassh/rmassq
@@ -2424,19 +2424,19 @@ program multifluid
                             !            write(6,*)i,j,k,m,oden
                             orho(i,j,k,m)=orho(i,j,k,m) +oden
                             opresx(i,j,k,m)=opresx(i,j,k,m) &
-                                +amach**2*oden*(v_rot**2)/rmasso  !temp goes as v**2
+                                +amach**2*oden*(corotate**2)/rmasso  !temp goes as v**2
                             opresy(i,j,k,m)=opresx(i,j,k,m)
                             opresz(i,j,k,m)=opresx(i,j,k,m)
                             opresxy(i,j,k,m)=0.
                             opresxz(i,j,k,m)=0.
                             opresyz(i,j,k,m)=0.
-                            opx(i,j,k,m)=opx(i,j,k,m)+reduct**oden*rvx
+                            opx(i,j,k,m)=opx(i,j,k,m)+reduct*oden*rvx
                             opy(i,j,k,m)=opy(i,j,k,m)+reduct*oden*rvy
                             !
                             hden=oden*rmassh/rmasso/o_conc
                             hrho(i,j,k,m)=hrho(i,j,k,m) +hden
                             hpresx(i,j,k,m)=hpresx(i,j,k,m) &
-                                +amach**2*hden*(v_rot**2)/rmassh  !temp goes as v**2
+                                +amach**2*hden*(corotate**2)/rmassh  !temp goes as v**2
                             hpresy(i,j,k,m)=hpresx(i,j,k,m)
                             hpresz(i,j,k,m)=hpresx(i,j,k,m)
                             hpresxy(i,j,k,m)=0.
@@ -2472,16 +2472,6 @@ program multifluid
                                 parm_zero(m,5,numzero(m))=hpresx(i,j,k,m)
                                 parm_zero(m,6,numzero(m))=opresx(i,j,k,m)
                                 parm_zero(m,7,numzero(m))=epres(i,j,k,m)
-                                !
-                                !         qpx(i,j,k,m)=qrho(i,j,k,m)*rvx
-                                !         qpy(i,j,k,m)=qrho(i,j,k,m)*rvy
-                                !         qpz(i,j,k,m)=0.
-                                !         hpx(i,j,k,m)=hrho(i,j,k,m)*rvx
-                                !         hpy(i,j,k,m)=hrho(i,j,k,m)*rvy
-                                !         hpz(i,j,k,m)=0.
-                                !         opx(i,j,k,m)=orho(i,j,k,m)*rvx
-                                !         opy(i,j,k,m)=orho(i,j,k,m)*rvy
-                                !         opz(i,j,k,m)=0.
                                 !
                             else  if(ar.lt.rearth-.5) then
                                 nummid(m)=nummid(m)+1
