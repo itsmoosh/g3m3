@@ -5,7 +5,7 @@
 # version of gfortran prior to 4.6.
 
 FC = ncargf90
-FCFLAGS = -zero -save -openmp 
+FCFLAGS = -zero -save -openmp
 FCFLAGS += -liomp5 
 FILES = saturn3d_main.f90 \
 		saturnd_main.f90 \

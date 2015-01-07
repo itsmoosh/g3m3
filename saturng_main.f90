@@ -5987,8 +5987,8 @@ subroutine conflow(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     enddo
     icut=1.+(xcut-xmin)/delx
     i=mx
-    do j=1,my
-        do k=1,mz
+    do k=1,mz
+        do j=1,my
             t2(i,j,k)=t(icut,j,k)
         enddo
     enddo
@@ -6432,8 +6432,8 @@ subroutine conhot(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     enddo
     icut=1.+(xcut-xmin)/delx
     i=mx
-    do j=1,my
-        do k=1,mz
+    do k=1,mz
+        do j=1,my
             t2(i,j,k)=t(icut,j,k)
         enddo
     enddo
@@ -6876,8 +6876,8 @@ subroutine conlog(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     enddo
     icut=1.+(xcut-xmin)/delx
     i=mx
-    do j=1,my
-        do k=1,mz
+    do k=1,mz
+        do j=1,my
             t2(i,j,k)=t(icut,j,k)
         enddo
     enddo
