@@ -1762,18 +1762,6 @@ program multifluid
     !
     write(6,161)
     161 format(' initialization completed')
-    !       
-!            write(6,*)'testing initial graphics'
-!            call visual(qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz,rmassq, &
-!                hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz,rmassh, &
-!                orho,opresx,opresy,opresz,opx,opy,opz,rmasso, &
-!                epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
-!                curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
-!                tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
-!                nx,ny,nz,ngrd,xspac, &
-!                cross,along,flat,xcraft,ncraft,re_equiv, &
-!                grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-!                grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv)
     !
     !     ********************************************
     !     start time sequence
