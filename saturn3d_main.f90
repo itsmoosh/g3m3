@@ -4891,7 +4891,7 @@ subroutine visual( &
         label='rqdens '//wd1 
         call conhot(efldx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.5, &
+            ut,label,3,18,1,2.0,1.0, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         label='rhdens '//wd1 
@@ -4903,7 +4903,7 @@ subroutine visual( &
         label='rodens '//wd1 
         call conhot(efldz,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.5, &
+            ut,label,3,18,1,2.0,1.0, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     enddo
