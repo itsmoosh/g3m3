@@ -1063,6 +1063,14 @@ program multifluid
                             hrho(i,j,k,m)=hrho(i,j,k,m)+hden
                             del_hp=(hden/rmassh)*(corotate**2)*t_torus!temp goes as v**2
                             hpresx(i,j,k,m)=hpresx(i,j,k,m)+del_hp
+                            if(isotropic) then
+                                hpresy(i,j,k,m)=hpresx(i,j,k,m)
+                                hpresz(i,j,k,m)=hpresx(i,j,k,m)
+                            else
+                                hpresy(i,j,k,m)=hpresy(i,j,k,m)+del_hp
+                                hpresz(i,j,k,m)=hpresz(i,j,k,m)+del_hp*aniso_factor
+                            endif ! if(isotropic)
+
                             hpresy(i,j,k,m)=hpresy(i,j,k,m)+del_hp
                             hpresz(i,j,k,m)=hpresz(i,j,k,m)+del_hp*aniso_factor
                             hpx(i,j,k,m)=hpx(i,j,k,m)+reduct*hden*rvx
@@ -1072,8 +1080,14 @@ program multifluid
                             orho(i,j,k,m)=orho(i,j,k,m)+oden
                             del_op=(oden/rmasso)*(corotate**2)*t_torus  !temp goes as v**2
                             opresx(i,j,k,m)=opresx(i,j,k,m)+del_op
-                            opresy(i,j,k,m)=opresy(i,j,k,m)+del_op
-                            opresz(i,j,k,m)=opresz(i,j,k,m)+del_op*aniso_factor
+                            if(isotropic) then
+                                opresy(i,j,k,m)=opresx(i,j,k,m)
+                                opresz(i,j,k,m)=opresx(i,j,k,m)
+                            else
+                                opresy(i,j,k,m)=opresy(i,j,k,m)+del_op
+                                opresz(i,j,k,m)=opresz(i,j,k,m)+del_op*aniso_factor
+                            endif ! if(isotropic)
+
                             opx(i,j,k,m)=opx(i,j,k,m)+reduct*oden*rvx
                             opy(i,j,k,m)=opy(i,j,k,m)+reduct*oden*rvy
                             !
@@ -1081,8 +1095,14 @@ program multifluid
                             qrho(i,j,k,m)=qrho(i,j,k,m) +qden
                             del_qp=(qden/rmassq)*(corotate**2)*t_torus    !temp goes as v**2
                             qpresx(i,j,k,m)=qpresx(i,j,k,m)+del_qp
-                            qpresy(i,j,k,m)=qpresy(i,j,k,m)+del_qp
-                            qpresz(i,j,k,m)=qpresz(i,j,k,m)+del_qp*aniso_factor
+                            if(isotropic) then
+                                qpresy(i,j,k,m)=qpresx(i,j,k,m)
+                                qpresz(i,j,k,m)=qpresx(i,j,k,m)
+                            else
+                                qpresy(i,j,k,m)=qpresy(i,j,k,m)+del_qp
+                                qpresz(i,j,k,m)=qpresz(i,j,k,m)+del_qp*aniso_factor
+                            endif ! if(isotropic)
+
                             qpx(i,j,k,m)=qpx(i,j,k,m)+reduct*qden*rvx
                             qpy(i,j,k,m)=qpy(i,j,k,m)+reduct*qden*rvy
                             !
@@ -1254,8 +1274,9 @@ program multifluid
                         arho=amax1(rho_iono,d_min)
                         vt=amax1(sqrt(rvy**2+rvx**2),cs_inner)
                         !
+                        !   Scale down by 10% for Saturn - MAT
                         !
-                        qrho(i,j,k,m)=arho*rmassq/zheight
+                        qrho(i,j,k,m)=0.1*arho*rmassq/zheight
                         qpresx(i,j,k,m)=arho*vt
                         qpresy(i,j,k,m)=qpresx(i,j,k,m)
                         qpresz(i,j,k,m)=qpresx(i,j,k,m)
@@ -1269,8 +1290,8 @@ program multifluid
                         ! add small amount of heavies everywhere
                         !
     
-                        hrho(i,j,k,m)=0.005*qrho(i,j,k,m)*rmassh/rmassq
-                        hpresx(i,j,k,m)=0.005*qpresx(i,j,k,m)
+                        hrho(i,j,k,m)=0.05*qrho(i,j,k,m)*rmassh/rmassq
+                        hpresx(i,j,k,m)=0.05*qpresx(i,j,k,m)
                         hpresy(i,j,k,m)=hpresx(i,j,k,m)
                         hpresz(i,j,k,m)=hpresx(i,j,k,m)
                         hpresxy(i,j,k,m)=0.
@@ -1280,8 +1301,8 @@ program multifluid
                         hpy(i,j,k,m)=hrho(i,j,k,m)*rvy
                         hpz(i,j,k,m)=0.
                         !
-                        orho(i,j,k,m)=0.005*o_conc*qrho(i,j,k,m)*rmasso/rmassq
-                        opresx(i,j,k,m)=0.005*o_conc*qpresx(i,j,k,m)
+                        orho(i,j,k,m)=0.05*o_conc*qrho(i,j,k,m)*rmasso/rmassq
+                        opresx(i,j,k,m)=0.05*o_conc*qpresx(i,j,k,m)
                         opresy(i,j,k,m)=opresx(i,j,k,m)
                         opresz(i,j,k,m)=opresx(i,j,k,m)
                         opresxy(i,j,k,m)=0.
@@ -1308,8 +1329,14 @@ program multifluid
                             hrho(i,j,k,m)=hrho(i,j,k,m)+hden
                             del_hp=(hden/rmassh)*(corotate**2)*t_torus!temp goes as v**2
                             hpresx(i,j,k,m)=hpresx(i,j,k,m)+del_hp
-                            hpresy(i,j,k,m)=hpresy(i,j,k,m)+del_hp
-                            hpresz(i,j,k,m)=hpresz(i,j,k,m)+del_hp*aniso_factor
+                            if(isotropic) then
+                                hpresy(i,j,k,m)=hpresx(i,j,k,m)
+                                hpresz(i,j,k,m)=hpresx(i,j,k,m)
+                            else
+                                hpresy(i,j,k,m)=hpresy(i,j,k,m)+del_hp
+                                hpresz(i,j,k,m)=hpresz(i,j,k,m)+del_hp*aniso_factor
+                            endif ! if(isotropic)
+
                             hpx(i,j,k,m)=hpx(i,j,k,m)+reduct*hden*rvx
                             hpy(i,j,k,m)=hpy(i,j,k,m)+reduct*hden*rvy
                             !
@@ -1317,8 +1344,14 @@ program multifluid
                             orho(i,j,k,m)=orho(i,j,k,m)+oden
                             del_op=(oden/rmasso)*(corotate**2)*t_torus  !temp goes as v**2
                             opresx(i,j,k,m)=opresx(i,j,k,m)+del_op
-                            opresy(i,j,k,m)=opresy(i,j,k,m)+del_op
-                            opresz(i,j,k,m)=opresz(i,j,k,m)+del_op*aniso_factor
+                            if(isotropic) then
+                                opresy(i,j,k,m)=opresx(i,j,k,m)
+                                opresz(i,j,k,m)=opresx(i,j,k,m)
+                            else
+                                opresy(i,j,k,m)=opresy(i,j,k,m)+del_op
+                                opresz(i,j,k,m)=opresz(i,j,k,m)+del_op*aniso_factor
+                            endif ! if(isotropic)
+
                             opx(i,j,k,m)=opx(i,j,k,m)+reduct*oden*rvx
                             opy(i,j,k,m)=opy(i,j,k,m)+reduct*oden*rvy
                             !
@@ -3205,8 +3238,14 @@ program multifluid
                                 hrho(i,j,k,m)=hrho(i,j,k,m)+hden
                                 del_hp=(hden/rmassh)*(corotate**2)*t_torus!temp goes as v**2
                                 hpresx(i,j,k,m)=hpresx(i,j,k,m)+del_hp
-                                hpresy(i,j,k,m)=hpresy(i,j,k,m)+del_hp
-                                hpresz(i,j,k,m)=hpresz(i,j,k,m)+del_hp*aniso_factor
+                                if(isotropic) then
+                                    hpresy(i,j,k,m)=hpresx(i,j,k,m)
+                                    hpresz(i,j,k,m)=hpresx(i,j,k,m)
+                                else
+                                    hpresy(i,j,k,m)=hpresy(i,j,k,m)+del_hp
+                                    hpresz(i,j,k,m)=hpresz(i,j,k,m)+del_hp*aniso_factor
+                                endif ! if(isotropic)
+
                                 hpx(i,j,k,m)=hpx(i,j,k,m)+reduct*hden*rvx
                                 hpy(i,j,k,m)=hpy(i,j,k,m)+reduct*hden*rvy
                                 !
@@ -3214,8 +3253,14 @@ program multifluid
                                 orho(i,j,k,m)=orho(i,j,k,m)+oden
                                 del_op=(oden/rmasso)*(corotate**2)*t_torus  !temp goes as v**2
                                 opresx(i,j,k,m)=opresx(i,j,k,m)+del_op
-                                opresy(i,j,k,m)=opresy(i,j,k,m)+del_op
-                                opresz(i,j,k,m)=opresz(i,j,k,m)+del_op*aniso_factor
+                                if(isotropic) then
+                                    opresy(i,j,k,m)=opresx(i,j,k,m)
+                                    opresz(i,j,k,m)=opresx(i,j,k,m)
+                                else
+                                    opresy(i,j,k,m)=opresy(i,j,k,m)+del_op
+                                    opresz(i,j,k,m)=opresz(i,j,k,m)+del_op*aniso_factor
+                                endif ! if(isotropic)
+
                                 opx(i,j,k,m)=opx(i,j,k,m)+reduct*oden*rvx
                                 opy(i,j,k,m)=opy(i,j,k,m)+reduct*oden*rvy
                                 !
@@ -3223,8 +3268,14 @@ program multifluid
                                 qrho(i,j,k,m)=qrho(i,j,k,m) +qden
                                 del_qp=(qden/rmassq)*(corotate**2)*t_torus    !temp goes as v**2
                                 qpresx(i,j,k,m)=qpresx(i,j,k,m)+del_qp
-                                qpresy(i,j,k,m)=qpresy(i,j,k,m)+del_qp
-                                qpresz(i,j,k,m)=qpresz(i,j,k,m)+del_qp*aniso_factor
+                                if(isotropic) then
+                                    qpresy(i,j,k,m)=qpresx(i,j,k,m)
+                                    qpresz(i,j,k,m)=qpresx(i,j,k,m)
+                                else
+                                    qpresy(i,j,k,m)=qpresy(i,j,k,m)+del_op
+                                    qpresz(i,j,k,m)=qpresz(i,j,k,m)+del_op*aniso_factor
+                                endif ! if(isotropic)
+
                                 qpx(i,j,k,m)=qpx(i,j,k,m)+reduct*qden*rvx
                                 qpy(i,j,k,m)=qpy(i,j,k,m)+reduct*qden*rvy
                                 !
