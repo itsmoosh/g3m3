@@ -1395,7 +1395,8 @@ program multifluid
                             opx(i,j,k,m)=opx(i,j,k,m)+reduct*oden*rvx
                             opy(i,j,k,m)=opy(i,j,k,m)+reduct*oden*rvy
                             ! equal temps
-                            epres(i,j,k,m)=epres(i,j,k,m)+(del_op+del_hp+del_qp)
+                            epres(i,j,k,m)=(qpresx(i,j,k,m)+hpresx(i,j,k,m)+ &
+                                opresx(i,j,k,m))/ti_te
                             !
                         endif
                         !
