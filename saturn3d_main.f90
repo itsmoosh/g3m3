@@ -1016,7 +1016,7 @@ program multifluid
         nchf=11
         ut=utstart+t*t_equiv/3600.
         !
-        !          check for io plasma torus addtions
+        ! check for enceladus plasma torus additions
         !
         if(ringo)then
             m=1
@@ -1057,7 +1057,7 @@ program multifluid
                         if(abs(dr_encel.lt.2.*torus_rad)) then
                             ! scale height in R_Saturns
                             rscale=exp(-((dr_encel)/(0.5*torus_rad))**2) 
-                            zscale=exp(-((zp*re_equiv)/(0.5*torus_rad))**2)
+                            zscale=exp(-((az*re_equiv)/(0.5*torus_rad))**2)
                             !
                             ! Inject W+ (O+,OH+,H2O+,H3O+)
                             !
@@ -1325,8 +1325,7 @@ program multifluid
                         epres(i,j,k,m)=(qpresx(i,j,k,m)+hpresx(i,j,k,m)+ &
                             opresx(i,j,k,m))/ti_te
                         !
-                        !          check for io - thermal mach number set at 1/4
-                        amach=4.
+                        !  check for enceladus plasma torus additions
                         !
                         ar_encel=sqrt(ax**2+ay**2)*re_equiv
                         dr_encel=abs(ar_encel -lunar_dist)
@@ -1339,7 +1338,7 @@ program multifluid
                         if(abs(dr_encel.lt.2.*torus_rad)) then
                             ! scale height in R_Saturns
                             rscale=exp(-((dr_encel)/(0.5*torus_rad))**2) 
-                            zscale=exp(-((zp*re_equiv)/(0.5*torus_rad))**2)
+                            zscale=exp(-((az*re_equiv)/(0.5*torus_rad))**2)
                             !
                             ! Inject W+ (O+,OH+,H2O+,H3O+)
                             !
@@ -3125,43 +3124,6 @@ program multifluid
         endif !if(t.ge.tgraf)
       
         if(t.ge.ts1) then
-            if(divb_lores)then
-                range=1.33*lunar_dist/re_equiv
-                write(6,*)'range for divb taper',lunar_dist,range
-                do m=ngrd,1,-1
-                    write(6,*)'divb on box',m
-                    call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
-                        curx,cury,curz,efldx,efldy,efldz, &
-                        7,nx*ny*nz,nx,ny,nz,ngrd,m,xspac)
-                    call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
-                        curx,cury,curz,efldx,efldy,efldz, &
-                        7,nx*ny*nz,nx,ny,nz,ngrd,m,xspac)
-                    write(6,*)'completed divb on box',m
-                enddo !end m loop
-                !
-                !        apply bndry conditions
-                !
-                do m=ngrd-1,1,-1
-                    call flanks_synced(bx,nx,ny,nz,ngrd,m, &
-                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-                    call flanks_synced(by,nx,ny,nz,ngrd,m, &
-                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-                    call flanks_synced(bz,nx,ny,nz,ngrd,m, &
-                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-                enddo
-                do m=1,ngrd-1
-                    call bndry_corer( &
-                        qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
-                        hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
-                        orho,opresx,opresy,opresz,opx,opy,opz, &
-                        epres,bx,by,bz, &
-                        qpresxy,qpresxz,qpresyz, &
-                        hpresxy,hpresxz,hpresyz, &
-                        opresxy,opresxz,opresyz, &
-                        nx,ny,nz,ngrd,m, &
-                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-                enddo  !end bndry_corer
-            endif  ! end divb_lores
 
             if(nchf.eq.11) &
                 open(11,file='fluid11',status='unknown',form='unformatted')
@@ -3214,29 +3176,55 @@ program multifluid
             write(nchf)bx0
             write(nchf)by0
             write(nchf)bz0
-            !     write(nchf)qrho0
-            !     write(nchf)hrho0
-            !     write(nchf)orho0
-            !     write(nchf)qpres0
-            !     write(nchf)hpres0
-            !     write(nchf)opres0
-            !     write(nchf)epres0
             write(nchf)parm_srf,parm_mid,parm_zero, &
                 ijzero,numzero,ijmid,nummid,ijsrf,numsrf
-            !     write(nchf)abx0,aby0,abz0
-            !     write(nchf)apx0,apy0,apz0
-            !     write(nchf)aerg0
             close(nchf)
-            !
-            !     nchf=23-nchf
+
             nchf=nchf+1
             if(nchf.gt.15)nchf=11
             ts1=ts1+tsave
             !
+            if(divb_lores)then
+                range=1.33*lunar_dist/re_equiv
+                write(6,*)'range for divb taper',lunar_dist,range
+                do m=ngrd,1,-1
+                    write(6,*)'divb on box',m
+                    call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
+                        curx,cury,curz,efldx,efldy,efldz, &
+                        7,nx*ny*nz,nx,ny,nz,ngrd,m,xspac)
+                    call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
+                        curx,cury,curz,efldx,efldy,efldz, &
+                        7,nx*ny*nz,nx,ny,nz,ngrd,m,xspac)
+                    write(6,*)'completed divb on box',m
+                enddo !end m loop
+                !
+                !        apply bndry conditions
+                !
+                do m=ngrd-1,1,-1
+                    call flanks_synced(bx,nx,ny,nz,ngrd,m, &
+                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+                    call flanks_synced(by,nx,ny,nz,ngrd,m, &
+                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+                    call flanks_synced(bz,nx,ny,nz,ngrd,m, &
+                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+                enddo
+                do m=1,ngrd-1
+                    call bndry_corer( &
+                        qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
+                        hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
+                        orho,opresx,opresy,opresz,opx,opy,opz, &
+                        epres,bx,by,bz, &
+                        qpresxy,qpresxz,qpresyz, &
+                        hpresxy,hpresxz,hpresyz, &
+                        opresxy,opresxz,opresyz, &
+                        nx,ny,nz,ngrd,m, &
+                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+                enddo  !end bndry_corer
+            endif  ! end divb_lores
+            !
+            ! check for enceladus plasma torus additions
+            !
             if(ringo)then
-                !
-                !          check for io - thermal mach number set at 1/4
-                !
                 m=1
                 dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
                 dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
@@ -3273,7 +3261,7 @@ program multifluid
                             if(abs(dr_encel.lt.2.*torus_rad)) then
                                 ! scale height in R_Saturns
                                 rscale=exp(-((dr_encel)/(0.5*torus_rad))**2) 
-                                zscale=exp(-((zp*re_equiv)/(0.5*torus_rad))**2)
+                                zscale=exp(-((az*re_equiv)/(0.5*torus_rad))**2)
                                 !
                                 ! Inject W+ (O+,OH+,H2O+,H3O+)
                                 !
