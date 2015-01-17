@@ -6278,7 +6278,7 @@ subroutine conhot(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     !     set higher resolution contouring
     !
     dcon=(tlim)/(ncon+1.)
-    ampl=(abs(tlim))/2.
+    ampl=(abs(tlim))
     write(magnif,'(1pe9.2)') ampl
     do n=1,ncon
         tcon(n)=dcon*n

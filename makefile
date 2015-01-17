@@ -20,6 +20,6 @@ clean:
 	rm -f *.o
 	rm -f *.mod
 	rm -f *.x
-#	rm -f fluid*
+	rm -f *.log
 	rm -f gmeta
 	rm -f *.dat
