@@ -533,7 +533,7 @@ program multifluid
     !     saturn parameters
     !
     planet_rad=60268.   !km
-    planet_per=10.65    !hr
+    planet_per=10.7    !hr
     lunar_dist=3.948 + 0.05   !orbital radii + torus infall allowance
     torus_rad=1.0
     v_rot=6.2832*planet_rad/(planet_per*3600.)/v_equiv  ! normalized units
@@ -563,7 +563,7 @@ program multifluid
     nrot=ut/planet_per
     rot_hrs=ut-nrot*planet_per
     rot_angle=6.2832*rot_hrs/planet_per
-    d_min=0.001
+    d_min=0.01
     !
     !      ionospheric parameters
     !
@@ -1079,7 +1079,7 @@ program multifluid
                             !
                             ! Inject H+ 
                             !
-                            qden=0.4*hden*rmassq/rmassh 
+                            qden=0.0731*hden*rmassq/rmassh 
                             qrho(i,j,k,m)=qrho(i,j,k,m)+qden
                             !temp goes as v**2
                             del_qp=(qden/rmassq)*(corotate**2)*t_torus
@@ -1097,7 +1097,7 @@ program multifluid
                             !
                             ! Inject O2+ 
                             !
-                            oden=3e-4*hden*rmasso/rmassh 
+                            oden=1.93E-3*hden*rmasso/rmassh 
                             orho(i,j,k,m)=orho(i,j,k,m)+oden
                             !temp goes as v**2
                             del_op=(oden/rmasso)*(corotate**2)*t_torus    
@@ -1264,7 +1264,7 @@ program multifluid
                         ra=((ar_iono+0.5*rearth)/(1.5*rearth))**(-alpha_e)
                         zheight=amax1(1.,(zp**2+(1.5*rearth)**2)/(3.0*rearth)**2)
                         ra=ra/zheight**2
-                        rho_iono=amax1(erho*ra,0.001)
+                        rho_iono=amax1(erho*ra,d_min)
                         !
                         r_equat=(ar**3+0.001)/(xp**2+ay**2+0.001)
                         r_equat=amax1(r_equat,rearth)
@@ -1360,7 +1360,7 @@ program multifluid
                             !
                             ! Inject H+ 
                             !
-                            qden=0.4*hden*rmassq/rmassh 
+                            qden=0.0731*hden*rmassq/rmassh 
                             qrho(i,j,k,m)=qrho(i,j,k,m)+qden
                             !temp goes as v**2
                             del_qp=(qden/rmassq)*(corotate**2)*t_torus
@@ -1378,7 +1378,7 @@ program multifluid
                             !
                             ! Inject O2+ 
                             !
-                            oden=3e-4*hden*rmasso/rmassh 
+                            oden=1.93E-3*hden*rmasso/rmassh 
                             orho(i,j,k,m)=orho(i,j,k,m)+oden
                             !temp goes as v**2
                             del_op=(oden/rmasso)*(corotate**2)*t_torus    
@@ -3283,7 +3283,7 @@ program multifluid
                                 !
                                 ! Inject H+ 
                                 !
-                                qden=0.4*hden*rmassq/rmassh 
+                                qden=0.0731*hden*rmassq/rmassh 
                                 qrho(i,j,k,m)=qrho(i,j,k,m)+qden
                                 !temp goes as v**2
                                 del_qp=(qden/rmassq)*(corotate**2)*t_torus
@@ -3301,7 +3301,7 @@ program multifluid
                                 !
                                 ! Inject O2+ 
                                 !
-                                oden=3e-4*hden*rmasso/rmassh 
+                                oden=1.93E-3*hden*rmasso/rmassh 
                                 orho(i,j,k,m)=orho(i,j,k,m)+oden
                                 !temp goes as v**2
                                 del_op=(oden/rmasso)*(corotate**2)*t_torus    
@@ -4746,7 +4746,7 @@ subroutine visual( &
         !
         !      plot individual temperatures
         !
-        tempx=1.0
+        tempx=0.5
         temph=2.*tempx
         tempo=4.*tempx
         if(m.gt.1) then
@@ -4925,10 +4925,10 @@ subroutine visual( &
             enddo
         enddo
         !
-        label='rqdens '//wd1 
+        label='rqdens x2 '//wd1 
         call conhot(efldx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,1.0, &
+            ut,label,3,18,1,2.0,0.5, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         label='rhdens '//wd1 
@@ -4937,10 +4937,10 @@ subroutine visual( &
             ut,label,3,18,1,2.0,1.0, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-        label='rodens '//wd1 
+        label='rodens x2 '//wd1 
         call conhot(efldz,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,1.0, &
+            ut,label,3,18,1,2.0,0.5, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     enddo
