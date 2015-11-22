@@ -417,27 +417,6 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
         !
     enddo             ! i loop
     
-    if(ani.lt.1.00.and.(.not.isotropic))then
-        !
-        !$omp  parallel do
-        do k=2,nz-1
-            do j=2,ny-1
-                do i=2,nx-1
-                    !
-                    apres=(qpresx(i,j,k,m)+qpresy(i,j,k,m)+qpresz(i,j,k,m))/3.0
-    
-                    qpresx(i,j,k,m)=ani*qpresx(i,j,k,m)+(1.-ani)*apres
-                    qpresy(i,j,k,m)=ani*qpresy(i,j,k,m)+(1.-ani)*apres
-                    qpresz(i,j,k,m)=ani*qpresz(i,j,k,m)+(1.-ani)*apres
-                    qpresxy(i,j,k,m)=ani*qpresxy(i,j,k,m)
-                    qpresxz(i,j,k,m)=ani*qpresxz(i,j,k,m)
-                    qpresyz(i,j,k,m)=ani*qpresyz(i,j,k,m)
-                    !
-                enddo             ! k loop
-            enddo             ! j loop
-        enddo             ! i loop
-        !
-    endif
     return
 end
 

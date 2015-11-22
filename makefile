@@ -5,16 +5,16 @@
 # version of gfortran prior to 4.6.
 
 FC = ncargf90
-FCFLAGS = -zero -save -openmp
+FCFLAGS = -zero -save -openmp -debug -O0 -g -traceback 
 FCFLAGS += -liomp5 
-FILES = saturn3d_main.f90 \
-		saturnd_main.f90 \
-		saturng_main.f90 \
-		saturns_main.f90
+FILES = earth3d_main.f90 \
+		earthd_main.f90 \
+		earthg_main.f90 \
+		earths_main.f90
 LIBS = -L/opt/intel/composer_xe_2013/lib/intel64
 
-saturn.x: $(OBJECTS)
-	$(FC) $(FCFLAGS) -o saturn.x $(FILES)
+earth.x: $(OBJECTS)
+	$(FC) $(FCFLAGS) -o earth.x $(FILES)
 
 clean:
 	rm -f *.o
