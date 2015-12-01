@@ -1728,7 +1728,7 @@ program multifluid
         !
         write(3,*)'main grid'
         do m=ngrd,1,-1
-            scale=rho_equiv*v_equiv*1.e3* &
+            scale=rho_equiv*v_equiv*1.e5* &
             (xspac(m)*planet_rad*re_equiv*1.e5)**2
             call flux_counter(qpx,qpy,qpz,hpx,hpy,hpz, &
                 opx,opy,opz,nx,ny,nz,ngrd,m, &
