@@ -73,7 +73,7 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
     qvx,qvy,qvz,tvx,tvy,tvz,gamma,gamma1, &
     nx,ny,nz,ngrd,m,delt,grav,re_equiv,reynolds, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-    grd_zmin,grd_zmax,ani,isotropic)
+    grd_zmin,grd_zmax,ani)
     !
     !      standard runge-kutta push for ion equations
     !
@@ -279,27 +279,6 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
         !
     enddo             ! i loop
     
-    if(ani.lt.1.00.and.(.not.isotropic))then
-        !
-        !$omp  parallel do
-        do k=2,nz-1
-            do j=2,ny-1
-                do i=2,nx-1
-                    !
-                    apres=(qpresx(i,j,k,m)+qpresy(i,j,k,m)+qpresz(i,j,k,m))/3.0
-    
-                    qpresx(i,j,k,m)=ani*qpresx(i,j,k,m)+(1.-ani)*apres
-                    qpresy(i,j,k,m)=ani*qpresy(i,j,k,m)+(1.-ani)*apres
-                    qpresz(i,j,k,m)=ani*qpresz(i,j,k,m)+(1.-ani)*apres
-                    qpresxy(i,j,k,m)=ani*qpresxy(i,j,k,m)
-                    qpresxz(i,j,k,m)=ani*qpresxz(i,j,k,m)
-                    qpresyz(i,j,k,m)=ani*qpresyz(i,j,k,m)
-                    !
-                enddo             ! k loop
-            enddo             ! j loop
-        enddo             ! i loop
-        !
-    endif
     return
 end
 
@@ -886,7 +865,7 @@ subroutine lap_plasma(rho,px,py,pz, &
     wrkpresx,wrkpresy,wrkpresz, &
     wrkpresxy,wrkpresxz,wrkpresyz, &
     vx,vy,vz, &
-    nx,ny,nz,ngrd,m,chirho,chipxyz,chierg,delt,isotropic)
+    nx,ny,nz,ngrd,m,chirho,chipxyz,chierg,delt)
     !
     !     apply the ladipus smoothing technique for particular ion component
     !
@@ -1142,8 +1121,7 @@ subroutine flux_correct(qrho,qpresx,qpresy,qpresz, &
     epres,wrkepres,oldepres, &
     bx,by,bz,wrkbx,wrkby,wrkbz, &
     oldbx,oldby,oldbz,vvx,vvy,vvz, &
-    nx,ny,nz,ngrd,m,difrho,diferg,xspac, &
-    isotropic)
+    nx,ny,nz,ngrd,m,difrho,diferg,xspac)
     !
     !     apply flux correction smoothing technique
     !
@@ -2307,7 +2285,7 @@ subroutine bndry_outer( &
     rmassq,rmassh,rmasso, &
     bx,by,bz,bx0,by0,bz0,nx,ny,nz,ngrd, &
     srho,rho_frac,o_conc,spress,spx,spy,spz, &
-    sbx_wind,sby_wind,sbz_wind,ti_te,isotropic)
+    sbx_wind,sby_wind,sbz_wind,ti_te)
     !
     !     this routine applies boundary conditions around the edges
     !     of the system and at any irregular boundaries
@@ -3061,8 +3039,7 @@ subroutine bndry_moon(qrho,qpresx,qpresy,qpresz, &
     numzero,mbndry,msrf,mmid,mzero, &
     qden_moon,hden_moon,oden_moon,cs_moon,gamma,ti_te, &
     vx_moon,vy_moon,vz_moon, &
-    grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax, &
-    isotropic)
+    grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     
     !
     !     this routine applies boundary conditions around the edges
@@ -6036,7 +6013,7 @@ subroutine set_speed_agrd( &
     rho,presx,presy,presz,presxy,presxz,presyz,px,py,pz, &
     rmassq,rmassh,rmasso,nx,ny,nz,ngrd,m, &
     pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-    vlim,alf_lim,o_conc,fastest,isotropic)
+    vlim,alf_lim,o_conc,fastest)
     !
     !    checks for minium rho and negative pressure
     !     and resets value if necessary
@@ -6083,9 +6060,15 @@ subroutine set_speed_agrd( &
     csmax=0.
     alfmax=0.
     !
+    if(m.gt.1)then
+        vlim=1.8
+    else
+        vlim=1.0
+    endif
+
     vqlim=vlim
-    vhlim=1.4*vlim
-    volim=2.*vlim
+    vhlim=vlim
+    volim=vlim
     !
     !     vqlim=0.5*sqrt(1.+m)
     !     vhlim=0.5*sqrt(1.+m)

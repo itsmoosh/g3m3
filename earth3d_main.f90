@@ -21,7 +21,7 @@
 !       ncts is the size of the data array for the imf data file
 !
 program multifluid
-    integer,parameter :: nx=121,ny=121,nz=61,ngrd=5, &
+    integer,parameter :: nx=121,ny=121,nz=61,ngrd=3, &
     mbndry=1,msrf=2000,mmid=1500,mzero=5000, &
     ncraft=30,ncts=281
     !
@@ -148,7 +148,7 @@ program multifluid
     !
     logical start,add_dip,ringo,update,save_dat,write_dat, &
     spacecraft,tilting,warp,reload,divb_lores,divb_hires, &
-    yes_step,yes_step_n,grid_reset,isotropic
+    yes_step,yes_step_n,grid_reset
     !
     !      ringo decides if you you want to plot 1 set of diagnostics
     !              with no time stepping
@@ -175,29 +175,24 @@ program multifluid
     !     variable grid spacing enabled with rxyz >1
     !           rx,ry,rz should not be set identically to zero
     !
-    namelist/option/tmax,ntgraf,stepsz,start,tsave,isotropic
+    namelist/option/tmax,ntgraf,stepsz,start,tsave
     namelist/earth/xdip,ydip,zdip,rearth, &
-    tilt1,tilt2,tilting,rmassq,rmassh,rmasso
-    namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
-    alpha_e,den_earth,den_lunar,o_conc,gravity, &
-    ti_te,gamma,ringo,update,reload, &
-    divb_lores,divb_hires,reduct,t_torus,aniso_factor, &
-    ani_q,ani_h,ani_o
+        tilt1,tilt2,tilting,rmassq,rmassh,rmasso
+    namelist/speeds/cs_inner,bnt_equator,alf_lim, &
+        alpha_e,den_earth,h_conc,o_conc,gravity, &
+        ti_te,gamma,ringo,update,reload, &
+        divb_lores,mshock
     namelist/windy/re_wind,cs_wind,vx_wind1,vx_wind2, &
-    vy_wind1,vy_wind2,vz_wind1,vz_wind2, &
-    alfx_wind1,alfx_wind2, &
-    alfy_wind1,alfy_wind2, &
-    alfz_wind1,alfz_wind2, &
-    den_wind1,den_wind2, &
-    reynolds,resist,rho_frac,bfrac,vfrac
-    namelist/lunar/orbit_moon,theta_moon,cs_moon, &
-    qden_moon,hden_moon,oden_moon, &
-    alf_moon,ti_te_moon, &
-    xdip_moon,ydip_moon,zdip_moon,offset
-    namelist/physical/re_equiv,b_equiv,v_equiv,rho_equiv, &
-    spacecraft,warp,uday,utstart
+        vy_wind1,vy_wind2,vz_wind1,vz_wind2, &
+        bx_wind1,bx_wind2, &
+        by_wind1,by_wind2, &
+        bz_wind1,bz_wind2, &
+        den_wind1,den_wind2,skin_ratio, &
+        reynolds,resist,rho_frac,bfrac,vfrac
+    namelist/physical/re_equiv,b0_equiv,v_equiv,rho0_equiv, &
+        spacecraft,warp,uday,utstart
     namelist/smooth/chirho,chipxyz,chierg, &
-    difrho,difpxyz,diferg
+        difrho,difpxyz,diferg
     !
     !     allocate arrays
     !
@@ -283,8 +278,6 @@ program multifluid
     write(6,speeds)
     read(5,windy)
     write(6,windy)
-    read(5,lunar)
-    write(6,lunar)
     read(5,physical)
     write(6,physical)
     read(5,smooth)
@@ -372,25 +365,25 @@ program multifluid
     !
     !     calculate effective magnetic field strength
     !
-    erho=den_earth*rmassh
-    b01=alf_inner1*sqrt(erho)*rearth**3
-    b02=alf_inner2*sqrt(erho)*rearth**3
-    alf_lim=6.00*alf_inner1
-    b0=b01
-    write(6,*)'b0',b0
-    bmax=b02
-    delb0=(b02-b01)/tmax
+    !erho=den_earth*rmassh
+    !b01=alf_inner1*sqrt(erho)*rearth**3
+    !b02=alf_inner2*sqrt(erho)*rearth**3
+    !alf_lim=6.00*alf_inner1
+    !b0=b01
+    !write(6,*)'b0',b0
+    !bmax=b02
+    !delb0=(b02-b01)/tmax
     !
     write(wd1,'(f6.3)')cs_inner
-    write(wd2,'(f6.3)')alf_inner1
-    write(wd3,'(f6.3)')alf_inner2
+    write(wd2,'(f6.3)')bnt_equator
+    write(wd3,'(f6.3)')alf_lim
     write(wd4,'(f5.1)')den_earth
     !
     title='cs_inner = '//wd1
     call wtstr(.15,.76,title,1,0,0)
-    title='alf_inner1= '//wd2
+    title='bnt_equator= '//wd2
     call wtstr(.35,.76,title,1,0,0)
-    title='alf_inner2= '//wd3
+    title='alf_lim= '//wd3
     call wtstr(.55,.76,title,1,0,0)
     title='den_earth = '//wd4
     call wtstr(.75,.76,title,1,0,0)
@@ -436,26 +429,26 @@ program multifluid
     title='vz_wind2 = '//wd4
     call wtstr(.75,.67,title,1,0,0)
     !
-    write(wd1,'(f6.3)')alfx_wind1
-    write(wd2,'(f6.3)')alfx_wind2
-    write(wd3,'(f6.3)')alfy_wind1
-    write(wd4,'(f6.3)')alfy_wind2
+    write(wd1,'(f6.3)')bx_wind1
+    write(wd2,'(f6.3)')bx_wind2
+    write(wd3,'(f6.3)')by_wind1
+    write(wd4,'(f6.3)')by_wind2
     
     !
-    title='alfx1 = '//wd1
+    title='bx_wind1 = '//wd1
     call wtstr(.15,.64,title,1,0,0)
-    title='alfx2 = '//wd2
+    title='bx_wind2 = '//wd2
     call wtstr(.35,.64,title,1,0,0)
-    title='alfy1 = '//wd3
+    title='by_wind1 = '//wd3
     call wtstr(.55,.64,title,1,0,0)
-    title='alfy2 = '//wd4
+    title='by_wind2 = '//wd4
     call wtstr(.75,.64,title,1,0,0)
     !
-    write(wd3,'(f6.3)')alfz_wind1
-    write(wd4,'(f6.3)')alfz_wind2
-    title='alfz1 = '//wd3
+    write(wd3,'(f6.3)')bz_wind1
+    write(wd4,'(f6.3)')bz_wind2
+    title='bz_wind1 = '//wd3
     call wtstr(.55,.61,title,1,0,0)
-    title='alfz2 = '//wd4
+    title='bz_wind2 = '//wd4
     call wtstr(.75,.61,title,1,0,0)
     
     write(wd1,'(f5.1)')re_wind
@@ -523,34 +516,49 @@ program multifluid
     !v_rot=6.2832*planet_rad/(planet_per*3600.)/v_equiv  ! normalized units
     !r_rot=30.0   !re where corotation stops
     !
-    !     earth parameters
-    !     planet_rad=6371.   !km
-    !     planet_per=24.     !hr
-    !     lunar_rad=60.      !orbital radii
-    !     v_rot=6.2832*planet_rad/(planet_per*3600.)/v_equiv  ! normalized units
-    !     r_rot=10.0   !re where corotation stops
+    ! Earth parameters
+    planet_rad=6371.   !km
+    planet_per=24.     !hr
+    lunar_rad=60.      !orbital radii
+    v_rot=6.2832*planet_rad/(planet_per*3600.)/v_equiv  ! normalized units
+    r_rot=10.0   !re where corotation stops
     !
     !     saturn parameters
     !
-    planet_rad=60268.   !km
-    planet_per=10.7    !hr
-    lunar_dist=3.948 + 0.05   !orbital radii + torus infall allowance
-    torus_rad=1.0
-    v_rot=6.2832*planet_rad/(planet_per*3600.)/v_equiv  ! normalized units
-    r_rot=20.0   !re where corotation stops
+    !planet_rad=60268.   !km
+    !planet_per=10.7    !hr
+    !lunar_dist=3.948 + 0.05   !orbital radii + torus infall allowance
+    !torus_rad=1.0
+    !v_rot=6.2832*planet_rad/(planet_per*3600.)/v_equiv  ! normalized units
+    !r_rot=20.0   !re where corotation stops
     !
     !     lunar stuff: moon radius 1738. titan radius 2575
     !                  enceladus radius 252. 
     !
-    lunar_rad=252.*1.25  !km start at exobase at 1.25 rt
-    rmoon=(lunar_rad/planet_rad)/re_equiv   ! in grid points
     !
-    r_orbit=orbit_moon/re_equiv ! grid pts
-    ut_orbit=32.88       ! enceladus orbital period
-    v_orbit=(orbit_moon*planet_rad*2.*3.1414)/(ut_orbit*3600.) &
-    /v_equiv    !sim units
+    ! normalization parameters
+    ! 
+    ! skin ration - dx/(c/w_pi) is actual value
+    ! reynolds is inflated value if you need hall E field
+    !   to be reduced
+    e=1.602e-19
+    p=1.6726e-27
+    omega_0=v_equiv/(re_equiv*planet_rad)*skin_ratio
+    b_equiv=(p/e)*omega_0*1.e9    !nT
     !
-    write(6,*)'moon orbit parms',ut_orbit,v_orbit
+    write(6,*)'b_equiv ',b_equiv,b0_equiv
+    !
+    rho_equiv=(b_equiv*1.e-9)**2/(v_equiv*1.e3)**2/(4.*3.1416e-7)/p
+    rho_equiv=rho_equiv/1.e6     !cm-3
+    write(6,*)'rho_equiv',rho_equiv,rho0_equiv
+    !     
+    !
+    !     calculate effective magnetic field strength
+    !
+    erho=den_earth/rho_equiv
+    b0=(bnt_equator/b_equiv)/(re_equiv*rearth)**3
+    bmax=0.20*rmassq*(0.5*alf_lim)/reynolds/stepsz*b_equiv
+    write(6,*)'erho,b0,bmax',erho,b0,bmax
     !
     !     spacecraft stuff
     !
@@ -799,8 +807,8 @@ program multifluid
     !
     !     do the same for the solar wind
     !
-    rho_wind1=den_wind1*rmassq
-    rho_wind2=den_wind2*rmassq
+    rho_wind1=den_wind1*rmassq/rho_equiv
+    rho_wind2=den_wind2*rmassq/rho_equiv
     srho=rho_wind1
     delrho=(rho_wind2-rho_wind1)/tmax
     spress=(cs_wind**2*srho/gamma)/gamma1
@@ -816,15 +824,12 @@ program multifluid
     delvy_wind=(vy_wind2-vy_wind1)/tmax
     delvz_wind=(vz_wind2-vz_wind1)/tmax
     !
-    delbx_wind=(alfx_wind2*sqrt(rho_wind2) &
-    -alfx_wind1*sqrt(rho_wind1))/tmax
-    delby_wind=(alfy_wind2*sqrt(rho_wind2) &
-    -alfy_wind1*sqrt(rho_wind1))/tmax
-    delbz_wind=(alfz_wind2*sqrt(rho_wind2) &
-    -alfz_wind1*sqrt(rho_wind1))/tmax
-    sbx_wind=alfx_wind1*sqrt(rho_wind1)
-    sby_wind=alfy_wind1*sqrt(rho_wind1)
-    sbz_wind=alfz_wind1*sqrt(rho_wind1)
+    delbx_wind=(bx_wind2-bx_wind1)/b_equiv/tmax
+    delby_wind=(by_wind2-by_wind1)/b_equiv/tmax
+    delbz_wind=(bz_wind2-bz_wind1)/b_equiv/tmax
+    sbx_wind=bx_wind1/b_equiv
+    sby_wind=by_wind1/b_equiv
+    sbz_wind=bz_wind1/b_equiv
     !
     deltg=tmax/float(ntgraf)
     delt=stepsz
@@ -926,8 +931,6 @@ program multifluid
         !      check for div b errors
         !
         if(divb_lores)then
-            range=1.33*lunar_dist/re_equiv
-            write(6,*)'range for divb taper',lunar_dist,range
             do m=ngrd,1,-1
                 write(6,*)'divb on box',m
                 call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
@@ -986,119 +989,74 @@ program multifluid
         nchf=11
         ut=utstart+t*t_equiv/3600.
         !
-        ! check for enceladus plasma torus additions
+        ! rescale oxygen density at inner boundary by oxygen scale
         !
         if(ringo)then
             m=1
-            dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-            dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-            dz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+            rx=xspac(m)
+            ry=xspac(m)
+            rz=xspac(m)
             !
-            tot_o=0.
-            tot_h=0.
-            tot_q=0.
+            call calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
+                rx,ry,rz)
+
             !
-            write(6,*)'ringo',lunar_dist,reduct,v_rot
+            ! field aligned currents
             !
             do k=1,nz
-                az=(grd_zmin(m)+dz*(k-1)-zdip)
                 do j=1,ny
-                    ay=grd_ymin(m)+dy*(j-1)-ydip
                     do i=1,nx
-                        ax=(grd_xmin(m)+dx*(i-1)-xdip)
-                        !
-                        rx=ax*re_equiv
-                        ry=ay*re_equiv
-                        rd=sqrt(rx**2+ry**2)
-                        !
-                        rvy=rx*v_rot
-                        rvx=-ry*v_rot
-                        rvz=0.
-                        corotate=sqrt(rvx**2+rvy**2)
-                        !
-                        ar_encel=sqrt(ax**2+ay**2)*re_equiv
-                        dr_encel=abs(ar_encel -lunar_dist)
-
-                        ! MAT - Corrected, according to 
-                        !   doi:10.1029/2009JE003372
-                        !   and
-                        !   doi:10.1029/JA091iA08p08749
-                        !
-                        if(abs(dr_encel.lt.2.*torus_rad)) then
-                            ! scale height in R_Saturns
-                            rscale=exp(-((dr_encel)/(0.5*torus_rad))**2) 
-                            zscale=exp(-((az*re_equiv)/(0.5*torus_rad))**2)
-                            !
-                            ! Inject W+ (O+,OH+,H2O+,H3O+)
-                            !
-                            hden=den_lunar*rmassh*rscale*zscale
-                            hrho(i,j,k,m)=hrho(i,j,k,m)+hden
-                            !temp goes as v**2
-                            del_hp=(hden/rmassh)*(corotate**2)*t_torus
-                            hpresx(i,j,k,m)=hpresx(i,j,k,m)+del_hp
-                                hpresy(i,j,k,m)=hpresx(i,j,k,m)
-                                hpresz(i,j,k,m)=hpresx(i,j,k,m)
-
-                            hpx(i,j,k,m)=hpx(i,j,k,m)+reduct*hden*rvx
-                            hpy(i,j,k,m)=hpy(i,j,k,m)+reduct*hden*rvy
-                            !
-                            ! Inject H+ 
-                            !
-                            qden=0.0731*hden*rmassq/rmassh 
-                            qrho(i,j,k,m)=qrho(i,j,k,m)+qden
-                            !temp goes as v**2
-                            del_qp=(qden/rmassq)*(corotate**2)*t_torus
-                            qpresx(i,j,k,m)=qpresx(i,j,k,m)+del_qp
-                                qpresy(i,j,k,m)=qpresx(i,j,k,m)
-                                qpresz(i,j,k,m)=qpresx(i,j,k,m)
-                            
-                            qpx(i,j,k,m)=qpx(i,j,k,m)+reduct*qden*rvx
-                            qpy(i,j,k,m)=qpy(i,j,k,m)+reduct*qden*rvy
-                            !
-                            ! Inject O2+ 
-                            !
-                            oden=1.93E-3*hden*rmasso/rmassh 
-                            orho(i,j,k,m)=orho(i,j,k,m)+oden
-                            !temp goes as v**2
-                            del_op=(oden/rmasso)*(corotate**2)*t_torus    
-                            opresx(i,j,k,m)=opresx(i,j,k,m)+del_op
-                                opresy(i,j,k,m)=opresx(i,j,k,m)
-                                opresz(i,j,k,m)=opresx(i,j,k,m)
-
-                            opx(i,j,k,m)=opx(i,j,k,m)+reduct*oden*rvx
-                            opy(i,j,k,m)=opy(i,j,k,m)+reduct*oden*rvy
-                            ! equal temps
-                            epres(i,j,k,m)=epres(i,j,k,m)+(del_op+del_hp+del_qp)
-                            !
-                            tot_q=tot_q+qden*dx*dy*dz
-                            tot_h=tot_h+hden*dx*dy*dz
-                            tot_o=tot_o+oden*dx*dy*dz
-                            !
-                        endif
+                        abx=bx(i,j,k,m)+bx0(i,j,k,m)
+                        aby=by(i,j,k,m)+by0(i,j,k,m)
+                        abz=bz(i,j,k,m)+bz0(i,j,k,m)
+                        abmag=sqrt(abx**2+aby**2+abz**2) &
+                            + 0.00000001
+                        btot(i,j,k)=(curx(i,j,k)*abx+cury(i,j,k)*aby &
+                            + curz(i,j,k)*abz)/abmag
                     enddo
                 enddo
             enddo
             !
-            !     scale factors to kg/s
+            save_dat=.false.
+            add_dip=.false.
             !
-            volume=(re_equiv*planet_rad*1.e3)**3  !(cubic meters)
-            atime=tsave*t_equiv
-            injections=tstep/tsave
-            proton_mass=1.67e-27
-            write(6,*)'volume,t_equiv,atime',volume,t_equiv,atime
+            radstrt=rearth+8.
+
+            write(6,*)'entering aurora_cur', radstrt
+            call aurora_cur(btot,nx,ny,nz,m,radstrt,re_equiv,1, &
+                ut,save_dat,add_dip,'cur4 nth',14,write_dat, &
+                b_equiv,planet_rad,tot_cur_nth,peak_cur_nth)
+
+            old_o_conc=o_conc
+
+            if(tot_cur_nth.gt.cur_max)then
+                o_conc=o_conc_max
+            else if(tot_cur_nth.gt.cur_min)then
+                o_conc=o_conc_min+(o_conc_max-o_conc_min)* &
+                (tot_cur_nth-cur_min)/(cur_max-cur_min)
+            else
+                o_conc=o_conc_min
+            endif
+
+            write(10,*)ut,tot_cur_nth,o_conc,old_o_conc
             !
-            tot_q=tot_q*volume/atime*rho_equiv*1.e6/rmassq
-            tot_h=tot_h*volume/atime*rho_equiv*1.e6/rmassh
-            tot_o=tot_o*volume/atime*rho_equiv*1.e6/rmasso
-            write(6,*)'tot torus ions/s',tot_q,tot_h,tot_o
-            write(10,*)'tot torus ions/s',tot_q,tot_h,tot_o
+            do n=1,numsrf(mbndry)
+                parm_srf(mbndry,3,n)=o_conc*(rmasso/rmassh)*parm_srf(mbndry,2,n)
+                parm_srf(mbndry,6,n)=o_conc*parm_srf(mbndry,5,n)
+                parm_srf(mbndry,7,n)=(parm_srf(mbndry,5,n)+ parm_srf(mbndry,6,n))/ti_te
+            enddo
             !
-            tot_q=tot_q*proton_mass*rmassq
-            tot_h=tot_h*proton_mass*rmassh
-            tot_o=tot_o*proton_mass*rmasso
-            write(6,*)'injections',injections, '  single at'
-            write(6,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
-            write(10,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
+            do n=1,nummid(mbndry)
+                parm_mid(mbndry,3,n)=o_conc*(rmasso/rmassh)*parm_mid(mbndry,2,n)
+                parm_mid(mbndry,6,n)=o_conc*parm_mid(mbndry,5,n)
+                parm_mid(mbndry,7,n)=(parm_mid(mbndry,5,n)+ parm_mid(mbndry,6,n))/ti_te
+            enddo
+     
+            do n=1,numzero(mbndry)
+                parm_zero(mbndry,3,n)=o_conc*(rmasso/rmassh)*parm_zero(mbndry,2,n)
+                parm_zero(mbndry,6,n)=o_conc*parm_zero(mbndry,5,n)
+                parm_zero(mbndry,7,n)=(parm_zero(mbndry,5,n)+ parm_zero(mbndry,6,n))/ti_te
+            enddo
             !
         endif  ! end ringo if
         !
@@ -1144,10 +1102,10 @@ program multifluid
         !
         sin_rot=sin(rot_angle)
         cos_rot=cos(rot_angle)
-        write(6,*)'init',lunar_dist,rot_angle
         !
         !      scale lengths for plasma sheet population
         !
+        d_min=0.01
         sheet_den=0.25
         alpha_s=4.
         !
@@ -1184,7 +1142,7 @@ program multifluid
                         !        determine magnetic dipole field
                         !
                         call dipole(bx0(i,j,k,m),by0(i,j,k,m), &
-                            bz0(i,j,k,m),ax,ay,az)
+                            bz0(i,j,k,m),ax,ay,az,rearth)
                         !
                         !         zero interior magnetic field so alfven speed small
                         !
@@ -1210,7 +1168,6 @@ program multifluid
                         corotate=sqrt(rvx**2+rvy**2)
                         !
                         !        for jupiter top hat distribution
-    
                         ar_iono=sqrt(xp**2+ay**2+1.25*zp**2)
                         !        isotropic
                         !        ar_iono=sqrt(xp**2+ay**2+zp**2)
@@ -1219,7 +1176,7 @@ program multifluid
                         ra=((ar_iono+0.5*rearth)/(1.5*rearth))**(-alpha_e)
                         zheight=amax1(1.,(zp**2+(1.5*rearth)**2)/(3.0*rearth)**2)
                         ra=ra/zheight**2
-                        rho_iono=amax1(erho*ra,d_min)
+                        rho_iono=amax1(erho*ra,0.001)
                         !
                         r_equat=(ar**3+0.001)/(xp**2+ay**2+0.001)
                         r_equat=amax1(r_equat,rearth)
@@ -1233,16 +1190,14 @@ program multifluid
                             rden_sphere=(rerg_sphere**2)          !reduce o+ in plasmasphere
                         endif
                         !
-                        arho=amax1(rho_iono,d_min)
-                        vt=amax1(sqrt(rvy**2+rvx**2),cs_inner)
+                        arho=amax1(rho_iono,0.1/rho_equiv)
+                        qden=amax1(arho*0.001,d_min)
+                        aerg=amax1(abs(eerg*rerg_sphere),d_min*arho)
                         !
-                        !   MAT - Corrected according to
-                        !       doi:10.1029/JA094iA12p17287
-                        !       and 
-                        !       doi:10.1029/2008GL035433
+                        epres(i,j,k,m)=0.5*gamma1*aerg/ti_te
                         !
-                        qrho(i,j,k,m)=arho*rmassq/zheight
-                        qpresx(i,j,k,m)=arho*vt
+                        qrho(i,j,k,m)=qden*massq
+                        qpresx(i,j,k,m)=0.
                         qpresy(i,j,k,m)=qpresx(i,j,k,m)
                         qpresz(i,j,k,m)=qpresx(i,j,k,m)
                         qpresxy(i,j,k,m)=0.
@@ -1255,8 +1210,8 @@ program multifluid
                         ! add small amount of heavies everywhere
                         !
     
-                        hrho(i,j,k,m)=0.05*qrho(i,j,k,m)*rmassh/rmassq
-                        hpresx(i,j,k,m)=0.05*qpresx(i,j,k,m)
+                        hrho(i,j,k,m)=arho*rmassh
+                        hpresx(i,j,k,m)=0.5*gamma1*aerg
                         hpresy(i,j,k,m)=hpresx(i,j,k,m)
                         hpresz(i,j,k,m)=hpresx(i,j,k,m)
                         hpresxy(i,j,k,m)=0.
@@ -1266,8 +1221,8 @@ program multifluid
                         hpy(i,j,k,m)=hrho(i,j,k,m)*rvy
                         hpz(i,j,k,m)=0.
                         !
-                        orho(i,j,k,m)=qrho(i,j,k,m)*rmasso/rmassq
-                        opresx(i,j,k,m)=qpresx(i,j,k,m)
+                        orho(i,j,k,m)=arho*rmasso/rmassq*o_conc*rden_sphere
+                        opresx(i,j,k,m)=0.5*gamma1*aerg*o_conc*rden_sphere
                         opresy(i,j,k,m)=opresx(i,j,k,m)
                         opresz(i,j,k,m)=opresx(i,j,k,m)
                         opresxy(i,j,k,m)=0.
@@ -1276,69 +1231,7 @@ program multifluid
                         opx(i,j,k,m)=orho(i,j,k,m)*rvx
                         opy(i,j,k,m)=orho(i,j,k,m)*rvy
                         opz(i,j,k,m)=0.
-                        !
-                        epres(i,j,k,m)=(qpresx(i,j,k,m)+hpresx(i,j,k,m)+ &
-                            opresx(i,j,k,m))/ti_te
-                        !
-                        !  check for enceladus plasma torus additions
-                        !
-                        ar_encel=sqrt(ax**2+ay**2)*re_equiv
-                        dr_encel=abs(ar_encel -lunar_dist)
 
-                        ! MAT - Corrected, according to 
-                        !   doi:10.1029/2009JE003372
-                        !   and
-                        !   doi:10.1029/JA091iA08p08749
-                        !
-                        if(abs(dr_encel.lt.2.*torus_rad)) then
-                            ! scale height in R_Saturns
-                            rscale=exp(-((dr_encel)/(0.5*torus_rad))**2) 
-                            zscale=exp(-((az*re_equiv)/(0.5*torus_rad))**2)
-                            !
-                            ! Inject W+ (O+,OH+,H2O+,H3O+)
-                            !
-                            hden=den_lunar*rmassh*rscale*zscale
-                            hrho(i,j,k,m)=hrho(i,j,k,m)+hden
-                            !temp goes as v**2
-                            del_hp=(hden/rmassh)*(corotate**2)*t_torus
-                            hpresx(i,j,k,m)=hpresx(i,j,k,m)+del_hp
-                                hpresy(i,j,k,m)=hpresx(i,j,k,m)
-                                hpresz(i,j,k,m)=hpresx(i,j,k,m)
-
-                            hpx(i,j,k,m)=hpx(i,j,k,m)+reduct*hden*rvx
-                            hpy(i,j,k,m)=hpy(i,j,k,m)+reduct*hden*rvy
-                            !
-                            ! Inject H+ 
-                            !
-                            qden=0.0731*hden*rmassq/rmassh 
-                            qrho(i,j,k,m)=qrho(i,j,k,m)+qden
-                            !temp goes as v**2
-                            del_qp=(qden/rmassq)*(corotate**2)*t_torus
-                            qpresx(i,j,k,m)=qpresx(i,j,k,m)+del_qp
-                                qpresy(i,j,k,m)=qpresx(i,j,k,m)
-                                qpresz(i,j,k,m)=qpresx(i,j,k,m)
-                            
-                            qpx(i,j,k,m)=qpx(i,j,k,m)+reduct*qden*rvx
-                            qpy(i,j,k,m)=qpy(i,j,k,m)+reduct*qden*rvy
-                            !
-                            ! Inject O2+ 
-                            !
-                            oden=1.93E-3*hden*rmasso/rmassh 
-                            orho(i,j,k,m)=orho(i,j,k,m)+oden
-                            !temp goes as v**2
-                            del_op=(oden/rmasso)*(corotate**2)*t_torus    
-                            opresx(i,j,k,m)=opresx(i,j,k,m)+del_op
-                                opresy(i,j,k,m)=opresx(i,j,k,m)
-                                opresz(i,j,k,m)=opresx(i,j,k,m)
-
-                            opx(i,j,k,m)=opx(i,j,k,m)+reduct*oden*rvx
-                            opy(i,j,k,m)=opy(i,j,k,m)+reduct*oden*rvy
-                            ! equal temps
-                            epres(i,j,k,m)=(qpresx(i,j,k,m)+hpresx(i,j,k,m)+ &
-                                opresx(i,j,k,m))/ti_te
-                            !
-                        endif
-                        !
                         bx(i,j,k,m)=0.
                         by(i,j,k,m)=0.
                         bz(i,j,k,m)=0.
@@ -1368,7 +1261,6 @@ program multifluid
                                 ijmid(m,1,nummid(m))=i
                                 ijmid(m,2,nummid(m))=j
                                 ijmid(m,3,nummid(m))=k
-                                ar2=sqrt(xp**2+ay**2)
                                 parm_mid(m,1,nummid(m))=qrho(i,j,k,m)
                                 parm_mid(m,2,nummid(m))=hrho(i,j,k,m)
                                 parm_mid(m,3,nummid(m))=orho(i,j,k,m)
@@ -1382,7 +1274,6 @@ program multifluid
                                 ijsrf(m,1,numsrf(m))=i
                                 ijsrf(m,2,numsrf(m))=j
                                 ijsrf(m,3,numsrf(m))=k
-                                ar2=sqrt(xp**2+ay**2)
                                 parm_srf(m,1,numsrf(m))=qrho(i,j,k,m)
                                 parm_srf(m,2,numsrf(m))=hrho(i,j,k,m)
                                 parm_srf(m,3,numsrf(m))=orho(i,j,k,m)
@@ -1407,7 +1298,9 @@ program multifluid
         !       the earth at a radius of re_wind
         !
         wind_bnd=r_rot/re_equiv
-        ofrac=rho_frac
+        ofrac=rho_frac*o_conc
+        hfrac=rho_frac
+
         do m=1,ngrd
             !
             dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
@@ -1757,7 +1650,7 @@ program multifluid
             vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
             rmassq,rmassh,rmasso,nx,ny,nz,ngrd,m, &
             pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-            vlim,alf_lim,o_conc,fastest,isotropic)
+            vlim,alf_lim,o_conc,fastest)
         write(6,195)m,csmax,alfmax,pxmax,pymax,pzmax
         195   format(1x,i2,5(1x,1pe12.5))
         !
@@ -2227,7 +2120,7 @@ program multifluid
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
                         nx,ny,nz,ngrd,m,0.5*delt,grav,re_equiv,reynolds, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-                        grd_zmin,grd_zmax,ani_q,isotropic)
+                        grd_zmin,grd_zmax,ani_q)
            
                     !      write(6,*)' push ion 2 ing now'
                     call push_ion(wrkhrho,wrkhpresx,wrkhpresy,wrkhpresz, &
@@ -2242,7 +2135,7 @@ program multifluid
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
                         nx,ny,nz,ngrd,m,0.5*delt,grav,re_equiv,reynolds, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-                        grd_zmin,grd_zmax,ani_h,isotropic)
+                        grd_zmin,grd_zmax,ani_h)
                     !
                     !      write(6,*)' push ion 3 ing now'
                     call push_ion(wrkorho,wrkopresx,wrkopresy,wrkopresz, &
@@ -2257,7 +2150,7 @@ program multifluid
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
                         nx,ny,nz,ngrd,m,0.5*delt,grav,re_equiv,reynolds, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-                        grd_zmin,grd_zmax,ani_o,isotropic)
+                        grd_zmin,grd_zmax,ani_o)
                     !
                     call push_bfld(wrkbx,wrkby,wrkbz,oldbx,oldby,oldbz, &
                         efldx,efldy,efldz,nx,ny,nz,ngrd,m,0.5*delt, &
@@ -2287,7 +2180,7 @@ program multifluid
                             rmassq,rmassh,rmasso,wrkbx,wrkby,wrkbz, &
                             bx0,by0,bz0,nx,ny,nz,ngrd, &
                             srho,rho_frac,o_conc,spress,spx,spy,spz, &
-                            sbx_wind,sby_wind,sbz_wind,ti_te,isotropic)
+                            sbx_wind,sby_wind,sbz_wind,ti_te)
                     else
                         t_grd=t_old(m)+delt2
                         if(t_grd.gt.t_new(m+1))then
@@ -2394,7 +2287,7 @@ program multifluid
                         vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
                         rmassq,rmassh,rmasso,nx,ny,nz,ngrd,m, &
                         pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-                        vlim,alf_lim,o_conc,fastest,isotropic)
+                        vlim,alf_lim,o_conc,fastest)
                     !
                     !
                     !      ***********************************************************
@@ -2471,7 +2364,7 @@ program multifluid
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
                         nx,ny,nz,ngrd,m,delt,grav,re_equiv,reynolds, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-                        grd_zmin,grd_zmax,ani_q,isotropic)
+                        grd_zmin,grd_zmax,ani_q)
                     !
                     !      write(6,*)' push ion 2 ing now'
                     call push_ion(hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -2486,7 +2379,7 @@ program multifluid
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
                         nx,ny,nz,ngrd,m,delt,grav,re_equiv,reynolds, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-                        grd_zmin,grd_zmax,ani_h,isotropic)
+                        grd_zmin,grd_zmax,ani_h)
                     !
                     !       write(6,*)' push ion 3 ing now'
                     call push_ion(orho,opresx,opresy,opresz,opx,opy,opz, &
@@ -2501,7 +2394,7 @@ program multifluid
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
                         nx,ny,nz,ngrd,m,delt,grav,re_equiv,reynolds, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-                        grd_zmin,grd_zmax,ani_o,isotropic)
+                        grd_zmin,grd_zmax,ani_o)
                     !
                     call push_bfld(bx,by,bz,oldbx,oldby,oldbz, &
                         efldx,efldy,efldz,nx,ny,nz,ngrd,m,delt, &
@@ -2528,7 +2421,7 @@ program multifluid
                             rmassq,rmassh,rmasso,bx,by,bz, &
                             bx0,by0,bz0,nx,ny,nz,ngrd, &
                             srho,rho_frac,o_conc,spress,spx,spy,spz, &
-                            sbx_wind,sby_wind,sbz_wind,ti_te,isotropic)
+                            sbx_wind,sby_wind,sbz_wind,ti_te)
                     else
                         t_grd=t_old(m)+delt
                         if(t_grd.gt.t_new(m+1))then
@@ -2623,7 +2516,7 @@ program multifluid
                         vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
                         rmassq,rmassh,rmasso,nx,ny,nz,ngrd,m, &
                         pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-                        vlim,alf_lim,o_conc,fastest,isotropic)
+                        vlim,alf_lim,o_conc,fastest)
                     !     .......................................................
                     !     try lapdius smoothing - smoothed results will appear in nt2
                     !     .......................................................
@@ -2651,7 +2544,7 @@ program multifluid
                         wrkqpresxy,wrkqpresxz,wrkqpresyz, &
                         curx,cury,curz, &
                         nx,ny,nz,ngrd,m, &
-                        chirho,chipxyz,chierg,delt,isotropic)
+                        chirho,chipxyz,chierg,delt)
                     !
                     !     species 2
                     !
@@ -2667,7 +2560,7 @@ program multifluid
                         wrkhpresxy,wrkhpresxz,wrkhpresyz, &
                         curx,cury,curz, &
                         nx,ny,nz,ngrd,m, &
-                        chirho,chipxyz,chierg,delt,isotropic)
+                        chirho,chipxyz,chierg,delt)
                     !
                     !     species 3
                     !
@@ -2683,7 +2576,7 @@ program multifluid
                         wrkopresxy,wrkopresxz,wrkopresyz, &
                         curx,cury,curz, &
                         nx,ny,nz,ngrd,m, &
-                        chirho,chipxyz,chierg,delt,isotropic)
+                        chirho,chipxyz,chierg,delt)
                     !
                     !     electrons
                     !
@@ -2727,7 +2620,7 @@ program multifluid
                             rmassq,rmassh,rmasso,wrkbx,wrkby,wrkbz, &
                             bx0,by0,bz0,nx,ny,nz,ngrd, &
                             srho,rho_frac,o_conc,spress,spx,spy,spz, &
-                            sbx_wind,sby_wind,sbz_wind,ti_te,isotropic)
+                            sbx_wind,sby_wind,sbz_wind,ti_te)
                     else
                         call bndry_flanks( &
                             wrkqrho,wrkqpx,wrkqpy,wrkqpz, &
@@ -2824,7 +2717,7 @@ program multifluid
                         vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
                         rmassq,rmassh,rmasso,nx,ny,nz,ngrd,m, &
                         pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-                        vlim,alf_lim,o_conc,fastest,isotropic)
+                        vlim,alf_lim,o_conc,fastest)
                     !
                     !     write(6,994)
                     ! 994 format(' lapidus done')
@@ -2866,8 +2759,7 @@ program multifluid
                         epres,wrkepres,oldepres, &
                         bx,by,bz,wrkbx,wrkby,wrkbz, &
                         oldbx,oldby,oldbz,vvx,vvy,vvz, &
-                        nx,ny,nz,ngrd,m,difrho,diferg,xspac, &
-                        isotropic)
+                        nx,ny,nz,ngrd,m,difrho,diferg,xspac)
                     !
                     !      set bndry conditions
                     !
@@ -2883,7 +2775,7 @@ program multifluid
                             rmassq,rmassh,rmasso,bx,by,bz, &
                             bx0,by0,bz0,nx,ny,nz,ngrd, &
                             srho,rho_frac,o_conc,spress,spx,spy,spz, &
-                            sbx_wind,sby_wind,sbz_wind,ti_te,isotropic)
+                            sbx_wind,sby_wind,sbz_wind,ti_te)
                     else
                         call bndry_flanks( &
                             qrho,qpx,qpy,qpz, &
@@ -2973,7 +2865,7 @@ program multifluid
                         vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
                         rmassq,rmassh,rmasso,nx,ny,nz,ngrd,m, &
                         pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-                        vlim,alf_lim,o_conc,fastest,isotropic)
+                        vlim,alf_lim,o_conc,fastest)
 
                         t_stepnew(m)=stepsz*xspac(m)/fastest
                     !     write(6,*)'needed step of',t_step(m),t_stepnew(m)
@@ -3162,117 +3054,76 @@ program multifluid
                 enddo  !end bndry_corer
             endif  ! end divb_lores
             !
-            ! check for enceladus plasma torus additions
+            ! rescale oxygen density at inner boundary by oxygen scale
             !
             if(ringo)then
                 m=1
-                dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-                dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-                dz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+                rx=xspac(m)
+                ry=xspac(m)
+                rz=xspac(m)
                 !
-                tot_o=0.
-                tot_h=0.
-                tot_q=0.
+                call calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
+                    rx,ry,rz)
+    
+                !
+                ! field aligned currents
                 !
                 do k=1,nz
-                    az=(grd_zmin(m)+dz*(k-1)-zdip)
                     do j=1,ny
-                        ay=grd_ymin(m)+dy*(j-1)-ydip
                         do i=1,nx
-                            ax=(grd_xmin(m)+dx*(i-1)-xdip)
-                            !
-                            rx=ax*re_equiv
-                            ry=ay*re_equiv
-                            rd=sqrt(rx**2+ry**2)
-                            !
-                            rvy=rx*v_rot
-                            rvx=-ry*v_rot
-                            rvz=0.
-                            corotate=sqrt(rvx**2+rvy**2)
-                            !
-                            ar_encel=sqrt(ax**2+ay**2)*re_equiv
-                            dr_encel=abs(ar_encel -lunar_dist)
-      
-                            ! MAT - Corrected, according to 
-                            !   doi:10.1029/2009JE003372
-                            !   and
-                            !   doi:10.1029/JA091iA08p08749
-                            !
-                            if(abs(dr_encel.lt.2.*torus_rad)) then
-                                ! scale height in R_Saturns
-                                rscale=exp(-((dr_encel)/(0.5*torus_rad))**2) 
-                                zscale=exp(-((az*re_equiv)/(0.5*torus_rad))**2)
-                                !
-                                ! Inject W+ (O+,OH+,H2O+,H3O+)
-                                !
-                                hden=den_lunar*rmassh*rscale*zscale
-                                hrho(i,j,k,m)=hrho(i,j,k,m)+hden
-                                !temp goes as v**2
-                                del_hp=(hden/rmassh)*(corotate**2)*t_torus
-                                hpresx(i,j,k,m)=hpresx(i,j,k,m)+del_hp
-                                    hpresy(i,j,k,m)=hpresx(i,j,k,m)
-                                    hpresz(i,j,k,m)=hpresx(i,j,k,m)
-    
-                                hpx(i,j,k,m)=hpx(i,j,k,m)+reduct*hden*rvx
-                                hpy(i,j,k,m)=hpy(i,j,k,m)+reduct*hden*rvy
-                                !
-                                ! Inject H+ 
-                                !
-                                qden=0.0731*hden*rmassq/rmassh 
-                                qrho(i,j,k,m)=qrho(i,j,k,m)+qden
-                                !temp goes as v**2
-                                del_qp=(qden/rmassq)*(corotate**2)*t_torus
-                                qpresx(i,j,k,m)=qpresx(i,j,k,m)+del_qp
-                                    qpresy(i,j,k,m)=qpresx(i,j,k,m)
-                                    qpresz(i,j,k,m)=qpresx(i,j,k,m)
-                                
-                                qpx(i,j,k,m)=qpx(i,j,k,m)+reduct*qden*rvx
-                                qpy(i,j,k,m)=qpy(i,j,k,m)+reduct*qden*rvy
-                                !
-                                ! Inject O2+ 
-                                !
-                                oden=1.93E-3*hden*rmasso/rmassh 
-                                orho(i,j,k,m)=orho(i,j,k,m)+oden
-                                !temp goes as v**2
-                                del_op=(oden/rmasso)*(corotate**2)*t_torus    
-                                opresx(i,j,k,m)=opresx(i,j,k,m)+del_op
-                                    opresy(i,j,k,m)=opresx(i,j,k,m)
-                                    opresz(i,j,k,m)=opresx(i,j,k,m)
-    
-                                opx(i,j,k,m)=opx(i,j,k,m)+reduct*oden*rvx
-                                opy(i,j,k,m)=opy(i,j,k,m)+reduct*oden*rvy
-                                ! equal temps
-                                epres(i,j,k,m)=epres(i,j,k,m)+(del_op+del_hp+del_qp)
-                                !
-                                tot_q=tot_q+qden*dx*dy*dz
-                                tot_h=tot_h+hden*dx*dy*dz
-                                tot_o=tot_o+oden*dx*dy*dz
-                                !
-                            endif
+                            abx=bx(i,j,k,m)+bx0(i,j,k,m)
+                            aby=by(i,j,k,m)+by0(i,j,k,m)
+                            abz=bz(i,j,k,m)+bz0(i,j,k,m)
+                            abmag=sqrt(abx**2+aby**2+abz**2) &
+                                + 0.00000001
+                            btot(i,j,k)=(curx(i,j,k)*abx+cury(i,j,k)*aby &
+                                + curz(i,j,k)*abz)/abmag
                         enddo
                     enddo
                 enddo
                 !
-                !     scale factors to kg/s
+                save_dat=.false.
+                add_dip=.false.
                 !
-                volume=(re_equiv*planet_rad*1.e3)**3  !(cubic meters)
-                atime=tsave*t_equiv
-                injections=tstep/tsave
-                proton_mass=1.67e-27
-                write(6,*)'volume,t_equiv,atime',ut,volume,t_equiv,atime
+                radstrt=rearth+8.
+    
+                write(6,*)'entering aurora_cur', radstrt
+                call aurora_cur(btot,nx,ny,nz,m,radstrt,re_equiv,1, &
+                    ut,save_dat,add_dip,'cur4 nth',14,write_dat, &
+                    b_equiv,planet_rad,tot_cur_nth,peak_cur_nth)
+    
+                old_o_conc=o_conc
+    
+                if(tot_cur_nth.gt.cur_max)then
+                    o_conc=o_conc_max
+                else if(tot_cur_nth.gt.cur_min)then
+                    o_conc=o_conc_min+(o_conc_max-o_conc_min)* &
+                    (tot_cur_nth-cur_min)/(cur_max-cur_min)
+                else
+                    o_conc=o_conc_min
+                endif
+    
+                write(10,*)ut,tot_cur_nth,o_conc,old_o_conc
                 !
-                tot_q=tot_q*volume/atime*rho_equiv*1.e6/rmassq
-                tot_h=tot_h*volume/atime*rho_equiv*1.e6/rmassh
-                tot_o=tot_o*volume/atime*rho_equiv*1.e6/rmasso
-                write(6,*)'tot torus ions/s',ut,tot_q,tot_h,tot_o
-                write(10,*)'tot torus ions/s',ut,tot_q,tot_h,tot_o
+                do n=1,numsrf(mbndry)
+                    parm_srf(mbndry,3,n)=o_conc*(rmasso/rmassh)*parm_srf(mbndry,2,n)
+                    parm_srf(mbndry,6,n)=o_conc*parm_srf(mbndry,5,n)
+                    parm_srf(mbndry,7,n)=(parm_srf(mbndry,5,n)+ parm_srf(mbndry,6,n))/ti_te
+                enddo
                 !
-                tot_q=tot_q*proton_mass*rmassq
-                tot_h=tot_h*proton_mass*rmassh
-                tot_o=tot_o*proton_mass*rmasso
-                write(6,*)'injections',injections, '  single at'
-                write(6,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
-                write(10,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
+                do n=1,nummid(mbndry)
+                    parm_mid(mbndry,3,n)=o_conc*(rmasso/rmassh)*parm_mid(mbndry,2,n)
+                    parm_mid(mbndry,6,n)=o_conc*parm_mid(mbndry,5,n)
+                    parm_mid(mbndry,7,n)=(parm_mid(mbndry,5,n)+ parm_mid(mbndry,6,n))/ti_te
+                enddo
+         
+                do n=1,numzero(mbndry)
+                    parm_zero(mbndry,3,n)=o_conc*(rmasso/rmassh)*parm_zero(mbndry,2,n)
+                    parm_zero(mbndry,6,n)=o_conc*parm_zero(mbndry,5,n)
+                    parm_zero(mbndry,7,n)=(parm_zero(mbndry,5,n)+ parm_zero(mbndry,6,n))/ti_te
+                enddo
+                !
+                !
                 !
             endif  ! end ringo if
             !
@@ -3407,7 +3258,7 @@ subroutine set_resist(rst,nx,ny,nz,mbndry,resist, &
     !
     !     interior resistivity
     !
-    do n=1,numzero(m)
+    do n=1,numzero(mbndry)
         do m=1,mbndry
             i=ijzero(m,1,n)
             j=ijzero(m,2,n)
@@ -3419,7 +3270,7 @@ subroutine set_resist(rst,nx,ny,nz,mbndry,resist, &
     !
     !     lower ionosphere resistivity
     !
-    do n=1,nummid(m)
+    do n=1,nummid(mbndry)
         do m=1,mbndry
             i=ijmid(m,1,n)
             j=ijmid(m,2,n)
@@ -3431,7 +3282,7 @@ subroutine set_resist(rst,nx,ny,nz,mbndry,resist, &
     !
     !     upper ionosphere
     !
-    do n=1,numsrf(m)
+    do n=1,numsrf(mbndry)
         do m=1,mbndry
             i=ijsrf(m,1,n)
             j=ijsrf(m,2,n)
@@ -3752,7 +3603,7 @@ subroutine mak_dip_all(bx0,by0,bz0,nx,ny,nz,ngrd, &
                     !
                     !        cartesian equivalent
                     !
-                    bmag=-b0/ar**5
+                    bmag=b0/ar**5
                     dbx=-3.*bmag*xp*zp
                     dby=-3.*bmag*yp*zp
     
@@ -3873,7 +3724,7 @@ subroutine mak_dip_grd(bx0,by0,bz0,nx,ny,nz,ngrd, &
                 !
                 !        cartesian equivalent
                 !
-                bmag=-b0/ar**5
+                bmag=b0/ar**5
                 dbx=-3.*bmag*xp*zp
                 dby=-3.*bmag*yp*zp
     
@@ -3994,7 +3845,7 @@ subroutine mak_dip_moon(bx0,by0,bz0,nx,ny,nz,ngrd, &
                 !
                 !        cartesian equivalent
                 !
-                bmag=-b0/ar**5
+                bmag=b0/ar**5
                 dbx=-3.*bmag*xp*zp
                 dby=-3.*bmag*yp*zp
     
@@ -4034,7 +3885,7 @@ end
 !
 !     *************************************************
 !
-subroutine dipole(abx,aby,abz,ax,ay,az)
+subroutine dipole(abx,aby,abz,ax,ay,az,rearth)
     !
     !     calculates magnetic field for a dipole
     !
@@ -4067,7 +3918,7 @@ subroutine dipole(abx,aby,abz,ax,ay,az)
     !
     !        cartesian equivalent
     !
-    bmag=-b0/ar**5
+    bmag=b0*rearth**3./ar**5
     dbx=-3.*bmag*xp*zp
     dby=-3.*bmag*yp*zp
     dbz=bmag*(x2+y2-2.*z2)
