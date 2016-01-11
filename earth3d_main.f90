@@ -21,7 +21,7 @@
 !       ncts is the size of the data array for the imf data file
 !
 program multifluid
-    integer,parameter :: nx=121,ny=121,nz=61,ngrd=3, &
+    integer,parameter :: nx=61,ny=61,nz=33,ngrd=3, &
     mbndry=1,msrf=2000,mmid=1500,mzero=5000, &
     ncraft=30,ncts=281
     !
