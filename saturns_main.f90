@@ -2312,8 +2312,8 @@ subroutine bndry_inner( &
         !
         !        qden=parm_srf(1,n)
         qden=amax1(parm_srf(m,1,n),qrho(i,j,k,m))
-        hden=parm_srf(m,2,n)
-        oden=parm_srf(m,3,n)
+        hden=amax1(parm_srf(m,2,n),hrho(i,j,k,m))
+        oden=amax1(parm_srf(m,3,n),orho(i,j,k,m))
     
         qrho(i,j,k,m)=qden
         hrho(i,j,k,m)=hden

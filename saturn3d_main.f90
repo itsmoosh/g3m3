@@ -2947,8 +2947,8 @@ program multifluid
                             !
                             hden=den_lunar*rmassh*rscale*zscale*dscale
                             hrho(i,j,k,m)=hrho(i,j,k,m)+hden
-                            !temp goes as v**2
-                            del_hp=(hden/rmassh)*(corotate**2)*t_torus
+                            !temp goes as rho*v**2
+                            del_hp=hden*(corotate**2)*t_torus
                             hpresx(i,j,k,m)=hpresx(i,j,k,m)+del_hp
                             hpresy(i,j,k,m)=hpresy(i,j,k,m)+del_hp
                             hpresz(i,j,k,m)=hpresz(i,j,k,m)+del_hp*aniso_factor
