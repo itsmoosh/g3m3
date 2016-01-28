@@ -2885,9 +2885,12 @@ program multifluid
             !         over desired scales
             !
             519  write(6,*)'graphics plotted'
-            call visual(qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz,rmassq, &
-                hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz,rmassh, &
-                orho,opresx,opresy,opresz,opx,opy,opz,rmasso, &
+            call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
+                qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
+                hrho,hpresx,hpresy,hpresz,hpresxy, &
+                hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
+                orho,opresx,opresy,opresz,opresxy, &
+                opresxz,opresyz,opx,opy,opz,rmasso, &
                 epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
                 curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
                 tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
