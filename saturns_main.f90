@@ -214,22 +214,9 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
                 qvcrossb_y=-(qvx(i,j,k)*abz-qvz(i,j,k)*abx)
                 qvcrossb_z=(qvx(i,j,k)*aby-qvy(i,j,k)*abx)
                 
-                if(isotropic) then
-                    qgradp_x=(wrkqpresx(ii,j,k,m)-wrkqpresx(im,j,k,m))/dxt
-                    qgradp_y=(wrkqpresx(i,jj,k,m)-wrkqpresx(i,jm,k,m))/dyt
-                    qgradp_z=(wrkqpresx(i,j,kk,m)-wrkqpresx(i,j,km,m))/dzt
-                else
-                    qgradp_x=(wrkqpresx(ii,j,k,m)-wrkqpresx(im,j,k,m))/dxt &
-                        +(wrkqpresxy(i,jj,k,m)-wrkqpresxy(i,jm,k,m))/dxt &
-                        +(wrkqpresxz(i,j,kk,m)-wrkqpresxz(i,j,km,m))/dxt
-                    qgradp_y=(wrkqpresxy(ii,j,k,m)-wrkqpresxy(im,j,k,m))/dxt &
-                        +(wrkqpresy(i,jj,k,m)-wrkqpresy(i,jm,k,m))/dyt &
-                        +(wrkqpresyz(i,j,kk,m)-wrkqpresyz(i,j,km,m))/dxt
-                    qgradp_z=(wrkqpresxz(ii,j,k,m)-wrkqpresxz(im,j,k,m))/dxt &
-                        +(wrkqpresyz(i,jj,k,m)-wrkqpresyz(i,jm,k,m))/dyt &
-                        +(wrkqpresz(i,j,kk,m)-wrkqpresz(i,j,km,m))/dzt
-                endif ! if(isotropic)
-
+                qgradp_x=(wrkqpresx(ii,j,k,m)-wrkqpresx(im,j,k,m))/dxt
+                qgradp_y=(wrkqpresx(i,jj,k,m)-wrkqpresx(i,jm,k,m))/dyt
+                qgradp_z=(wrkqpresx(i,j,kk,m)-wrkqpresx(i,j,km,m))/dzt
                 !
                 !       using straight electric field approach
                 !
@@ -267,176 +254,23 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
                 qpy(i,j,k,m)=qpy(i,j,k,m)-g*ay/radius
                 qpz(i,j,k,m)=qpz(i,j,k,m)-g*az/radius
    
-                if(isotropic) then
-                    qpresx(i,j,k,m)=oldqpresx(i,j,k,m)-delt*gamma* &
-                        ( ( (wrkqpresx(ii,j,k,m)*qvx(ii,j,k) &
-                        -wrkqpresx(im,j,k,m)*qvx(im,j,k))/dxt ) + &
-                        ( (wrkqpresx(i,jj,k,m)*qvy(i,jj,k) &
-                        -wrkqpresx(i,jm,k,m)*qvy(i,jm,k))/dyt ) + &
-                        ( (wrkqpresx(i,j,kk,m)*qvz(i,j,kk) &
-                        -wrkqpresx(i,j,km,m)*qvz(i,j,km))/dzt ) )
-                    qpresx(i,j,k,m)=qpresx(i,j,k,m) &
-                        + delt*gamma1/wrkqrho(i,j,k,m)* ( &
-                        wrkqpx(i,j,k,m)*qgradp_x+wrkqpy(i,j,k,m)*qgradp_y &
-                        +wrkqpz(i,j,k,m)*qgradp_z )
+                qpresx(i,j,k,m)=oldqpresx(i,j,k,m)-delt*gamma* &
+                    ( ( (wrkqpresx(ii,j,k,m)*qvx(ii,j,k) &
+                    -wrkqpresx(im,j,k,m)*qvx(im,j,k))/dxt ) + &
+                    ( (wrkqpresx(i,jj,k,m)*qvy(i,jj,k) &
+                    -wrkqpresx(i,jm,k,m)*qvy(i,jm,k))/dyt ) + &
+                    ( (wrkqpresx(i,j,kk,m)*qvz(i,j,kk) &
+                    -wrkqpresx(i,j,km,m)*qvz(i,j,km))/dzt ) )
+                qpresx(i,j,k,m)=qpresx(i,j,k,m) &
+                    + delt*gamma1/wrkqrho(i,j,k,m)* ( &
+                    wrkqpx(i,j,k,m)*qgradp_x+wrkqpy(i,j,k,m)*qgradp_y &
+                    +wrkqpz(i,j,k,m)*qgradp_z )
 
                     qpresy(i,j,k,m) = qpresx(i,j,k,m)
                     qpresz(i,j,k,m) = qpresx(i,j,k,m)
                     qpresxy(i,j,k,m) = 0.
                     qpresxz(i,j,k,m) = 0.
                     qpresyz(i,j,k,m) = 0.
-                else
-                    !
-                    !       pressure equations: isotropic components
-                    !
-                    !
-                    qpresx(i,j,k,m)=oldqpresx(i,j,k,m)-delt* &
-                        ( ( (wrkqpresx(ii,j,k,m)*qvx(ii,j,k) &
-                        -wrkqpresx(im,j,k,m)*qvx(im,j,k))/dxt ) + &
-                        ( (wrkqpresx(i,jj,k,m)*qvy(i,jj,k) &
-                        -wrkqpresx(i,jm,k,m)*qvy(i,jm,k))/dyt ) + &
-                        ( (wrkqpresx(i,j,kk,m)*qvz(i,j,kk) &
-                        -wrkqpresx(i,j,km,m)*qvz(i,j,km))/dzt ) ) &
-                        -2.*delt*wrkqpresx(i,j,k,m) &
-                        *(qvx(ii,j,k)-qvx(im,j,k))/dxt
-                    !
-                    qpresy(i,j,k,m)=oldqpresy(i,j,k,m)-delt* &
-                        ( ( (wrkqpresy(ii,j,k,m)*qvx(ii,j,k) &
-                        -wrkqpresy(im,j,k,m)*qvx(im,j,k))/dxt ) + &
-                        ( (wrkqpresy(i,jj,k,m)*qvy(i,jj,k) &
-                        -wrkqpresy(i,jm,k,m)*qvy(i,jm,k))/dyt ) + &
-                        ( (wrkqpresy(i,j,kk,m)*qvz(i,j,kk) &
-                        -wrkqpresy(i,j,km,m)*qvz(i,j,km))/dzt ) ) &
-                        -2.*delt*wrkqpresy(i,j,k,m) &
-                        * (qvy(i,jj,k)-qvy(i,jm,k))/dyt
-                    !
-                    qpresz(i,j,k,m)=oldqpresz(i,j,k,m)-delt* &
-                        ( ( (wrkqpresz(ii,j,k,m)*qvx(ii,j,k) &
-                        -wrkqpresz(im,j,k,m)*qvx(im,j,k))/dxt ) + &
-                        ( (wrkqpresz(i,jj,k,m)*qvy(i,jj,k) &
-                        -wrkqpresz(i,jm,k,m)*qvy(i,jm,k))/dyt ) + &
-                        ( (wrkqpresz(i,j,kk,m)*qvz(i,j,kk) &
-                        -wrkqpresz(i,j,km,m)*qvz(i,j,km))/dzt ) ) &
-                        -2.*delt*wrkqpresz(i,j,k,m) &
-                        *(qvz(i,j,kk)-qvz(i,j,km))/dzt
-                    !
-                    !       add in anisotropic components
-                    !
-                    abx=(6.*bsx(i,j,k)+bsx(i+1,j,k)+bsx(i-1,j,k) &
-                        +bsx(i,j+1,k)+bsx(i,j-1,k) &
-                        +bsx(i,j,k+1)+bsx(i,j,k-1))/12.
-                        aby=(6.*bsy(i,j,k)+bsy(i+1,j,k)+bsy(i-1,j,k) &
-                        +bsy(i,j+1,k)+bsy(i,j-1,k) &
-                        +bsy(i,j,k+1)+bsy(i,j,k-1))/12.
-                        abz=(6.*bsz(i,j,k)+bsz(i+1,j,k)+bsz(i-1,j,k) &
-                        +bsz(i,j+1,k)+bsz(i,j-1,k) &
-                        +bsz(i,j,k+1)+bsz(i,j,k-1))/12.
-                    bmag=sqrt(abx**2+aby**2+abz**2)
-                    !
-                    skin_factor=reynolds
-                    if(bmag.gt.bmax)skin_factor=reynolds*(bmax/bmag)
-                    !
-                    qpresx(i,j,k,m)=qpresx(i,j,k,m) &
-                        -2.*delt*wrkqpresxy(i,j,k,m) &
-                        *(qvx(i,jj,k)-qvx(i,jm,k))/dyt &
-                        -2.*delt*wrkqpresxz(i,j,k,m) &
-                        *(qvx(i,j,kk)-qvx(i,j,km))/dzt &
-                        +2.*delt*skin_factor/rmass*( &
-                        wrkqpresxy(i,j,k,m)*abz &
-                        -wrkqpresxz(i,j,k,m)*aby )
-        
-                    qpresy(i,j,k,m)=qpresy(i,j,k,m) &
-                        -2.*delt*wrkqpresxy(i,j,k,m) &
-                        * (qvy(ii,j,k)-qvy(im,j,k))/dxt &
-                        -2.*delt*wrkqpresyz(i,j,k,m) &
-                        * (qvy(i,j,kk)-qvy(i,j,km))/dzt &
-                        +2.*delt*skin_factor/rmass*( &
-                        wrkqpresyz(i,j,k,m)*abx &
-                        -wrkqpresxy(i,j,k,m)*abz )
-                    !
-                    qpresz(i,j,k,m)=qpresz(i,j,k,m) &
-                        -2.*delt*wrkqpresxz(i,j,k,m) &
-                        *(qvz(ii,j,k)-qvz(im,j,k))/dxt &
-                        -2.*delt*wrkqpresyz(i,j,k,m) &
-                        *(qvz(i,jj,k)-qvz(i,jm,k))/dyt &
-                        +2.*delt*skin_factor/rmass*( &
-                        wrkqpresxz(i,j,k,m)*aby &
-                        -wrkqpresyz(i,j,k,m)*abx )
-                    !
-                    !       pressure equations: offdiagonal elements
-                    !
-                    qpresxy(i,j,k,m)=oldqpresxy(i,j,k,m)-delt* &
-                        ( ( (wrkqpresxy(ii,j,k,m)*qvx(ii,j,k) &
-                        -wrkqpresxy(im,j,k,m)*qvx(im,j,k))/dxt ) + &
-                        ( (wrkqpresxy(i,jj,k,m)*qvy(i,jj,k) &
-                        -wrkqpresxy(i,jm,k,m)*qvy(i,jm,k))/dyt ) + &
-                        ( (wrkqpresxy(i,j,kk,m)*qvz(i,j,kk) &
-                        -wrkqpresxy(i,j,km,m)*qvz(i,j,km))/dzt ) )
-
-                    qpresxy(i,j,k,m)=qpresxy(i,j,k,m) &
-                        -delt*wrkqpresxy(i,j,k,m) &
-                        *( (qvx(ii,j,k)-qvx(im,j,k))/dxt &
-                        +(qvy(i,jj,k)-qvy(i,jm,k))/dyt ) &
-                        -delt*wrkqpresy(i,j,k,m) &
-                        *(qvx(i,jj,k)-qvx(i,jm,k))/dyt &
-                        -delt*wrkqpresx(i,j,k,m) &
-                        *(qvy(ii,j,k)-qvy(im,j,k))/dxt &
-                        -delt*wrkqpresyz(i,j,k,m) &
-                        *(qvx(i,j,kk)-qvx(i,j,km))/dzt &
-                        -delt*wrkqpresxz(i,j,k,m) &
-                        *(qvy(i,j,kk)-qvy(i,j,km))/dzt &
-                        +delt*skin_factor/rmass*( &
-                        abz*(wrkqpresy(i,j,k,m)-wrkqpresx(i,j,k,m)) &
-                        -aby*wrkqpresyz(i,j,k,m)+abx*wrkqpresxz(i,j,k,m))
-                    !
-                    qpresxz(i,j,k,m)=oldqpresxz(i,j,k,m)-delt* &
-                        ( ( (wrkqpresxz(ii,j,k,m)*qvx(ii,j,k) &
-                        -wrkqpresxz(im,j,k,m)*qvx(im,j,k))/dxt ) + &
-                        ( (wrkqpresxz(i,jj,k,m)*qvy(i,jj,k) &
-                        -wrkqpresxz(i,jm,k,m)*qvy(i,jm,k))/dyt ) + &
-                        ( (wrkqpresxz(i,j,kk,m)*qvz(i,j,kk) &
-                        -wrkqpresxz(i,j,km,m)*qvz(i,j,km))/dzt ) )
-                    qpresxz(i,j,k,m)=qpresxz(i,j,k,m) &
-                        -delt*wrkqpresxz(i,j,k,m) &
-                        *( (qvx(ii,j,k)-qvx(im,j,k))/dxt &
-                        +(qvz(i,j,kk)-qvz(i,j,km))/dzt ) &
-                        -delt*wrkqpresz(i,j,k,m) &
-                        *(qvx(i,j,kk)-qvx(i,j,km))/dzt &
-                        -delt*wrkqpresx(i,j,k,m) &
-                        *(qvz(ii,j,k)-qvz(im,j,k))/dxt &
-                        -delt*wrkqpresyz(i,j,k,m) &
-                        *(qvx(i,jj,k)-qvx(i,jm,k))/dyt &
-                        -delt*wrkqpresxy(i,j,k,m) &
-                        *(qvz(i,jj,k)-qvz(i,jm,k))/dyt &
-                        +delt*skin_factor/rmass*( &
-                        aby*(wrkqpresx(i,j,k,m)-wrkqpresz(i,j,k,m)) &
-                        -abx*wrkqpresxy(i,j,k,m)+abz*wrkqpresyz(i,j,k,m))
-                    !
-                    qpresyz(i,j,k,m)=oldqpresyz(i,j,k,m)-delt* &
-                        ( ( (wrkqpresyz(ii,j,k,m)*qvx(ii,j,k) &
-                        -wrkqpresyz(im,j,k,m)*qvx(im,j,k))/dxt ) + &
-                        ( (wrkqpresyz(i,jj,k,m)*qvy(i,jj,k) &
-                        -wrkqpresyz(i,jm,k,m)*qvy(i,jm,k))/dyt ) + &
-                        ( (wrkqpresyz(i,j,kk,m)*qvz(i,j,kk) &
-                        -wrkqpresyz(i,j,km,m)*qvz(i,j,km))/dzt ) )
-                    qpresyz(i,j,k,m)=qpresyz(i,j,k,m) &
-                        -delt*wrkqpresyz(i,j,k,m) &
-                        *( (qvy(i,jj,k)-qvy(i,jm,k))/dyt &
-                        +(qvz(i,j,kk)-qvz(i,j,km))/dzt ) &
-                        -delt*wrkqpresy(i,j,k,m) &
-                        *(qvz(i,jj,k)-qvz(i,jm,k))/dyt &
-                        -delt*wrkqpresz(i,j,k,m) &
-                        *(qvy(i,j,kk)-qvy(i,j,km))/dzt &
-                        -delt*wrkqpresxy(i,j,k,m) &
-                        *(qvz(ii,j,k)-qvz(im,j,k))/dxt &
-                        -delt*wrkqpresxz(i,j,k,m) &
-                        *(qvy(ii,j,k)-qvy(im,j,k))/dxt &
-                        +delt*skin_factor/rmass*( &
-                        abx*(wrkqpresz(i,j,k,m)-wrkqpresy(i,j,k,m)) &
-                        -abz*wrkqpresxz(i,j,k,m)+aby*wrkqpresxy(i,j,k,m))
-                endif !if(isotropic)
-                !
-                !
                 !
             enddo             ! k loop
         enddo             ! j loop
@@ -1132,73 +966,18 @@ subroutine lap_plasma(rho,px,py,pz, &
                     +deltz*(uzp1*(pz(i,j,kp,m)-pz(i,j,k,m)) &
                     -uzm1*(pz(i,j,k,m)-pz(i,j,km,m))) )
 
-                if(isotropic) then
-                    wrkpresx(i,j,k,m)=presx(i,j,k,m)+chipxyz*( &
-                        deltx*(uxp1*(presx(ip,j,k,m)-presx(i,j,k,m)) &
-                        -uxm1*(presx(i,j,k,m)-presx(im,j,k,m))) &
-                        +delty*(uyp1*(presx(i,jp,k,m)-presx(i,j,k,m)) &
-                        -uym1*(presx(i,j,k,m)-presx(i,jm,k,m))) &
-                        +deltz*(uzp1*(presx(i,j,kp,m)-presx(i,j,k,m)) &
-                        -uzm1*(presx(i,j,k,m)-presx(i,j,km,m))) )
-                    wrkpresy(i,j,k,m)=wrkpresx(i,j,k,m)
-                    wrkpresz(i,j,k,m)=wrkpresx(i,j,k,m)
-                    wrkpresxy(i,j,k,m)=0.0
-                    wrkpresxz(i,j,k,m)=0.0
-                    wrkpresyz(i,j,k,m)=0.0
-                else
-                    !
-                    !      diagonal elements
-                    !
-                    wrkpresx(i,j,k,m)=presx(i,j,k,m)+chipxyz*( &
-                        deltx*(uxp1*(presx(ip,j,k,m)-presx(i,j,k,m)) &
-                        -uxm1*(presx(i,j,k,m)- presx(im,j,k,m))) &
-                        +delty*(uyp1*(presx(i,jp,k,m)-presx(i,j,k,m)) &
-                        -uym1*(presx(i,j,k,m)- presx(i,jm,k,m))) &
-                        +deltz*(uzp1*(presx(i,j,kp,m)-presx(i,j,k,m)) &
-                        -uzm1*(presx(i,j,k,m)- presx(i,j,km,m))) )
-                    !
-                    wrkpresy(i,j,k,m)=presy(i,j,k,m)+chipxyz*( &
-                        deltx*(uxp1*(presy(ip,j,k,m)-presy(i,j,k,m)) &
-                        -uxm1*(presy(i,j,k,m)- presy(im,j,k,m))) &
-                        +delty*(uyp1*(presy(i,jp,k,m)-presy(i,j,k,m)) &
-                        -uym1*(presy(i,j,k,m)- presy(i,jm,k,m))) &
-                        +deltz*(uzp1*(presy(i,j,kp,m)-presy(i,j,k,m)) &
-                        -uzm1*(presy(i,j,k,m)- presy(i,j,km,m))) )
-                    !
-                    wrkpresz(i,j,k,m)=presz(i,j,k,m)+chipxyz*( &
-                        deltx*(uxp1*(presz(ip,j,k,m)-presz(i,j,k,m)) &
-                        -uxm1*(presz(i,j,k,m)- presz(im,j,k,m))) &
-                        +delty*(uyp1*(presz(i,jp,k,m)-presz(i,j,k,m)) &
-                        -uym1*(presz(i,j,k,m)- presz(i,jm,k,m))) &
-                        +deltz*(uzp1*(presz(i,j,kp,m)-presz(i,j,k,m)) &
-                        -uzm1*(presz(i,j,k,m)- presz(i,j,km,m))) )
-                    !
-                    !      off-diagonal elements
-                    !
-                    wrkpresxy(i,j,k,m)=presxy(i,j,k,m)+chipxyz*( &
-                        deltx*(uxp1*(presxy(ip,j,k,m)-presxy(i,j,k,m)) &
-                        -uxm1*(presxy(i,j,k,m)- presxy(im,j,k,m))) &
-                        +delty*(uyp1*(presxy(i,jp,k,m)-presxy(i,j,k,m)) &
-                        -uym1*(presxy(i,j,k,m)- presxy(i,jm,k,m))) &
-                        +deltz*(uzp1*(presxy(i,j,kp,m)-presxy(i,j,k,m)) &
-                        -uzm1*(presxy(i,j,k,m)- presxy(i,j,km,m))) )
-                    !
-                    wrkpresxz(i,j,k,m)=presxz(i,j,k,m)+chipxyz*( &
-                        deltx*(uxp1*(presxz(ip,j,k,m)-presxz(i,j,k,m)) &
-                        -uxm1*(presxz(i,j,k,m)- presxz(im,j,k,m))) &
-                        +delty*(uyp1*(presxz(i,jp,k,m)-presxz(i,j,k,m)) &
-                        -uym1*(presxz(i,j,k,m)- presxz(i,jm,k,m))) &
-                        +deltz*(uzp1*(presxz(i,j,kp,m)-presxz(i,j,k,m)) &
-                        -uzm1*(presxz(i,j,k,m)- presxz(i,j,km,m))) )
-                    !
-                    wrkpresyz(i,j,k,m)=presyz(i,j,k,m)+chipxyz*( &
-                        deltx*(uxp1*(presyz(ip,j,k,m)-presyz(i,j,k,m)) &
-                        -uxm1*(presyz(i,j,k,m)- presyz(im,j,k,m))) &
-                        +delty*(uyp1*(presyz(i,jp,k,m)-presyz(i,j,k,m)) &
-                        -uym1*(presyz(i,j,k,m)- presyz(i,jm,k,m))) &
-                        +deltz*(uzp1*(presyz(i,j,kp,m)-presyz(i,j,k,m)) &
-                        -uzm1*(presyz(i,j,k,m)- presyz(i,j,km,m))) )
-                endif !if(isotropic)
+                wrkpresx(i,j,k,m)=presx(i,j,k,m)+chipxyz*( &
+                    deltx*(uxp1*(presx(ip,j,k,m)-presx(i,j,k,m)) &
+                    -uxm1*(presx(i,j,k,m)-presx(im,j,k,m))) &
+                    +delty*(uyp1*(presx(i,jp,k,m)-presx(i,j,k,m)) &
+                    -uym1*(presx(i,j,k,m)-presx(i,jm,k,m))) &
+                    +deltz*(uzp1*(presx(i,j,kp,m)-presx(i,j,k,m)) &
+                    -uzm1*(presx(i,j,k,m)-presx(i,j,km,m))) )
+                wrkpresy(i,j,k,m)=wrkpresx(i,j,k,m)
+                wrkpresz(i,j,k,m)=wrkpresx(i,j,k,m)
+                wrkpresxy(i,j,k,m)=0.0
+                wrkpresxz(i,j,k,m)=0.0
+                wrkpresyz(i,j,k,m)=0.0
             enddo
         enddo
     enddo
@@ -1443,28 +1222,13 @@ subroutine flux_correct(qrho,qpresx,qpresy,qpresz, &
     call fcsmooth(qrho,oldqrho,wrkqrho,nx,ny,nz,ngrd,m,chifcs, &
     vvx,vvy,vvz)
 
-    if(isotropic) then
-        call fcsmooth(qpresx,oldqpresx,wrkqpresx,nx,ny,nz,ngrd,m, &
-            chifcs,vvx,vvy,vvz)
-        qpresy =  qpresx
-        qpresz = qpresx
-        qpresxy = 0.0
-        qpresxz = 0.0
-        qpresyz = 0.0
-    else
-        call fcsmooth(qpresx,oldqpresx,wrkqpresx,nx,ny,nz,ngrd,m, &
-            chifcs,vvx,vvy,vvz)
-        call fcsmooth(qpresy,oldqpresy,wrkqpresy,nx,ny,nz,ngrd,m, &
-            chifcs,vvx,vvy,vvz)
-        call fcsmooth(qpresz,oldqpresz,wrkqpresz,nx,ny,nz,ngrd,m, &
-            chifcs,vvx,vvy,vvz)
-        call fcsmooth(qpresxy,oldqpresxy,wrkqpresxy,nx,ny,nz,ngrd, &
-            m,chifcs,vvx,vvy,vvz)
-        call fcsmooth(qpresxz,oldqpresxz,wrkqpresxz,nx,ny,nz,ngrd, &
-            m,chifcs,vvx,vvy,vvz)
-        call fcsmooth(qpresyz,oldqpresyz,wrkqpresyz,nx,ny,nz,ngrd, &
-            m,chifcs,vvx,vvy,vvz)
-    endif !if(isotropic)
+    call fcsmooth(qpresx,oldqpresx,wrkqpresx,nx,ny,nz,ngrd,m, &
+        chifcs,vvx,vvy,vvz)
+    qpresy =  qpresx
+    qpresz = qpresx
+    qpresxy = 0.0
+    qpresxz = 0.0
+    qpresyz = 0.0
 
     call fcsmooth(qpx,oldqpx,wrkqpx,nx,ny,nz,ngrd,m,chifcs, &
     vvx,vvy,vvz)
@@ -1476,28 +1240,13 @@ subroutine flux_correct(qrho,qpresx,qpresy,qpresz, &
     call fcsmooth(hrho,oldhrho,wrkhrho,nx,ny,nz,ngrd,m,chifcs, &
     vvx,vvy,vvz)
 
-    if(isotropic) then
-        call fcsmooth(hpresx,oldhpresx,wrkhpresx,nx,ny,nz,ngrd,m, &
-            chifcs,vvx,vvy,vvz)
-        hpresy =  hpresx
-        hpresz = hpresx
-        hpresxy = 0.0
-        hpresxz = 0.0
-        hpresyz = 0.0
-    else
-        call fcsmooth(hpresx,oldhpresx,wrkhpresx,nx,ny,nz,ngrd,m, &
+    call fcsmooth(hpresx,oldhpresx,wrkhpresx,nx,ny,nz,ngrd,m, &
         chifcs,vvx,vvy,vvz)
-        call fcsmooth(hpresy,oldhpresy,wrkhpresy,nx,ny,nz,ngrd,m, &
-        chifcs,vvx,vvy,vvz)
-        call fcsmooth(hpresz,oldhpresz,wrkhpresz,nx,ny,nz,ngrd,m, &
-        chifcs,vvx,vvy,vvz)
-        call fcsmooth(hpresxy,oldhpresxy,wrkhpresxy,nx,ny,nz,ngrd, &
-        m,chifcs,vvx,vvy,vvz)
-        call fcsmooth(hpresxz,oldhpresxz,wrkhpresxz,nx,ny,nz,ngrd, &
-        m,chifcs,vvx,vvy,vvz)
-        call fcsmooth(hpresyz,oldhpresyz,wrkhpresyz,nx,ny,nz,ngrd, &
-        m,chifcs,vvx,vvy,vvz)
-    endif !if(iosotropic)
+    hpresy =  hpresx
+    hpresz = hpresx
+    hpresxy = 0.0
+    hpresxz = 0.0
+    hpresyz = 0.0
 
     call fcsmooth(hpx,oldhpx,wrkhpx,nx,ny,nz,ngrd,m,chifcs, &
     vvx,vvy,vvz)
@@ -1509,28 +1258,13 @@ subroutine flux_correct(qrho,qpresx,qpresy,qpresz, &
     call fcsmooth(orho,oldorho,wrkorho,nx,ny,nz,ngrd,m,chifcs, &
     vvx,vvy,vvz)
 
-    if(isotropic) then
-        call fcsmooth(opresx,oldopresx,wrkopresx,nx,ny,nz,ngrd,m, &
-            chifcs,vvx,vvy,vvz)
-        opresy =  opresx
-        opresz = opresx
-        opresxy = 0.0
-        opresxz = 0.0
-        opresyz = 0.0
-    else
-        call fcsmooth(opresx,oldopresx,wrkopresx,nx,ny,nz,ngrd,m, &
+    call fcsmooth(opresx,oldopresx,wrkopresx,nx,ny,nz,ngrd,m, &
         chifcs,vvx,vvy,vvz)
-        call fcsmooth(opresy,oldopresy,wrkopresy,nx,ny,nz,ngrd,m, &
-        chifcs,vvx,vvy,vvz)
-        call fcsmooth(opresz,oldopresz,wrkopresz,nx,ny,nz,ngrd,m, &
-        chifcs,vvx,vvy,vvz)
-        call fcsmooth(opresxy,oldopresxy,wrkopresxy,nx,ny,nz,ngrd, &
-        m,chifcs,vvx,vvy,vvz)
-        call fcsmooth(opresxz,oldopresxz,wrkopresxz,nx,ny,nz,ngrd, &
-        m,chifcs,vvx,vvy,vvz)
-        call fcsmooth(opresyz,oldopresyz,wrkopresyz,nx,ny,nz,ngrd, &
-        m,chifcs,vvx,vvy,vvz)
-    endif !if(isotropic)
+    opresy =  opresx
+    opresz = opresx
+    opresxy = 0.0
+    opresxz = 0.0
+    opresyz = 0.0
 
     call fcsmooth(opx,oldopx,wrkopx,nx,ny,nz,ngrd,m,chifcs, &
     vvx,vvy,vvz)
@@ -2683,26 +2417,16 @@ subroutine bndry_outer( &
             qpy(nx,j,k,m)=qpy(nx1,j,k,m)
             qpz(nx,j,k,m)=qpz(nx1,j,k,m)
             qpresx(nx,j,k,m)=qpresx(nx1,j,k,m)
-            if(isotropic) then
-                qpresy(nx,j,k,m)=qpresx(nx1,j,k,m)
-                qpresz(nx,j,k,m)=qpresx(nx1,j,k,m)
-            else
-                qpresy(nx,j,k,m)=qpresy(nx1,j,k,m)
-                qpresz(nx,j,k,m)=qpresz(nx1,j,k,m)
-            endif !if(isotropic)
+            qpresy(nx,j,k,m)=qpresx(nx1,j,k,m)
+            qpresz(nx,j,k,m)=qpresx(nx1,j,k,m)
             !
             hrho(nx,j,k,m)=hrho(nx1,j,k,m)
             hpx(nx,j,k,m)=abs(hpx(nx1,j,k,m))
             hpy(nx,j,k,m)=hpy(nx1,j,k,m)
             hpz(nx,j,k,m)=hpz(nx1,j,k,m)
             hpresx(nx,j,k,m)=hpresx(nx1,j,k,m)
-            if(isotropic) then
-                hpresy(nx,j,k,m)=hpresx(nx1,j,k,m)
-                hpresz(nx,j,k,m)=hpresx(nx1,j,k,m)
-            else
-                hpresy(nx,j,k,m)=hpresy(nx1,j,k,m)
-                hpresz(nx,j,k,m)=hpresz(nx1,j,k,m)
-            endif !if(isotropic)
+            hpresy(nx,j,k,m)=hpresx(nx1,j,k,m)
+            hpresz(nx,j,k,m)=hpresx(nx1,j,k,m)
             !
             orho(nx,j,k,m)=orho(nx1,j,k,m)
             opx(nx,j,k,m)=abs(opx(nx1,j,k,m))
@@ -2710,39 +2434,22 @@ subroutine bndry_outer( &
             opz(nx,j,k,m)=opz(nx1,j,k,m)
             opresx(nx,j,k,m)=opresx(nx1,j,k,m)
 
-            if(isotropic) then
-                opresy(nx,j,k,m)=opresx(nx1,j,k,m)
-                opresz(nx,j,k,m)=opresx(nx1,j,k,m)
-            else
-                opresy(nx,j,k,m)=opresy(nx1,j,k,m)
-                opresz(nx,j,k,m)=opresz(nx1,j,k,m)
-            endif !if(isotropic)
+            opresy(nx,j,k,m)=opresx(nx1,j,k,m)
+            opresz(nx,j,k,m)=opresx(nx1,j,k,m)
             !
             epres(nx,j,k,m)=epres(nx1,j,k,m)
             !
             !       continuous boundary condition
             !
-            if(isotropic) then
-                qpresxy(nx,j,k,m)=0.0
-                qpresxz(nx,j,k,m)=0.0
-                qpresyz(nx,j,k,m)=0.0
-                hpresxy(nx,j,k,m)=0.0
-                hpresxz(nx,j,k,m)=0.0
-                hpresyz(nx,j,k,m)=0.0
-                opresxy(nx,j,k,m)=0.0
-                opresxz(nx,j,k,m)=0.0
-                opresyz(nx,j,k,m)=0.0
-            else
-                qpresxy(nx,j,k,m)=qpresxy(nx1,j,k,m)
-                qpresxz(nx,j,k,m)=qpresxz(nx1,j,k,m)
-                qpresyz(nx,j,k,m)=qpresyz(nx1,j,k,m)
-                hpresxy(nx,j,k,m)=hpresxy(nx1,j,k,m)
-                hpresxz(nx,j,k,m)=hpresxz(nx1,j,k,m)
-                hpresyz(nx,j,k,m)=hpresyz(nx1,j,k,m)
-                opresxy(nx,j,k,m)=opresxy(nx1,j,k,m)
-                opresxz(nx,j,k,m)=opresxz(nx1,j,k,m)
-                opresyz(nx,j,k,m)=opresyz(nx1,j,k,m)
-            endif !if(isotropic)
+            qpresxy(nx,j,k,m)=0.0
+            qpresxz(nx,j,k,m)=0.0
+            qpresyz(nx,j,k,m)=0.0
+            hpresxy(nx,j,k,m)=0.0
+            hpresxz(nx,j,k,m)=0.0
+            hpresyz(nx,j,k,m)=0.0
+            opresxy(nx,j,k,m)=0.0
+            opresxz(nx,j,k,m)=0.0
+            opresyz(nx,j,k,m)=0.0
             !
             bx(nx,j,k,m)=bx(nx1,j,k,m)
             by(nx,j,k,m)=by(nx1,j,k,m)
@@ -2759,13 +2466,8 @@ subroutine bndry_outer( &
             !
             qrho(i,1,k,m)=qrho(i1,2,k,m)
             qpresx(i,1,k,m)=qpresx(i1,2,k,m)
-            if(isotropic) then
-                qpresy(i,1,k,m)=qpresx(i1,2,k,m)
-                qpresz(i,1,k,m)=qpresx(i1,2,k,m)
-            else
-                qpresy(i,1,k,m)=qpresy(i1,2,k,m)
-                qpresz(i,1,k,m)=qpresz(i1,2,k,m)
-            endif ! if(isotropic)
+            qpresy(i,1,k,m)=qpresx(i1,2,k,m)
+            qpresz(i,1,k,m)=qpresx(i1,2,k,m)
 
             qpx(i,1,k,m)=qpx(i1,2,k,m)
             qpy(i,1,k,m)=-abs(qpy(i1,2,k,m))
@@ -2773,13 +2475,8 @@ subroutine bndry_outer( &
             !
             hrho(i,1,k,m)=hrho(i1,2,k,m)
             hpresx(i,1,k,m)=hpresx(i1,2,k,m)
-            if(isotropic) then
-                hpresy(i,1,k,m)=hpresx(i1,2,k,m)
-                hpresz(i,1,k,m)=hpresx(i1,2,k,m)
-            else
-                hpresy(i,1,k,m)=hpresy(i1,2,k,m)
-                hpresz(i,1,k,m)=hpresz(i1,2,k,m)
-            endif ! if(isotropic)
+            hpresy(i,1,k,m)=hpresx(i1,2,k,m)
+            hpresz(i,1,k,m)=hpresx(i1,2,k,m)
 
             hpx(i,1,k,m)=hpx(i1,2,k,m)
             hpy(i,1,k,m)=-abs(hpy(i1,2,k,m))
@@ -2787,13 +2484,8 @@ subroutine bndry_outer( &
             !
             orho(i,1,k,m)=orho(i1,2,k,m)
             opresx(i,1,k,m)=opresx(i1,2,k,m)
-            if(isotropic) then
-                opresy(i,1,k,m)=opresx(i1,2,k,m)
-                opresz(i,1,k,m)=opresx(i1,2,k,m)
-            else
-                opresy(i,1,k,m)=opresy(i1,2,k,m)
-                opresz(i,1,k,m)=opresz(i1,2,k,m)
-            endif ! if(isotropic)
+            opresy(i,1,k,m)=opresx(i1,2,k,m)
+            opresz(i,1,k,m)=opresx(i1,2,k,m)
 
             opx(i,1,k,m)=opx(i1,2,k,m)
             opy(i,1,k,m)=-abs(opy(i1,2,k,m))
@@ -2803,27 +2495,15 @@ subroutine bndry_outer( &
             !
             !       continuous boundary condition
             !
-            if(isotropic) then
-                qpresxy(i,1,k,m)=0.0
-                qpresxz(i,1,k,m)=0.0
-                qpresyz(i,1,k,m)=0.0
-                hpresxy(i,1,k,m)=0.0
-                hpresxz(i,1,k,m)=0.0
-                hpresyz(i,1,k,m)=0.0
-                opresxy(i,1,k,m)=0.0
-                opresxz(i,1,k,m)=0.0
-                opresyz(i,1,k,m)=0.0
-            else
-                qpresxy(i,1,k,m)=qpresxy(i1,2,k,m)
-                qpresxz(i,1,k,m)=qpresxz(i1,2,k,m)
-                qpresyz(i,1,k,m)=qpresyz(i1,2,k,m)
-                hpresxy(i,1,k,m)=hpresxy(i1,2,k,m)
-                hpresxz(i,1,k,m)=hpresxz(i1,2,k,m)
-                hpresyz(i,1,k,m)=hpresyz(i1,2,k,m)
-                opresxy(i,1,k,m)=opresxy(i1,2,k,m)
-                opresxz(i,1,k,m)=opresxz(i1,2,k,m)
-                opresyz(i,1,k,m)=opresyz(i1,2,k,m)
-            endif ! if(isotropic)
+            qpresxy(i,1,k,m)=0.0
+            qpresxz(i,1,k,m)=0.0
+            qpresyz(i,1,k,m)=0.0
+            hpresxy(i,1,k,m)=0.0
+            hpresxz(i,1,k,m)=0.0
+            hpresyz(i,1,k,m)=0.0
+            opresxy(i,1,k,m)=0.0
+            opresxz(i,1,k,m)=0.0
+            opresyz(i,1,k,m)=0.0
             !
             by(i,1,k,m)=by(i1,2,k,m)
             !    +             +(by0(i1,2,k,m)-by0(i,1,k,m))
@@ -2834,13 +2514,8 @@ subroutine bndry_outer( &
             !
             qrho(i,ny,k,m)=qrho(i1,ny1,k,m)
             qpresx(i,ny,k,m)=qpresx(i1,ny1,k,m)
-            if(isotropic) then
-                qpresy(i,ny,k,m)=qpresx(i1,ny1,k,m)
-                qpresz(i,ny,k,m)=qpresx(i1,ny1,k,m)
-            else
-                qpresy(i,ny,k,m)=qpresy(i1,ny1,k,m)
-                qpresz(i,ny,k,m)=qpresz(i1,ny1,k,m)
-            endif ! if(isotropic)
+            qpresy(i,ny,k,m)=qpresx(i1,ny1,k,m)
+            qpresz(i,ny,k,m)=qpresx(i1,ny1,k,m)
 
             qpx(i,ny,k,m)=qpx(i1,ny1,k,m)
             qpy(i,ny,k,m)=abs(qpy(i1,ny1,k,m))
@@ -2848,26 +2523,16 @@ subroutine bndry_outer( &
             !
             hrho(i,ny,k,m)=hrho(i1,ny1,k,m)
             hpresx(i,ny,k,m)=hpresx(i1,ny1,k,m)
-            if(isotropic) then
-                hpresy(i,ny,k,m)=hpresx(i1,ny1,k,m)
-                hpresz(i,ny,k,m)=hpresx(i1,ny1,k,m)
-            else
-                hpresy(i,ny,k,m)=hpresy(i1,ny1,k,m)
-                hpresz(i,ny,k,m)=hpresz(i1,ny1,k,m)
-            endif ! if(isotropic)
+            hpresy(i,ny,k,m)=hpresx(i1,ny1,k,m)
+            hpresz(i,ny,k,m)=hpresx(i1,ny1,k,m)
             hpx(i,ny,k,m)=hpx(i1,ny1,k,m)
             hpy(i,ny,k,m)=abs(hpy(i1,ny1,k,m))
             hpz(i,ny,k,m)=hpz(i1,ny1,k,m)
             !
             orho(i,ny,k,m)=orho(i1,ny1,k,m)
             opresx(i,ny,k,m)=opresx(i1,ny1,k,m)
-            if(isotropic) then
-                opresy(i,ny,k,m)=opresx(i1,ny1,k,m)
-                opresz(i,ny,k,m)=opresx(i1,ny1,k,m)
-            else
-                opresy(i,ny,k,m)=opresy(i1,ny1,k,m)
-                opresz(i,ny,k,m)=opresz(i1,ny1,k,m)
-            endif ! if(isotropic)
+            opresy(i,ny,k,m)=opresx(i1,ny1,k,m)
+            opresz(i,ny,k,m)=opresx(i1,ny1,k,m)
 
             opx(i,ny,k,m)=opx(i1,ny1,k,m)
             opy(i,ny,k,m)=abs(opy(i1,ny1,k,m))
@@ -2878,28 +2543,15 @@ subroutine bndry_outer( &
             !       continuous boundary condition
             !
             !
-            if(isotropic) then
-                qpresxy(i,ny,k,m)=0.0
-                qpresxz(i,ny,k,m)=0.0
-                qpresyz(i,ny,k,m)=0.0
-                hpresxy(i,ny,k,m)=0.0
-                hpresxz(i,ny,k,m)=0.0
-                hpresyz(i,ny,k,m)=0.0
-                opresxy(i,ny,k,m)=0.0
-                opresxz(i,ny,k,m)=0.0
-                opresyz(i,ny,k,m)=0.0
-            else
-                qpresxy(i,ny,k,m)=qpresxy(i1,ny1,k,m)
-                qpresxz(i,ny,k,m)=qpresxz(i1,ny1,k,m)
-                qpresyz(i,ny,k,m)=qpresyz(i1,ny1,k,m)
-                hpresxy(i,ny,k,m)=hpresxy(i1,ny1,k,m)
-                hpresxz(i,ny,k,m)=hpresxz(i1,ny1,k,m)
-                hpresyz(i,ny,k,m)=hpresyz(i1,ny1,k,m)
-                opresxy(i,ny,k,m)=opresxy(i1,ny1,k,m)
-                opresxz(i,ny,k,m)=opresxz(i1,ny1,k,m)
-                opresyz(i,ny,k,m)=opresyz(i1,ny1,k,m)
-            endif ! if(isotropic)
-
+            qpresxy(i,ny,k,m)=0.0
+            qpresxz(i,ny,k,m)=0.0
+            qpresyz(i,ny,k,m)=0.0
+            hpresxy(i,ny,k,m)=0.0
+            hpresxz(i,ny,k,m)=0.0
+            hpresyz(i,ny,k,m)=0.0
+            opresxy(i,ny,k,m)=0.0
+            opresxz(i,ny,k,m)=0.0
+            opresyz(i,ny,k,m)=0.0
             !
             by(i,ny,k,m)=by(i1,ny1,k,m)
             !    +              +(by0(i1,ny1,k,m)-by0(i,ny,k,m))
@@ -2919,13 +2571,8 @@ subroutine bndry_outer( &
             !
             qrho(i,j,nz,m)=qrho(i1,j,nz1,m)
             qpresx(i,j,nz,m)=qpresx(i1,j,nz1,m)
-            if(isotropic) then
-                qpresy(i,j,nz,m)=qpresx(i1,j,nz1,m)
-                qpresz(i,j,nz,m)=qpresx(i1,j,nz1,m)
-            else
-                qpresy(i,j,nz,m)=qpresy(i1,j,nz1,m)
-                qpresz(i,j,nz,m)=qpresz(i1,j,nz1,m)
-            endif ! if(isotropic)
+            qpresy(i,j,nz,m)=qpresx(i1,j,nz1,m)
+            qpresz(i,j,nz,m)=qpresx(i1,j,nz1,m)
 
             qpx(i,j,nz,m)=qpx(i1,j,nz1,m)
             qpy(i,j,nz,m)=qpy(i1,j,nz1,m)
@@ -2933,13 +2580,8 @@ subroutine bndry_outer( &
             !
             hrho(i,j,nz,m)=hrho(i1,j,nz1,m)
             hpresx(i,j,nz,m)=hpresx(i1,j,nz1,m)
-            if(isotropic) then
-                hpresy(i,j,nz,m)=hpresx(i1,j,nz1,m)
-                hpresz(i,j,nz,m)=hpresx(i1,j,nz1,m)
-            else
-                hpresy(i,j,nz,m)=hpresy(i1,j,nz1,m)
-                hpresz(i,j,nz,m)=hpresz(i1,j,nz1,m)
-            endif ! if(isotropic)
+            hpresy(i,j,nz,m)=hpresx(i1,j,nz1,m)
+            hpresz(i,j,nz,m)=hpresx(i1,j,nz1,m)
 
             hpx(i,j,nz,m)=hpx(i1,j,nz1,m)
             hpy(i,j,nz,m)=hpy(i1,j,nz1,m)
@@ -2947,13 +2589,8 @@ subroutine bndry_outer( &
             !
             orho(i,j,nz,m)=orho(i1,j,nz1,m)
             opresx(i,j,nz,m)=opresx(i1,j,nz1,m)
-            if(isotropic) then
-                opresy(i,j,nz,m)=opresx(i1,j,nz1,m)
-                opresz(i,j,nz,m)=opresx(i1,j,nz1,m)
-            else
-                opresy(i,j,nz,m)=opresy(i1,j,nz1,m)
-                opresz(i,j,nz,m)=opresz(i1,j,nz1,m)
-            endif ! if(isotropic)
+            opresy(i,j,nz,m)=opresx(i1,j,nz1,m)
+            opresz(i,j,nz,m)=opresx(i1,j,nz1,m)
 
             opx(i,j,nz,m)=opx(i1,j,nz1,m)
             opy(i,j,nz,m)=opy(i1,j,nz1,m)
@@ -2963,27 +2600,15 @@ subroutine bndry_outer( &
             !
             !       off diagnoal elements
             !
-            if(isotropic) then
-                qpresxy(i,j,nz,m)=0.0
-                qpresxz(i,j,nz,m)=0.0
-                qpresyz(i,j,nz,m)=0.0
-                hpresxy(i,j,nz,m)=0.0
-                hpresxz(i,j,nz,m)=0.0
-                hpresyz(i,j,nz,m)=0.0
-                opresxy(i,j,nz,m)=0.0
-                opresxz(i,j,nz,m)=0.0
-                opresyz(i,j,nz,m)=0.0
-            else
-                qpresxy(i,j,nz,m)=qpresxy(i1,j,nz1,m)
-                qpresxz(i,j,nz,m)=qpresxz(i1,j,nz1,m)
-                qpresyz(i,j,nz,m)=qpresyz(i1,j,nz1,m)
-                hpresxy(i,j,nz,m)=hpresxy(i1,j,nz1,m)
-                hpresxz(i,j,nz,m)=hpresxz(i1,j,nz1,m)
-                hpresyz(i,j,nz,m)=hpresyz(i1,j,nz1,m)
-                opresxy(i,j,nz,m)=opresxy(i1,j,nz1,m)
-                opresxz(i,j,nz,m)=opresxz(i1,j,nz1,m)
-                opresyz(i,j,nz,m)=opresyz(i1,j,nz1,m)
-            endif ! if(isotropic)
+            qpresxy(i,j,nz,m)=0.0
+            qpresxz(i,j,nz,m)=0.0
+            qpresyz(i,j,nz,m)=0.0
+            hpresxy(i,j,nz,m)=0.0
+            hpresxz(i,j,nz,m)=0.0
+            hpresyz(i,j,nz,m)=0.0
+            opresxy(i,j,nz,m)=0.0
+            opresxz(i,j,nz,m)=0.0
+            opresyz(i,j,nz,m)=0.0
             !
             !
             bz(i,j,nz,m)=bz(i1,j,nz1,m)
@@ -3005,65 +2630,38 @@ subroutine bndry_outer( &
             qpy(i,j,1,m)=qpy(i,j,2,m)
             qpz(i,j,1,m)=-abs(qpz(i,j,2,m))
             qpresx(i,j,1,m)=qpresx(i,j,2,m)
-            if(isotropic) then
-                qpresy(i,j,1,m)=qpresx(i,j,2,m)
-                qpresz(i,j,1,m)=qpresx(i,j,2,m)
-            else
-                qpresy(i,j,1,m)=qpresy(i,j,2,m)
-                qpresz(i,j,1,m)=qpresz(i,j,2,m)
-            endif ! if(isotropic)
+            qpresy(i,j,1,m)=qpresx(i,j,2,m)
+            qpresz(i,j,1,m)=qpresx(i,j,2,m)
             !
             hrho(i,j,1,m)=hrho(i,j,2,m)
             hpx(i,j,1,m)=hpx(i,j,2,m)
             hpy(i,j,1,m)=hpy(i,j,2,m)
             hpz(i,j,1,m)=-abs(hpz(i,j,2,m))
             hpresx(i,j,1,m)=hpresx(i,j,2,m)
-            if(isotropic) then
-                hpresy(i,j,1,m)=hpresx(i,j,2,m)
-                hpresz(i,j,1,m)=hpresx(i,j,2,m)
-            else
-                hpresy(i,j,1,m)=hpresy(i,j,2,m)
-                hpresz(i,j,1,m)=hpresz(i,j,2,m)
-            endif ! if(isotropic)
+            hpresy(i,j,1,m)=hpresx(i,j,2,m)
+            hpresz(i,j,1,m)=hpresx(i,j,2,m)
             !
             orho(i,j,1,m)=orho(i,j,2,m)
             opx(i,j,1,m)=opx(i,j,2,m)
             opy(i,j,1,m)=opy(i,j,2,m)
             opz(i,j,1,m)=-abs(opz(i,j,2,m))
             opresx(i,j,1,m)=opresx(i,j,2,m)
-            if(isotropic) then
-                opresy(i,j,1,m)=opresx(i,j,2,m)
-                opresz(i,j,1,m)=opresx(i,j,2,m)
-            else
-                opresy(i,j,1,m)=opresy(i,j,2,m)
-                opresz(i,j,1,m)=opresz(i,j,2,m)
-            endif ! if(isotropic)
+            opresy(i,j,1,m)=opresx(i,j,2,m)
+            opresz(i,j,1,m)=opresx(i,j,2,m)
             !
             epres(i,j,1,m)=epres(i,j,2,m)
             !
             !       off diagonal elements
             !
-            if(isotropic) then
-                qpresxy(i,j,1,m)=0.0
-                qpresxz(i,j,1,m)=0.0
-                qpresyz(i,j,1,m)=0.0
-                hpresxy(i,j,1,m)=0.0
-                hpresxz(i,j,1,m)=0.0
-                hpresyz(i,j,1,m)=0.0
-                opresxy(i,j,1,m)=0.0
-                opresxz(i,j,1,m)=0.0
-                opresyz(i,j,1,m)=0.0
-            else
-                qpresxy(i,j,1,m)=qpresxy(i,j,2,m)
-                qpresxz(i,j,1,m)=qpresxz(i,j,2,m)
-                qpresyz(i,j,1,m)=qpresyz(i,j,2,m)
-                hpresxy(i,j,1,m)=hpresxy(i,j,2,m)
-                hpresxz(i,j,1,m)=hpresxz(i,j,2,m)
-                hpresyz(i,j,1,m)=hpresyz(i,j,2,m)
-                opresxy(i,j,1,m)=opresxy(i,j,2,m)
-                opresxz(i,j,1,m)=opresxz(i,j,2,m)
-                opresyz(i,j,1,m)=opresyz(i,j,2,m)
-            endif ! if(isotropic)
+            qpresxy(i,j,1,m)=0.0
+            qpresxz(i,j,1,m)=0.0
+            qpresyz(i,j,1,m)=0.0
+            hpresxy(i,j,1,m)=0.0
+            hpresxz(i,j,1,m)=0.0
+            hpresyz(i,j,1,m)=0.0
+            opresxy(i,j,1,m)=0.0
+            opresxz(i,j,1,m)=0.0
+            opresyz(i,j,1,m)=0.0
             !
             !       set bx of wind to zero, by to the wind values
             !          and subtract any geomagnetic field
@@ -3089,73 +2687,40 @@ subroutine bndry_outer( &
         +qpresx(nx,2,k,m))/2.
         qpresx(nx,ny,k,m)=(qpresx(nx1,ny,k,m) &
         +qpresx(nx,ny1,k,m))/2.
-        if(isotropic) then
-            qpresy(nx,1,k,m)=(qpresx(nx1,1,k,m) &
-                +qpresx(nx,2,k,m))/2.
-            qpresy(nx,ny,k,m)=(qpresx(nx1,ny,k,m) &
-                +qpresx(nx,ny1,k,m))/2.
-            qpresz(nx,1,k,m)=(qpresx(nx1,1,k,m) &
-                +qpresx(nx,2,k,m))/2.
-            qpresz(nx,ny,k,m)=(qpresx(nx1,ny,k,m) &
-                +qpresx(nx,ny1,k,m))/2.
-        else
-            qpresy(nx,1,k,m)=(qpresy(nx1,1,k,m) &
-                +qpresy(nx,2,k,m))/2.
-            qpresy(nx,ny,k,m)=(qpresy(nx1,ny,k,m) &
-                +qpresy(nx,ny1,k,m))/2.
-            qpresz(nx,1,k,m)=(qpresz(nx1,1,k,m) &
-                +qpresz(nx,2,k,m))/2.
-            qpresz(nx,ny,k,m)=(qpresz(nx1,ny,k,m) &
-                +qpresz(nx,ny1,k,m))/2.
-        endif ! if(isotropic)
+        qpresy(nx,1,k,m)=(qpresx(nx1,1,k,m) &
+            +qpresx(nx,2,k,m))/2.
+        qpresy(nx,ny,k,m)=(qpresx(nx1,ny,k,m) &
+            +qpresx(nx,ny1,k,m))/2.
+        qpresz(nx,1,k,m)=(qpresx(nx1,1,k,m) &
+            +qpresx(nx,2,k,m))/2.
+        qpresz(nx,ny,k,m)=(qpresx(nx1,ny,k,m) &
+            +qpresx(nx,ny1,k,m))/2.
         !
         hpresx(nx,1,k,m)=(hpresx(nx1,1,k,m) &
         +hpresx(nx,2,k,m))/2.
         hpresx(nx,ny,k,m)=(hpresx(nx1,ny,k,m) &
         +hpresx(nx,ny1,k,m))/2.
-        if(isotropic) then
-            hpresy(nx,1,k,m)=(hpresx(nx1,1,k,m) &
-                +hpresx(nx,2,k,m))/2.
-            hpresy(nx,ny,k,m)=(hpresx(nx1,ny,k,m) &
-                +hpresx(nx,ny1,k,m))/2.
-            hpresz(nx,1,k,m)=(hpresx(nx1,1,k,m) &
-                +hpresx(nx,2,k,m))/2.
-            hpresz(nx,ny,k,m)=(hpresx(nx1,ny,k,m) &
-                +hpresx(nx,ny1,k,m))/2.
-        else
-            hpresy(nx,1,k,m)=(hpresy(nx1,1,k,m) &
-                +hpresy(nx,2,k,m))/2.
-            hpresy(nx,ny,k,m)=(hpresy(nx1,ny,k,m) &
-                +hpresy(nx,ny1,k,m))/2.
-            hpresz(nx,1,k,m)=(hpresz(nx1,1,k,m) &
-                +hpresz(nx,2,k,m))/2.
-            hpresz(nx,ny,k,m)=(hpresz(nx1,ny,k,m) &
-                +hpresz(nx,ny1,k,m))/2.
-        endif ! if(isotropic)
+        hpresy(nx,1,k,m)=(hpresx(nx1,1,k,m) &
+            +hpresx(nx,2,k,m))/2.
+        hpresy(nx,ny,k,m)=(hpresx(nx1,ny,k,m) &
+            +hpresx(nx,ny1,k,m))/2.
+        hpresz(nx,1,k,m)=(hpresx(nx1,1,k,m) &
+            +hpresx(nx,2,k,m))/2.
+        hpresz(nx,ny,k,m)=(hpresx(nx1,ny,k,m) &
+            +hpresx(nx,ny1,k,m))/2.
         !
         opresx(nx,1,k,m)=(opresx(nx1,1,k,m) &
         +opresx(nx,2,k,m))/2.
         opresx(nx,ny,k,m)=(opresx(nx1,ny,k,m) &
         +opresx(nx,ny1,k,m))/2.
-        if(isotropic) then
-            opresy(nx,1,k,m)=(opresx(nx1,1,k,m) &
-                +opresx(nx,2,k,m))/2.
-            opresy(nx,ny,k,m)=(opresx(nx1,ny,k,m) &
-                +opresx(nx,ny1,k,m))/2.
-            opresz(nx,1,k,m)=(opresx(nx1,1,k,m) &
-                +opresx(nx,2,k,m))/2.
-            opresz(nx,ny,k,m)=(opresx(nx1,ny,k,m) &
-                +opresx(nx,ny1,k,m))/2.
-        else
-            opresy(nx,1,k,m)=(opresy(nx1,1,k,m) &
-                +opresy(nx,2,k,m))/2.
-            opresy(nx,ny,k,m)=(opresy(nx1,ny,k,m) &
-                +opresy(nx,ny1,k,m))/2.
-            opresz(nx,1,k,m)=(opresz(nx1,1,k,m) &
-                +opresz(nx,2,k,m))/2.
-            opresz(nx,ny,k,m)=(opresz(nx1,ny,k,m) &
-                +opresz(nx,ny1,k,m))/2.
-        endif ! if(isotropic)
+        opresy(nx,1,k,m)=(opresx(nx1,1,k,m) &
+            +opresx(nx,2,k,m))/2.
+        opresy(nx,ny,k,m)=(opresx(nx1,ny,k,m) &
+            +opresx(nx,ny1,k,m))/2.
+        opresz(nx,1,k,m)=(opresx(nx1,1,k,m) &
+            +opresx(nx,2,k,m))/2.
+        opresz(nx,ny,k,m)=(opresx(nx1,ny,k,m) &
+            +opresx(nx,ny1,k,m))/2.
         !
         epres(nx,1,k,m)=(epres(nx1,1,k,m) &
         +epres(nx,2,k,m))/2.
@@ -3164,63 +2729,24 @@ subroutine bndry_outer( &
         !
         !       off diagonal elements
         !
-        if(isotropic) then
-            qpresxy(nx,1,k,m)=0.0
-            qpresxy(nx,ny,k,m)=0.0
-            qpresxz(nx,1,k,m)=0.0
-            qpresxz(nx,ny,k,m)=0.0
-            qpresyz(nx,1,k,m)=0.0
-            qpresyz(nx,ny,k,m)=0.0
-            hpresxy(nx,1,k,m)=0.0
-            hpresxy(nx,ny,k,m)=0.0
-            hpresxz(nx,1,k,m)=0.0
-            hpresxz(nx,ny,k,m)=0.0
-            hpresyz(nx,1,k,m)=0.0
-            hpresyz(nx,ny,k,m)=0.0
-            opresxy(nx,1,k,m)=0.0
-            opresxy(nx,ny,k,m)=0.0
-            opresxz(nx,1,k,m)=0.0
-            opresxz(nx,ny,k,m)=0.0
-            opresyz(nx,1,k,m)=0.0
-            opresyz(nx,ny,k,m)=0.0
-        else
-            qpresxy(nx,1,k,m)=(qpresxy(nx1,1,k,m) &
-                +qpresxy(nx,2,k,m))/2.
-            qpresxy(nx,ny,k,m)=(qpresxy(nx1,ny,k,m) &
-                +qpresxy(nx,ny1,k,m))/2.
-            qpresxz(nx,1,k,m)=(qpresxz(nx1,1,k,m) &
-                +qpresxz(nx,2,k,m))/2.
-            qpresxz(nx,ny,k,m)=(qpresxz(nx1,ny,k,m) &
-                +qpresxz(nx,ny1,k,m))/2.
-            qpresyz(nx,1,k,m)=(qpresyz(nx1,1,k,m) &
-                +qpresyz(nx,2,k,m))/2.
-            qpresyz(nx,ny,k,m)=(qpresyz(nx1,ny,k,m) &
-                +qpresyz(nx,ny1,k,m))/2.
-            hpresxy(nx,1,k,m)=(hpresxy(nx1,1,k,m) &
-                +hpresxy(nx,2,k,m))/2.
-            hpresxy(nx,ny,k,m)=(hpresxy(nx1,ny,k,m) &
-                +hpresxy(nx,ny1,k,m))/2.
-            hpresxz(nx,1,k,m)=(hpresxz(nx1,1,k,m) &
-                +hpresxz(nx,2,k,m))/2.
-            hpresxz(nx,ny,k,m)=(hpresxz(nx1,ny,k,m) &
-                +hpresxz(nx,ny1,k,m))/2.
-            hpresyz(nx,1,k,m)=(hpresyz(nx1,1,k,m) &
-                +hpresyz(nx,2,k,m))/2.
-            hpresyz(nx,ny,k,m)=(hpresyz(nx1,ny,k,m) &
-                +hpresyz(nx,ny1,k,m))/2.
-            opresxy(nx,1,k,m)=(opresxy(nx1,1,k,m) &
-                +opresxy(nx,2,k,m))/2.
-            opresxy(nx,ny,k,m)=(opresxy(nx1,ny,k,m) &
-                +opresxy(nx,ny1,k,m))/2.
-            opresxz(nx,1,k,m)=(opresxz(nx1,1,k,m) &
-                +opresxz(nx,2,k,m))/2.
-            opresxz(nx,ny,k,m)=(opresxz(nx1,ny,k,m) &
-                +opresxz(nx,ny1,k,m))/2.
-            opresyz(nx,1,k,m)=(opresyz(nx1,1,k,m) &
-                +opresyz(nx,2,k,m))/2.
-            opresyz(nx,ny,k,m)=(opresyz(nx1,ny,k,m) &
-                +opresyz(nx,ny1,k,m))/2.
-        endif ! if(isotropic)
+        qpresxy(nx,1,k,m)=0.0
+        qpresxy(nx,ny,k,m)=0.0
+        qpresxz(nx,1,k,m)=0.0
+        qpresxz(nx,ny,k,m)=0.0
+        qpresyz(nx,1,k,m)=0.0
+        qpresyz(nx,ny,k,m)=0.0
+        hpresxy(nx,1,k,m)=0.0
+        hpresxy(nx,ny,k,m)=0.0
+        hpresxz(nx,1,k,m)=0.0
+        hpresxz(nx,ny,k,m)=0.0
+        hpresyz(nx,1,k,m)=0.0
+        hpresyz(nx,ny,k,m)=0.0
+        opresxy(nx,1,k,m)=0.0
+        opresxy(nx,ny,k,m)=0.0
+        opresxz(nx,1,k,m)=0.0
+        opresxz(nx,ny,k,m)=0.0
+        opresyz(nx,1,k,m)=0.0
+        opresyz(nx,ny,k,m)=0.0
         !
         qpx(nx,1,k,m)=(qpx(nx1,1,k,m)+qpx(nx,2,k,m))/2.
         qpx(nx,ny,k,m)=(qpx(nx1,ny,k,m)+qpx(nx,ny1,k,m))/2.
@@ -3276,89 +2802,47 @@ subroutine bndry_outer( &
         !
         qpresx(nx,j,1,m)=qpresx(nx,j,2,m)
         qpresx(nx,j,nz,m)=qpresx(nx1,j,nz,m)
-        if(isotropic) then
-            qpresy(nx,j,1,m)=qpresx(nx,j,2,m)
-            qpresy(nx,j,nz,m)=qpresx(nx1,j,nz,m)
-            qpresz(nx,j,1,m)=qpresx(nx,j,2,m)
-            qpresz(nx,j,nz,m)=qpresx(nx1,j,nz,m)
-        else
-            qpresy(nx,j,1,m)=qpresy(nx,j,2,m)
-            qpresy(nx,j,nz,m)=qpresy(nx1,j,nz,m)
-            qpresz(nx,j,1,m)=qpresz(nx,j,2,m)
-            qpresz(nx,j,nz,m)=qpresz(nx1,j,nz,m)
-        endif ! if(isotropic)
+        qpresy(nx,j,1,m)=qpresx(nx,j,2,m)
+        qpresy(nx,j,nz,m)=qpresx(nx1,j,nz,m)
+        qpresz(nx,j,1,m)=qpresx(nx,j,2,m)
+        qpresz(nx,j,nz,m)=qpresx(nx1,j,nz,m)
         !
         hpresx(nx,j,1,m)=hpresx(nx,j,2,m)
         hpresx(nx,j,nz,m)=hpresx(nx1,j,nz,m)
-        if(isotropic) then
-            hpresy(nx,j,1,m)=hpresx(nx,j,2,m)
-            hpresy(nx,j,nz,m)=hpresx(nx1,j,nz,m)
-            hpresz(nx,j,1,m)=hpresx(nx,j,2,m)
-            hpresz(nx,j,nz,m)=hpresx(nx1,j,nz,m)
-        else
-            hpresy(nx,j,1,m)=hpresy(nx,j,2,m)
-            hpresy(nx,j,nz,m)=hpresy(nx1,j,nz,m)
-            hpresz(nx,j,1,m)=hpresz(nx,j,2,m)
-            hpresz(nx,j,nz,m)=hpresz(nx1,j,nz,m)
-        endif ! if(isotropic)
+        hpresy(nx,j,1,m)=hpresx(nx,j,2,m)
+        hpresy(nx,j,nz,m)=hpresx(nx1,j,nz,m)
+        hpresz(nx,j,1,m)=hpresx(nx,j,2,m)
+        hpresz(nx,j,nz,m)=hpresx(nx1,j,nz,m)
         !
         opresx(nx,j,1,m)=opresx(nx,j,2,m)
         opresx(nx,j,nz,m)=opresx(nx1,j,nz,m)
-        if(isotropic) then
-            opresy(nx,j,1,m)=opresx(nx,j,2,m)
-            opresy(nx,j,nz,m)=opresx(nx1,j,nz,m)
-            opresz(nx,j,1,m)=opresx(nx,j,2,m)
-            opresz(nx,j,nz,m)=opresx(nx1,j,nz,m)
-        else
-            opresy(nx,j,1,m)=opresy(nx,j,2,m)
-            opresy(nx,j,nz,m)=opresy(nx1,j,nz,m)
-            opresz(nx,j,1,m)=opresz(nx,j,2,m)
-            opresz(nx,j,nz,m)=opresz(nx1,j,nz,m)
-        endif ! if(isotropic)
+        opresy(nx,j,1,m)=opresx(nx,j,2,m)
+        opresy(nx,j,nz,m)=opresx(nx1,j,nz,m)
+        opresz(nx,j,1,m)=opresx(nx,j,2,m)
+        opresz(nx,j,nz,m)=opresx(nx1,j,nz,m)
         !
         epres(nx,j,1,m)=epres(nx,j,2,m)
         !
         !       off diagnonal elements
         !
-        if(isotropic) then
-            qpresxy(nx,j,1,m)=0.0
-            qpresxy(nx,j,nz,m)=0.0
-            qpresxz(nx,j,1,m)=0.0
-            qpresxz(nx,j,nz,m)=0.0
-            qpresyz(nx,j,1,m)=0.0
-            qpresyz(nx,j,nz,m)=0.0
-            hpresxy(nx,j,1,m)=0.0
-            hpresxy(nx,j,nz,m)=0.0
-            hpresxz(nx,j,1,m)=0.0
-            hpresxz(nx,j,nz,m)=0.0
-            hpresyz(nx,j,1,m)=0.0
-            hpresyz(nx,j,nz,m)=0.0
-            opresxy(nx,j,1,m)=0.0
-            opresxy(nx,j,nz,m)=0.0
-            opresxz(nx,j,1,m)=0.0
-            opresxz(nx,j,nz,m)=0.0
-            opresyz(nx,j,1,m)=0.0
-            opresyz(nx,j,nz,m)=0.0
-        else
-            qpresxy(nx,j,1,m)=qpresxy(nx,j,2,m)
-            qpresxy(nx,j,nz,m)=qpresxy(nx1,j,nz,m)
-            qpresxz(nx,j,1,m)=qpresxz(nx,j,2,m)
-            qpresxz(nx,j,nz,m)=qpresxz(nx1,j,nz,m)
-            qpresyz(nx,j,1,m)=qpresyz(nx,j,2,m)
-            qpresyz(nx,j,nz,m)=qpresyz(nx1,j,nz,m)
-            hpresxy(nx,j,1,m)=hpresxy(nx,j,2,m)
-            hpresxy(nx,j,nz,m)=hpresxy(nx1,j,nz,m)
-            hpresxz(nx,j,1,m)=hpresxz(nx,j,2,m)
-            hpresxz(nx,j,nz,m)=hpresxz(nx1,j,nz,m)
-            hpresyz(nx,j,1,m)=hpresyz(nx,j,2,m)
-            hpresyz(nx,j,nz,m)=hpresyz(nx1,j,nz,m)
-            opresxy(nx,j,1,m)=opresxy(nx,j,2,m)
-            opresxy(nx,j,nz,m)=opresxy(nx1,j,nz,m)
-            opresxz(nx,j,1,m)=opresxz(nx,j,2,m)
-            opresxz(nx,j,nz,m)=opresxz(nx1,j,nz,m)
-            opresyz(nx,j,1,m)=opresyz(nx,j,2,m)
-            opresyz(nx,j,nz,m)=opresyz(nx1,j,nz,m)
-        endif ! if(isotropic)
+        qpresxy(nx,j,1,m)=0.0
+        qpresxy(nx,j,nz,m)=0.0
+        qpresxz(nx,j,1,m)=0.0
+        qpresxz(nx,j,nz,m)=0.0
+        qpresyz(nx,j,1,m)=0.0
+        qpresyz(nx,j,nz,m)=0.0
+        hpresxy(nx,j,1,m)=0.0
+        hpresxy(nx,j,nz,m)=0.0
+        hpresxz(nx,j,1,m)=0.0
+        hpresxz(nx,j,nz,m)=0.0
+        hpresyz(nx,j,1,m)=0.0
+        hpresyz(nx,j,nz,m)=0.0
+        opresxy(nx,j,1,m)=0.0
+        opresxy(nx,j,nz,m)=0.0
+        opresxz(nx,j,1,m)=0.0
+        opresxz(nx,j,nz,m)=0.0
+        opresyz(nx,j,1,m)=0.0
+        opresyz(nx,j,nz,m)=0.0
         !
         qpx(nx,j,1,m)=qpx(nx,j,2,m)
         qpx(nx,j,nz,m)=qpx(nx1,j,nz,m)
@@ -3418,73 +2902,40 @@ subroutine bndry_outer( &
         qpresx(i,ny,1,m)=qpresx(i,ny,2,m)
         qpresx(i,1,nz,m)=qpresx(i,1,nz1,m)
         qpresx(i,ny,nz,m)=qpresx(i,ny,nz1,m)
-        if(isotropic) then
-            qpresy(i,1,1,m)=qpresx(i,1,2,m)
-            qpresy(i,ny,1,m)=qpresx(i,ny,2,m)
-            qpresy(i,1,nz,m)=qpresx(i,1,nz1,m)
-            qpresy(i,ny,nz,m)=qpresx(i,ny,nz1,m)
-            qpresz(i,1,1,m)=qpresx(i,1,2,m)
-            qpresz(i,ny,1,m)=qpresx(i,ny,2,m)
-            qpresz(i,1,nz,m)=qpresx(i,1,nz1,m)
-            qpresz(i,ny,nz,m)=qpresx(i,ny,nz1,m)
-        else
-            qpresy(i,1,1,m)=qpresy(i,1,2,m)
-            qpresy(i,ny,1,m)=qpresy(i,ny,2,m)
-            qpresy(i,1,nz,m)=qpresy(i,1,nz1,m)
-            qpresy(i,ny,nz,m)=qpresy(i,ny,nz1,m)
-            qpresz(i,1,1,m)=qpresz(i,1,2,m)
-            qpresz(i,ny,1,m)=qpresz(i,ny,2,m)
-            qpresz(i,1,nz,m)=qpresz(i,1,nz1,m)
-            qpresz(i,ny,nz,m)=qpresz(i,ny,nz1,m)
-        endif ! if(isotropic)
+        qpresy(i,1,1,m)=qpresx(i,1,2,m)
+        qpresy(i,ny,1,m)=qpresx(i,ny,2,m)
+        qpresy(i,1,nz,m)=qpresx(i,1,nz1,m)
+        qpresy(i,ny,nz,m)=qpresx(i,ny,nz1,m)
+        qpresz(i,1,1,m)=qpresx(i,1,2,m)
+        qpresz(i,ny,1,m)=qpresx(i,ny,2,m)
+        qpresz(i,1,nz,m)=qpresx(i,1,nz1,m)
+        qpresz(i,ny,nz,m)=qpresx(i,ny,nz1,m)
         !
         hpresx(i,1,1,m)=hpresx(i,1,2,m)
         hpresx(i,ny,1,m)=hpresx(i,ny,2,m)
         hpresx(i,1,nz,m)=hpresx(i,1,nz1,m)
         hpresx(i,ny,nz,m)=hpresx(i,ny,nz1,m)
-        if(isotropic) then
-            hpresy(i,1,1,m)=hpresx(i,1,2,m)
-            hpresy(i,ny,1,m)=hpresx(i,ny,2,m)
-            hpresy(i,1,nz,m)=hpresx(i,1,nz1,m)
-            hpresy(i,ny,nz,m)=hpresx(i,ny,nz1,m)
-            hpresz(i,1,1,m)=hpresx(i,1,2,m)
-            hpresz(i,ny,1,m)=hpresx(i,ny,2,m)
-            hpresz(i,1,nz,m)=hpresx(i,1,nz1,m)
-            hpresz(i,ny,nz,m)=hpresx(i,ny,nz1,m)
-        else
-            hpresy(i,1,1,m)=hpresy(i,1,2,m)
-            hpresy(i,ny,1,m)=hpresy(i,ny,2,m)
-            hpresy(i,1,nz,m)=hpresy(i,1,nz1,m)
-            hpresy(i,ny,nz,m)=hpresy(i,ny,nz1,m)
-            hpresz(i,1,1,m)=hpresz(i,1,2,m)
-            hpresz(i,ny,1,m)=hpresz(i,ny,2,m)
-            hpresz(i,1,nz,m)=hpresz(i,1,nz1,m)
-            hpresz(i,ny,nz,m)=hpresz(i,ny,nz1,m)
-        endif ! if(isotropic)
+        hpresy(i,1,1,m)=hpresx(i,1,2,m)
+        hpresy(i,ny,1,m)=hpresx(i,ny,2,m)
+        hpresy(i,1,nz,m)=hpresx(i,1,nz1,m)
+        hpresy(i,ny,nz,m)=hpresx(i,ny,nz1,m)
+        hpresz(i,1,1,m)=hpresx(i,1,2,m)
+        hpresz(i,ny,1,m)=hpresx(i,ny,2,m)
+        hpresz(i,1,nz,m)=hpresx(i,1,nz1,m)
+        hpresz(i,ny,nz,m)=hpresx(i,ny,nz1,m)
         !
         opresx(i,1,1,m)=opresx(i,1,2,m)
         opresx(i,ny,1,m)=opresx(i,ny,2,m)
         opresx(i,1,nz,m)=opresx(i,1,nz1,m)
         opresx(i,ny,nz,m)=opresx(i,ny,nz1,m)
-        if(isotropic) then
-            opresy(i,1,1,m)=opresx(i,1,2,m)
-            opresy(i,ny,1,m)=opresx(i,ny,2,m)
-            opresy(i,1,nz,m)=opresx(i,1,nz1,m)
-            opresy(i,ny,nz,m)=opresx(i,ny,nz1,m)
-            opresz(i,1,1,m)=opresx(i,1,2,m)
-            opresz(i,ny,1,m)=opresx(i,ny,2,m)
-            opresz(i,1,nz,m)=opresx(i,1,nz1,m)
-            opresz(i,ny,nz,m)=opresx(i,ny,nz1,m)
-        else
-            opresy(i,1,1,m)=opresy(i,1,2,m)
-            opresy(i,ny,1,m)=opresy(i,ny,2,m)
-            opresy(i,1,nz,m)=opresy(i,1,nz1,m)
-            opresy(i,ny,nz,m)=opresy(i,ny,nz1,m)
-            opresz(i,1,1,m)=opresz(i,1,2,m)
-            opresz(i,ny,1,m)=opresz(i,ny,2,m)
-            opresz(i,1,nz,m)=opresz(i,1,nz1,m)
-            opresz(i,ny,nz,m)=opresz(i,ny,nz1,m)
-        endif ! if(isotropic)
+        opresy(i,1,1,m)=opresx(i,1,2,m)
+        opresy(i,ny,1,m)=opresx(i,ny,2,m)
+        opresy(i,1,nz,m)=opresx(i,1,nz1,m)
+        opresy(i,ny,nz,m)=opresx(i,ny,nz1,m)
+        opresz(i,1,1,m)=opresx(i,1,2,m)
+        opresz(i,ny,1,m)=opresx(i,ny,2,m)
+        opresz(i,1,nz,m)=opresx(i,1,nz1,m)
+        opresz(i,ny,nz,m)=opresx(i,ny,nz1,m)
         !
         epres(i,1,1,m)=epres(i,1,2,m)
         epres(i,ny,1,m)=epres(i,ny,2,m)
@@ -3493,85 +2944,44 @@ subroutine bndry_outer( &
         !
         !       off diagonal elements
         !
-        if(isotropic) then
-            qpresxy(i,1,1,m)=0.0
-            qpresxy(i,ny,1,m)=0.0
-            qpresxy(i,1,nz,m)=0.0
-            qpresxy(i,ny,nz,m)=0.0
-            qpresxz(i,1,1,m)=0.0
-            qpresxz(i,ny,1,m)=0.0
-            qpresxz(i,1,nz,m)=0.0
-            qpresxz(i,ny,nz,m)=0.0
-            qpresyz(i,1,1,m)=0.0
-            qpresyz(i,ny,1,m)=0.0
-            qpresyz(i,1,nz,m)=0.0
-            qpresyz(i,ny,nz,m)=0.0
-            !
-            hpresxy(i,1,1,m)=0.0
-            hpresxy(i,ny,1,m)=0.0
-            hpresxy(i,1,nz,m)=0.0
-            hpresxy(i,ny,nz,m)=0.0
-            hpresxz(i,1,1,m)=0.0
-            hpresxz(i,ny,1,m)=0.0
-            hpresxz(i,1,nz,m)=0.0
-            hpresxz(i,ny,nz,m)=0.0
-            hpresyz(i,1,1,m)=0.0
-            hpresyz(i,ny,1,m)=0.0
-            hpresyz(i,1,nz,m)=0.0
-            hpresyz(i,ny,nz,m)=0.0
-            !
-            opresxy(i,1,1,m)=0.0
-            opresxy(i,ny,1,m)=0.0
-            opresxy(i,1,nz,m)=0.0
-            opresxy(i,ny,nz,m)=0.0
-            opresxz(i,1,1,m)=0.0
-            opresxz(i,ny,1,m)=0.0
-            opresxz(i,1,nz,m)=0.0
-            opresxz(i,ny,nz,m)=0.0
-            opresyz(i,1,1,m)=0.0
-            opresyz(i,ny,1,m)=0.0
-            opresyz(i,1,nz,m)=0.0
-            opresyz(i,ny,nz,m)=0.0
-        else
-            qpresxy(i,1,1,m)=qpresxy(i,1,2,m)
-            qpresxy(i,ny,1,m)=qpresxy(i,ny,2,m)
-            qpresxy(i,1,nz,m)=qpresxy(i,1,nz1,m)
-            qpresxy(i,ny,nz,m)=qpresxy(i,ny,nz1,m)
-            qpresxz(i,1,1,m)=qpresxz(i,1,2,m)
-            qpresxz(i,ny,1,m)=qpresxz(i,ny,2,m)
-            qpresxz(i,1,nz,m)=qpresxz(i,1,nz1,m)
-            qpresxz(i,ny,nz,m)=qpresxz(i,ny,nz1,m)
-            qpresyz(i,1,1,m)=qpresyz(i,1,2,m)
-            qpresyz(i,ny,1,m)=qpresyz(i,ny,2,m)
-            qpresyz(i,1,nz,m)=qpresyz(i,1,nz1,m)
-            qpresyz(i,ny,nz,m)=qpresyz(i,ny,nz1,m)
-            !
-            hpresxy(i,1,1,m)=hpresxy(i,1,2,m)
-            hpresxy(i,ny,1,m)=hpresxy(i,ny,2,m)
-            hpresxy(i,1,nz,m)=hpresxy(i,1,nz1,m)
-            hpresxy(i,ny,nz,m)=hpresxy(i,ny,nz1,m)
-            hpresxz(i,1,1,m)=hpresxz(i,1,2,m)
-            hpresxz(i,ny,1,m)=hpresxz(i,ny,2,m)
-            hpresxz(i,1,nz,m)=hpresxz(i,1,nz1,m)
-            hpresxz(i,ny,nz,m)=hpresxz(i,ny,nz1,m)
-            hpresyz(i,1,1,m)=hpresyz(i,1,2,m)
-            hpresyz(i,ny,1,m)=hpresyz(i,ny,2,m)
-            hpresyz(i,1,nz,m)=hpresyz(i,1,nz1,m)
-            hpresyz(i,ny,nz,m)=hpresyz(i,ny,nz1,m)
-            !
-            opresxy(i,1,1,m)=opresxy(i,1,2,m)
-            opresxy(i,ny,1,m)=opresxy(i,ny,2,m)
-            opresxy(i,1,nz,m)=opresxy(i,1,nz1,m)
-            opresxy(i,ny,nz,m)=opresxy(i,ny,nz1,m)
-            opresxz(i,1,1,m)=opresxz(i,1,2,m)
-            opresxz(i,ny,1,m)=opresxz(i,ny,2,m)
-            opresxz(i,1,nz,m)=opresxz(i,1,nz1,m)
-            opresxz(i,ny,nz,m)=opresxz(i,ny,nz1,m)
-            opresyz(i,1,1,m)=opresyz(i,1,2,m)
-            opresyz(i,ny,1,m)=opresyz(i,ny,2,m)
-            opresyz(i,1,nz,m)=opresyz(i,1,nz1,m)
-            opresyz(i,ny,nz,m)=opresyz(i,ny,nz1,m)
-        endif ! if(isotropic)
+        qpresxy(i,1,1,m)=0.0
+        qpresxy(i,ny,1,m)=0.0
+        qpresxy(i,1,nz,m)=0.0
+        qpresxy(i,ny,nz,m)=0.0
+        qpresxz(i,1,1,m)=0.0
+        qpresxz(i,ny,1,m)=0.0
+        qpresxz(i,1,nz,m)=0.0
+        qpresxz(i,ny,nz,m)=0.0
+        qpresyz(i,1,1,m)=0.0
+        qpresyz(i,ny,1,m)=0.0
+        qpresyz(i,1,nz,m)=0.0
+        qpresyz(i,ny,nz,m)=0.0
+        !
+        hpresxy(i,1,1,m)=0.0
+        hpresxy(i,ny,1,m)=0.0
+        hpresxy(i,1,nz,m)=0.0
+        hpresxy(i,ny,nz,m)=0.0
+        hpresxz(i,1,1,m)=0.0
+        hpresxz(i,ny,1,m)=0.0
+        hpresxz(i,1,nz,m)=0.0
+        hpresxz(i,ny,nz,m)=0.0
+        hpresyz(i,1,1,m)=0.0
+        hpresyz(i,ny,1,m)=0.0
+        hpresyz(i,1,nz,m)=0.0
+        hpresyz(i,ny,nz,m)=0.0
+        !
+        opresxy(i,1,1,m)=0.0
+        opresxy(i,ny,1,m)=0.0
+        opresxy(i,1,nz,m)=0.0
+        opresxy(i,ny,nz,m)=0.0
+        opresxz(i,1,1,m)=0.0
+        opresxz(i,ny,1,m)=0.0
+        opresxz(i,1,nz,m)=0.0
+        opresxz(i,ny,nz,m)=0.0
+        opresyz(i,1,1,m)=0.0
+        opresyz(i,ny,1,m)=0.0
+        opresyz(i,1,nz,m)=0.0
+        opresyz(i,ny,nz,m)=0.0
         !
         qpx(i,1,1,m)=qpx(i,1,2,m)
         qpx(i,ny,1,m)=qpx(i,ny,2,m)
@@ -3718,36 +3128,21 @@ subroutine bndry_moon(qrho,qpresx,qpresy,qpresz, &
         !
         qpresx(i,j,k,m)=parm_mid(m,4,n)
         qpresy(i,j,k,m)=qpresx(i,j,k,m)
-        if(isotropic) then
-            qpresz(i,j,k,m)=qpresx(i,j,k,m)
-        else
-            qpresz(i,j,k,m)=qpresx(i,j,k,m)*0.9
-        endif ! if(isotropic)
-
+        qpresz(i,j,k,m)=qpresx(i,j,k,m)
         qpresxy(i,j,k,m)=0.
         qpresxz(i,j,k,m)=0.
         qpresyz(i,j,k,m)=0.
         !
         hpresx(i,j,k,m)=parm_mid(m,5,n)
         hpresy(i,j,k,m)=hpresx(i,j,k,m)
-        if(isotropic) then
-            hpresz(i,j,k,m)=hpresx(i,j,k,m)
-        else
-            hpresz(i,j,k,m)=hpresx(i,j,k,m)*0.9
-        endif ! if(isotropic)
-
+        hpresz(i,j,k,m)=hpresx(i,j,k,m)
         hpresxy(i,j,k,m)=0.
         hpresxz(i,j,k,m)=0.
         hpresyz(i,j,k,m)=0.
         !
         opresx(i,j,k,m)=parm_mid(m,6,n)
         opresy(i,j,k,m)=opresx(i,j,k,m)
-        if(isotropic) then
-            opresz(i,j,k,m)=opresx(i,j,k,m)
-        else
-            opresz(i,j,k,m)=opresx(i,j,k,m)*0.9
-        endif ! if(isotropic)
-
+        opresz(i,j,k,m)=opresx(i,j,k,m)
         opresxy(i,j,k,m)=0.
         opresxz(i,j,k,m)=0.
         opresyz(i,j,k,m)=0.
@@ -3794,36 +3189,21 @@ subroutine bndry_moon(qrho,qpresx,qpresy,qpresz, &
         !
         qpresx(i,j,k,m)=parm_zero(m,4,n)
         qpresy(i,j,k,m)=qpresx(i,j,k,m)
-        if(isotropic) then
-            qpresz(i,j,k,m)=qpresx(i,j,k,m)
-        else
-            qpresz(i,j,k,m)=qpresx(i,j,k,m)*0.9
-        endif ! if(isotropic)
-
+        qpresz(i,j,k,m)=qpresx(i,j,k,m)
         qpresxy(i,j,k,m)=0.
         qpresxz(i,j,k,m)=0.
         qpresyz(i,j,k,m)=0.
         !
         hpresx(i,j,k,m)=parm_zero(m,5,n)
         hpresy(i,j,k,m)=hpresx(i,j,k,m)
-        if(isotropic) then
-            hpresz(i,j,k,m)=hpresx(i,j,k,m)
-        else
-            hpresz(i,j,k,m)=hpresx(i,j,k,m)*0.9
-        endif ! if(isotropic)
-
+        hpresz(i,j,k,m)=hpresx(i,j,k,m)
         hpresxy(i,j,k,m)=0.
         hpresxz(i,j,k,m)=0.
         hpresyz(i,j,k,m)=0.
         !
         opresx(i,j,k,m)=parm_zero(m,6,n)
         opresy(i,j,k,m)=opresx(i,j,k,m)
-        if(isotropic) then
-            opresz(i,j,k,m)=opresx(i,j,k,m)
-        else
-            opresz(i,j,k,m)=opresx(i,j,k,m)*0.9
-        endif ! if(isotropic)
-
+        opresz(i,j,k,m)=opresx(i,j,k,m)
         opresxy(i,j,k,m)=0.
         opresxz(i,j,k,m)=0.
         opresyz(i,j,k,m)=0.
@@ -6734,25 +6114,12 @@ subroutine set_speed_agrd( &
                 py(i,j,k)=qpy(i,j,k,m)
                 pz(i,j,k)=qpz(i,j,k,m)
 
-                if(isotropic) then
-                    presx(i,j,k)=qpresx(i,j,k,m)
-                    presy(i,j,k)=qpresx(i,j,k,m)
-                    presz(i,j,k)=qpresx(i,j,k,m)
-                    presxy(i,j,k)=0.0
-                    presxz(i,j,k)=0.0
-                    presyz(i,j,k)=0.0
-                else
-                    !
-                    !      limit anisotropy
-                    !
-                    apres=(qpresx(i,j,k,m)+qpresy(i,j,k,m)+qpresz(i,j,k,m))/3.0
-                    presx(i,j,k)=ani*qpresx(i,j,k,m)+(1.-ani)*apres
-                    presy(i,j,k)=ani*qpresy(i,j,k,m)+(1.-ani)*apres
-                    presz(i,j,k)=ani*qpresz(i,j,k,m)+(1.-ani)*apres
-                    presxy(i,j,k)=ani*qpresxy(i,j,k,m)
-                    presxz(i,j,k)=ani*qpresxz(i,j,k,m)
-                    presyz(i,j,k)=ani*qpresyz(i,j,k,m)
-                endif ! if(isotropic)
+                presx(i,j,k)=qpresx(i,j,k,m)
+                presy(i,j,k)=qpresx(i,j,k,m)
+                presz(i,j,k)=qpresx(i,j,k,m)
+                presxy(i,j,k)=0.0
+                presxz(i,j,k)=0.0
+                presyz(i,j,k)=0.0
             enddo
         enddo
     enddo
@@ -6788,24 +6155,11 @@ subroutine set_speed_agrd( &
                         +pz(i,jm,k)+pz(i,j,kp)+pz(i,j,km))/6.
                     qpresx(i,j,k,m)=(presx(ip,j,k)+presx(im,j,k)+presx(i,jp,k) &
                         +presx(i,jm,k)+presx(i,j,kp)+presx(i,j,km))/6.
-                    if(isotropic) then
-                        qpresy(i,j,k,m)=qpresx(i,j,k,m)
-                        qpresz(i,j,k,m)=qpresx(i,j,k,m)
-                        qpresxy(i,j,k,m)=0.0
-                        qpresxz(i,j,k,m)=0.0
-                        qpresyz(i,j,k,m)=0.0
-                    else
-                        qpresy(i,j,k,m)=(presy(ip,j,k)+presy(im,j,k)+presy(i,jp,k) &
-                            +presy(i,jm,k)+presy(i,j,kp)+presy(i,j,km))/6.
-                        qpresz(i,j,k,m)=(presz(ip,j,k)+presz(im,j,k)+presz(i,jp,k) &
-                            +presz(i,jm,k)+presz(i,j,kp)+presz(i,j,km))/6.
-                        qpresxy(i,j,k,m)=(presxy(ip,j,k)+presxy(im,j,k)+presxy(i,jp,k) &
-                            +presxy(i,jm,k)+presxy(i,j,kp)+presxy(i,j,km))/6.
-                        qpresxz(i,j,k,m)=(presxz(ip,j,k)+presxz(im,j,k)+presxz(i,jp,k) &
-                            +presxz(i,jm,k)+presxz(i,j,kp)+presxz(i,j,km))/6.
-                        qpresyz(i,j,k,m)=(presyz(ip,j,k)+presyz(im,j,k)+presyz(i,jp,k) &
-                            +presyz(i,jm,k)+presyz(i,j,kp)+presyz(i,j,km))/6.
-                    endif ! if(isotropic)
+                    qpresy(i,j,k,m)=qpresx(i,j,k,m)
+                    qpresz(i,j,k,m)=qpresx(i,j,k,m)
+                    qpresxy(i,j,k,m)=0.0
+                    qpresxz(i,j,k,m)=0.0
+                    qpresyz(i,j,k,m)=0.0
                 endif
                 !
                 !
@@ -6828,25 +6182,12 @@ subroutine set_speed_agrd( &
                 py(i,j,k)=hpy(i,j,k,m)
                 pz(i,j,k)=hpz(i,j,k,m)
 
-                if(isotropic) then
-                    presx(i,j,k)=hpresx(i,j,k,m)
-                    presy(i,j,k)=hpresx(i,j,k,m)
-                    presz(i,j,k)=hpresx(i,j,k,m)
-                    presxy(i,j,k)=0.0
-                    presxz(i,j,k)=0.0
-                    presyz(i,j,k)=0.0
-                else
-                    !
-                    !      limit anisotropy
-                    !
-                    apres=(hpresx(i,j,k,m)+hpresy(i,j,k,m)+hpresz(i,j,k,m))/3.0
-                    presx(i,j,k)=ani*hpresx(i,j,k,m)+(1.-ani)*apres
-                    presy(i,j,k)=ani*hpresy(i,j,k,m)+(1.-ani)*apres
-                    presz(i,j,k)=ani*hpresz(i,j,k,m)+(1.-ani)*apres
-                    presxy(i,j,k)=ani*hpresxy(i,j,k,m)
-                    presxz(i,j,k)=ani*hpresxz(i,j,k,m)
-                    presyz(i,j,k)=ani*hpresyz(i,j,k,m)
-                endif ! if(isotropic)
+                presx(i,j,k)=hpresx(i,j,k,m)
+                presy(i,j,k)=hpresx(i,j,k,m)
+                presz(i,j,k)=hpresx(i,j,k,m)
+                presxy(i,j,k)=0.0
+                presxz(i,j,k)=0.0
+                presyz(i,j,k)=0.0
              enddo
         enddo
     enddo
@@ -6882,24 +6223,11 @@ subroutine set_speed_agrd( &
                     +pz(i,jm,k)+pz(i,j,kp)+pz(i,j,km))/6.
                     hpresx(i,j,k,m)=(presx(ip,j,k)+presx(im,j,k)+presx(i,jp,k) &
                     +presx(i,jm,k)+presx(i,j,kp)+presx(i,j,km))/6.
-                    if(isotropic) then
-                        hpresy(i,j,k,m)=hpresx(i,j,k,m)
-                        hpresz(i,j,k,m)=hpresx(i,j,k,m)
-                        hpresxy(i,j,k,m)=0.0
-                        hpresxz(i,j,k,m)=0.0
-                        hpresyz(i,j,k,m)=0.0
-                    else
-                        hpresy(i,j,k,m)=(presy(ip,j,k)+presy(im,j,k)+presy(i,jp,k) &
-                            +presy(i,jm,k)+presy(i,j,kp)+presy(i,j,km))/6.
-                        hpresz(i,j,k,m)=(presz(ip,j,k)+presz(im,j,k)+presz(i,jp,k) &
-                            +presz(i,jm,k)+presz(i,j,kp)+presz(i,j,km))/6.
-                        hpresxy(i,j,k,m)=(presxy(ip,j,k)+presxy(im,j,k)+presxy(i,jp,k) &
-                            +presxy(i,jm,k)+presxy(i,j,kp)+presxy(i,j,km))/6.
-                        hpresxz(i,j,k,m)=(presxz(ip,j,k)+presxz(im,j,k)+presxz(i,jp,k) &
-                            +presxz(i,jm,k)+presxz(i,j,kp)+presxz(i,j,km))/6.
-                        hpresyz(i,j,k,m)=(presyz(ip,j,k)+presyz(im,j,k)+presyz(i,jp,k) &
-                            +presyz(i,jm,k)+presyz(i,j,kp)+presyz(i,j,km))/6.
-                    endif ! if(isotropic)
+                    hpresy(i,j,k,m)=hpresx(i,j,k,m)
+                    hpresz(i,j,k,m)=hpresx(i,j,k,m)
+                    hpresxy(i,j,k,m)=0.0
+                    hpresxz(i,j,k,m)=0.0
+                    hpresyz(i,j,k,m)=0.0
                 endif
                 !
                 pxmax=amax1(pxmax,ahvx)
@@ -6922,25 +6250,12 @@ subroutine set_speed_agrd( &
                 px(i,j,k)=opx(i,j,k,m)
                 py(i,j,k)=opy(i,j,k,m)
                 pz(i,j,k)=opz(i,j,k,m)
-                if(isotropic) then
-                    presx(i,j,k)=opresx(i,j,k,m)
-                    presy(i,j,k)=opresx(i,j,k,m)
-                    presz(i,j,k)=opresx(i,j,k,m)
-                    presxy(i,j,k)=0.0
-                    presxz(i,j,k)=0.0
-                    presyz(i,j,k)=0.0
-                else
-                    !
-                    !      limit anisotropy
-                    !
-                    apres=(opresx(i,j,k,m)+opresy(i,j,k,m)+opresz(i,j,k,m))/3.0
-                    presx(i,j,k)=ani*opresx(i,j,k,m)+(1.-ani)*apres
-                    presy(i,j,k)=ani*opresy(i,j,k,m)+(1.-ani)*apres
-                    presz(i,j,k)=ani*opresz(i,j,k,m)+(1.-ani)*apres
-                    presxy(i,j,k)=ani*opresxy(i,j,k,m)
-                    presxz(i,j,k)=ani*opresxz(i,j,k,m)
-                    presyz(i,j,k)=ani*opresyz(i,j,k,m)
-                endif ! if(isotropic)
+                presx(i,j,k)=opresx(i,j,k,m)
+                presy(i,j,k)=opresx(i,j,k,m)
+                presz(i,j,k)=opresx(i,j,k,m)
+                presxy(i,j,k)=0.0
+                presxz(i,j,k)=0.0
+                presyz(i,j,k)=0.0
             enddo
         enddo
     enddo
@@ -6975,24 +6290,11 @@ subroutine set_speed_agrd( &
                     +pz(i,jm,k)+pz(i,j,kp)+pz(i,j,km))/6.
                     opresx(i,j,k,m)=(presx(ip,j,k)+presx(im,j,k)+presx(i,jp,k) &
                     +presx(i,jm,k)+presx(i,j,kp)+presx(i,j,km))/6.
-                    if(isotropic) then
-                        opresy(i,j,k,m)=opresx(i,j,k,m)
-                        opresz(i,j,k,m)=opresx(i,j,k,m)
-                        opresxy(i,j,k,m)=0.0
-                        opresxz(i,j,k,m)=0.0
-                        opresyz(i,j,k,m)=0.0
-                    else
-                        opresy(i,j,k,m)=(presy(ip,j,k)+presy(im,j,k)+presy(i,jp,k) &
-                            +presy(i,jm,k)+presy(i,j,kp)+presy(i,j,km))/6.
-                        opresz(i,j,k,m)=(presz(ip,j,k)+presz(im,j,k)+presz(i,jp,k) &
-                            +presz(i,jm,k)+presz(i,j,kp)+presz(i,j,km))/6.
-                        opresxy(i,j,k,m)=(presxy(ip,j,k)+presxy(im,j,k)+presxy(i,jp,k) &
-                            +presxy(i,jm,k)+presxy(i,j,kp)+presxy(i,j,km))/6.
-                        opresxz(i,j,k,m)=(presxz(ip,j,k)+presxz(im,j,k)+presxz(i,jp,k) &
-                            +presxz(i,jm,k)+presxz(i,j,kp)+presxz(i,j,km))/6.
-                        opresyz(i,j,k,m)=(presyz(ip,j,k)+presyz(im,j,k)+presyz(i,jp,k) &
-                            +presyz(i,jm,k)+presyz(i,j,kp)+presyz(i,j,km))/6.
-                    endif ! if(isotropic)
+                    opresy(i,j,k,m)=opresx(i,j,k,m)
+                    opresz(i,j,k,m)=opresx(i,j,k,m)
+                    opresxy(i,j,k,m)=0.0
+                    opresxz(i,j,k,m)=0.0
+                    opresyz(i,j,k,m)=0.0
                 endif
                 !
                 pxmax=amax1(pxmax,aovx)
@@ -7159,25 +6461,12 @@ subroutine set_speed( &
                     px(i,j,k)=qpx(i,j,k,m)
                     py(i,j,k)=qpy(i,j,k,m)
                     pz(i,j,k)=qpz(i,j,k,m)
-                    if(isotropic) then
-                        presx(i,j,k)=qpresx(i,j,k,m)
-                        presy(i,j,k)=qpresx(i,j,k,m)
-                        presz(i,j,k)=qpresx(i,j,k,m)
-                        presxy(i,j,k)=0.0
-                        presxz(i,j,k)=0.0
-                        presyz(i,j,k)=0.0
-                    else
-                        !
-                        !      limit anisotropy
-                        !
-                        apres=(qpresx(i,j,k,m)+qpresy(i,j,k,m)+qpresz(i,j,k,m))/3.0
-                        presx(i,j,k)=ani*qpresx(i,j,k,m)+(1.-ani)*apres
-                        presy(i,j,k)=ani*qpresy(i,j,k,m)+(1.-ani)*apres
-                        presz(i,j,k)=ani*qpresz(i,j,k,m)+(1.-ani)*apres
-                        presxy(i,j,k)=ani*qpresxy(i,j,k,m)
-                        presxz(i,j,k)=ani*qpresxz(i,j,k,m)
-                        presyz(i,j,k)=ani*qpresyz(i,j,k,m)
-                    endif ! if(isotropic)
+                    presx(i,j,k)=qpresx(i,j,k,m)
+                    presy(i,j,k)=qpresx(i,j,k,m)
+                    presz(i,j,k)=qpresx(i,j,k,m)
+                    presxy(i,j,k)=0.0
+                    presxz(i,j,k)=0.0
+                    presyz(i,j,k)=0.0
                 enddo
             enddo
         enddo
@@ -7214,24 +6503,11 @@ subroutine set_speed( &
                         +pz(i,jm,k)+pz(i,j,kp)+pz(i,j,km))/6.
                         qpresx(i,j,k,m)=(presx(ip,j,k)+presx(im,j,k)+presx(i,jp,k) &
                         +presx(i,jm,k)+presx(i,j,kp)+presx(i,j,km))/6.
-                        if(isotropic) then
-                            qpresy(i,j,k,m)=qpresx(i,j,k,m)
-                            qpresz(i,j,k,m)=qpresx(i,j,k,m)
-                            qpresxy(i,j,k,m)=0.0
-                            qpresxz(i,j,k,m)=0.0
-                            qpresyz(i,j,k,m)=0.0
-                        else
-                            qpresy(i,j,k,m)=(presy(ip,j,k)+presy(im,j,k)+presy(i,jp,k) &
-                                +presy(i,jm,k)+presy(i,j,kp)+presy(i,j,km))/6.
-                            qpresz(i,j,k,m)=(presz(ip,j,k)+presz(im,j,k)+presz(i,jp,k) &
-                                +presz(i,jm,k)+presz(i,j,kp)+presz(i,j,km))/6.
-                            qpresxy(i,j,k,m)=(presxy(ip,j,k)+presxy(im,j,k)+presxy(i,jp,k) &
-                                +presxy(i,jm,k)+presxy(i,j,kp)+presxy(i,j,km))/6.
-                            qpresxz(i,j,k,m)=(presxz(ip,j,k)+presxz(im,j,k)+presxz(i,jp,k) &
-                                +presxz(i,jm,k)+presxz(i,j,kp)+presxz(i,j,km))/6.
-                            qpresyz(i,j,k,m)=(presyz(ip,j,k)+presyz(im,j,k)+presyz(i,jp,k) &
-                                +presyz(i,jm,k)+presyz(i,j,kp)+presyz(i,j,km))/6.
-                        endif ! if(isotropic)
+                        qpresy(i,j,k,m)=qpresx(i,j,k,m)
+                        qpresz(i,j,k,m)=qpresx(i,j,k,m)
+                        qpresxy(i,j,k,m)=0.0
+                        qpresxz(i,j,k,m)=0.0
+                        qpresyz(i,j,k,m)=0.0
                     endif
                     !
                     !
@@ -7253,25 +6529,12 @@ subroutine set_speed( &
                     px(i,j,k)=hpx(i,j,k,m)
                     py(i,j,k)=hpy(i,j,k,m)
                     pz(i,j,k)=hpz(i,j,k,m)
-                    if(isotropic) then
-                        presx(i,j,k)=hpresx(i,j,k,m)
-                        presy(i,j,k)=hpresx(i,j,k,m)
-                        presz(i,j,k)=hpresx(i,j,k,m)
-                        presxy(i,j,k)=0.0
-                        presxz(i,j,k)=0.0
-                        presyz(i,j,k)=0.0
-                    else
-                        !
-                        !      limit anisotropy
-                        !
-                        apres=(hpresx(i,j,k,m)+hpresy(i,j,k,m)+hpresz(i,j,k,m))/3.0
-                        presx(i,j,k)=ani*hpresx(i,j,k,m)+(1.-ani)*apres
-                        presy(i,j,k)=ani*hpresy(i,j,k,m)+(1.-ani)*apres
-                        presz(i,j,k)=ani*hpresz(i,j,k,m)+(1.-ani)*apres
-                        presxy(i,j,k)=ani*hpresxy(i,j,k,m)
-                        presxz(i,j,k)=ani*hpresxz(i,j,k,m)
-                        presyz(i,j,k)=ani*hpresyz(i,j,k,m)
-                    endif ! if(isotropic)
+                    presx(i,j,k)=hpresx(i,j,k,m)
+                    presy(i,j,k)=hpresx(i,j,k,m)
+                    presz(i,j,k)=hpresx(i,j,k,m)
+                    presxy(i,j,k)=0.0
+                    presxz(i,j,k)=0.0
+                    presyz(i,j,k)=0.0
                 enddo
             enddo
         enddo
@@ -7307,24 +6570,11 @@ subroutine set_speed( &
                         +pz(i,jm,k)+pz(i,j,kp)+pz(i,j,km))/6.
                         hpresx(i,j,k,m)=(presx(ip,j,k)+presx(im,j,k)+presx(i,jp,k) &
                         +presx(i,jm,k)+presx(i,j,kp)+presx(i,j,km))/6.
-                        if(isotropic) then
-                            hpresy(i,j,k,m)=hpresx(i,j,k,m)
-                            hpresz(i,j,k,m)=hpresx(i,j,k,m)
-                            hpresxy(i,j,k,m)=0.0
-                            hpresxz(i,j,k,m)=0.0
-                            hpresyz(i,j,k,m)=0.0
-                        else
-                            hpresy(i,j,k,m)=(presy(ip,j,k)+presy(im,j,k)+presy(i,jp,k) &
-                                +presy(i,jm,k)+presy(i,j,kp)+presy(i,j,km))/6.
-                            hpresz(i,j,k,m)=(presz(ip,j,k)+presz(im,j,k)+presz(i,jp,k) &
-                                +presz(i,jm,k)+presz(i,j,kp)+presz(i,j,km))/6.
-                            hpresxy(i,j,k,m)=(presxy(ip,j,k)+presxy(im,j,k)+presxy(i,jp,k) &
-                                +presxy(i,jm,k)+presxy(i,j,kp)+presxy(i,j,km))/6.
-                            hpresxz(i,j,k,m)=(presxz(ip,j,k)+presxz(im,j,k)+presxz(i,jp,k) &
-                                +presxz(i,jm,k)+presxz(i,j,kp)+presxz(i,j,km))/6.
-                            hpresyz(i,j,k,m)=(presyz(ip,j,k)+presyz(im,j,k)+presyz(i,jp,k) &
-                                +presyz(i,jm,k)+presyz(i,j,kp)+presyz(i,j,km))/6.
-                        endif ! if(isotropic)
+                        hpresy(i,j,k,m)=hpresx(i,j,k,m)
+                        hpresz(i,j,k,m)=hpresx(i,j,k,m)
+                        hpresxy(i,j,k,m)=0.0
+                        hpresxz(i,j,k,m)=0.0
+                        hpresyz(i,j,k,m)=0.0
                     endif
                     !
                     !
@@ -7348,25 +6598,12 @@ subroutine set_speed( &
                     px(i,j,k)=opx(i,j,k,m)
                     py(i,j,k)=opy(i,j,k,m)
                     pz(i,j,k)=opz(i,j,k,m)
-                    if(isotropic) then
-                        presx(i,j,k)=opresx(i,j,k,m)
-                        presy(i,j,k)=opresx(i,j,k,m)
-                        presz(i,j,k)=opresx(i,j,k,m)
-                        presxy(i,j,k)=0.0
-                        presxz(i,j,k)=0.0
-                        presyz(i,j,k)=0.0
-                    else
-                        !
-                        !      limit anisotropy
-                        !
-                        apres=(opresx(i,j,k,m)+opresy(i,j,k,m)+opresz(i,j,k,m))/3.0
-                        presx(i,j,k)=ani*opresx(i,j,k,m)+(1.-ani)*apres
-                        presy(i,j,k)=ani*opresy(i,j,k,m)+(1.-ani)*apres
-                        presz(i,j,k)=ani*opresz(i,j,k,m)+(1.-ani)*apres
-                        presxy(i,j,k)=ani*opresxy(i,j,k,m)
-                        presxz(i,j,k)=ani*opresxz(i,j,k,m)
-                        presyz(i,j,k)=ani*opresyz(i,j,k,m)
-                    endif ! if(isotropic)
+                    presx(i,j,k)=opresx(i,j,k,m)
+                    presy(i,j,k)=opresx(i,j,k,m)
+                    presz(i,j,k)=opresx(i,j,k,m)
+                    presxy(i,j,k)=0.0
+                    presxz(i,j,k)=0.0
+                    presyz(i,j,k)=0.0
                 enddo
             enddo
         enddo
@@ -7402,24 +6639,11 @@ subroutine set_speed( &
                         +pz(i,jm,k)+pz(i,j,kp)+pz(i,j,km))/6.
                         opresx(i,j,k,m)=(presx(ip,j,k)+presx(im,j,k)+presx(i,jp,k) &
                         +presx(i,jm,k)+presx(i,j,kp)+presx(i,j,km))/6.
-                        if(isotropic) then
-                            opresy(i,j,k,m)=opresx(i,j,k,m)
-                            opresz(i,j,k,m)=opresx(i,j,k,m)
-                            opresxy(i,j,k,m)=0.0
-                            opresxz(i,j,k,m)=0.0
-                            opresyz(i,j,k,m)=0.0
-                        else
-                            opresy(i,j,k,m)=(presy(ip,j,k)+presy(im,j,k)+presy(i,jp,k) &
-                                +presy(i,jm,k)+presy(i,j,kp)+presy(i,j,km))/6.
-                            opresz(i,j,k,m)=(presz(ip,j,k)+presz(im,j,k)+presz(i,jp,k) &
-                                +presz(i,jm,k)+presz(i,j,kp)+presz(i,j,km))/6.
-                            opresxy(i,j,k,m)=(presxy(ip,j,k)+presxy(im,j,k)+presxy(i,jp,k) &
-                                +presxy(i,jm,k)+presxy(i,j,kp)+presxy(i,j,km))/6.
-                            opresxz(i,j,k,m)=(presxz(ip,j,k)+presxz(im,j,k)+presxz(i,jp,k) &
-                                +presxz(i,jm,k)+presxz(i,j,kp)+presxz(i,j,km))/6.
-                            opresyz(i,j,k,m)=(presyz(ip,j,k)+presyz(im,j,k)+presyz(i,jp,k) &
-                                +presyz(i,jm,k)+presyz(i,j,kp)+presyz(i,j,km))/6.
-                        endif ! if(isotropic)
+                        opresy(i,j,k,m)=opresx(i,j,k,m)
+                        opresz(i,j,k,m)=opresx(i,j,k,m)
+                        opresxy(i,j,k,m)=0.0
+                        opresxz(i,j,k,m)=0.0
+                        opresyz(i,j,k,m)=0.0
                     endif
                     !
                     !

@@ -27,7 +27,8 @@ program multifluid
     !
     !      graphics parameters:muvwp2=amax(mx,my,mz)+2,mz2=(mz-1)/2+1
     !
-    integer,parameter :: mx=61,my=61,mz=31,muvwp2=63,mz2=16
+    integer,parameter :: mx=61,my=61,mz=31, &
+                         muvwp2=63,mz2=16,ntinj=120
     !
     common /space/vvx(nx,ny,nz),vvy(nx,ny,nz),vvz(nx,ny,nz), &
     tvx(nx,ny,nz),tvy(nx,ny,nz),tvz(nx,ny,nz), &
@@ -827,8 +828,10 @@ program multifluid
     sbz_wind=alfz_wind1*sqrt(rho_wind1)
     !
     deltg=tmax/float(ntgraf)
+    deltinj=tmax/float(ntinj)
     delt=stepsz
     tgraf=0.
+    tinj=0.
     ts1=tsave
     tdiv=10.
     del_tdiv=5.
@@ -871,76 +874,47 @@ program multifluid
         read(nchf)qpy
         read(nchf)qpz
         read(nchf)qpresx
-        if(isotropic)then
-            write(6,*)'isotropic pressure read'
-            read(nchf)qpresy
-            qpresy=qpresx
-            read(nchf)qpresz
-            qpresz=qpresx
-            read(nchf)qpresxy
-            qpresxy=0.
-            read(nchf)qpresxz
-            qpresxz=0.
-            read(nchf)qpresyz
-            qpresyz=0.
-        else
-            write(6,*)'anistropic pressure read'
-            read(nchf)qpresy
-            read(nchf)qpresz
-            read(nchf)qpresxy
-            read(nchf)qpresxz
-            read(nchf)qpresyz
-        endif
+        read(nchf)qpresy
+        qpresy=qpresx
+        read(nchf)qpresz
+        qpresz=qpresx
+        read(nchf)qpresxy
+        qpresxy=0.
+        read(nchf)qpresxz
+        qpresxz=0.
+        read(nchf)qpresyz
+        qpresyz=0.
         read(nchf)hrho
         read(nchf)hpx
         read(nchf)hpy
         read(nchf)hpz
         read(nchf)hpresx
-        if(isotropic)then
-            write(6,*)'isotropic pressure read'
-            read(nchf)hpresy
-            hpresy=hpresx
-            read(nchf)hpresz
-            hpresz=hpresx
-            read(nchf)hpresxy
-            hpresxy=0.
-            read(nchf)hpresxz
-            hpresxz=0.
-            read(nchf)hpresyz
-            hpresyz=0.
-        else
-            write(6,*)'anisotropic pressure read'
-            read(nchf)hpresy
-            read(nchf)hpresz
-            read(nchf)hpresxy
-            read(nchf)hpresxz
-            read(nchf)hpresyz
-        endif
+        read(nchf)hpresy
+        hpresy=hpresx
+        read(nchf)hpresz
+        hpresz=hpresx
+        read(nchf)hpresxy
+        hpresxy=0.
+        read(nchf)hpresxz
+        hpresxz=0.
+        read(nchf)hpresyz
+        hpresyz=0.
         read(nchf)orho
         read(nchf)opx
         read(nchf)opy
         read(nchf)opz
         read(nchf)opresx
-        if(isotropic)then
-            write(6,*)'isotropic pressure read'
-            read(nchf)opresy
-            opresy=opresx
-            read(nchf)opresz
-            opresz=opresx
-            read(nchf)opresxy
-            opresxy=0.
-            read(nchf)opresxz
-            opresxz=0.
-            read(nchf)opresyz
-            opresyz=0.
-        else
-            write(6,*)'anisotropic pressure read'
-            read(nchf)opresy
-            read(nchf)opresz
-            read(nchf)opresxy
-            read(nchf)opresxz
-            read(nchf)opresyz
-        endif
+        write(6,*)'isotropic pressure read'
+        read(nchf)opresy
+        opresy=opresx
+        read(nchf)opresz
+        opresz=opresx
+        read(nchf)opresxy
+        opresxy=0.
+        read(nchf)opresxz
+        opresxz=0.
+        read(nchf)opresyz
+        opresyz=0.
         read(nchf)bx
         read(nchf)by
         read(nchf)bz
@@ -997,9 +971,12 @@ program multifluid
         !     if(update)t=0.
         write(6,*)'entering lores visual'
         ut=utstart+t*t_equiv/3600.
-        call visual(qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz,rmassq, &
-            hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz,rmassh, &
-            orho,opresx,opresy,opresz,opx,opy,opz,rmasso, &
+        call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
+            qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
+            hrho,hpresx,hpresy,hpresz,hpresxy, &
+            hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
+            orho,opresx,opresy,opresz,opresxy, &
+            opresxz,opresyz,opx,opy,opz,rmasso, &
             epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
             curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
             tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
@@ -1012,140 +989,10 @@ program multifluid
         tstep=tmax
         tmax=t+tmax
         tgraf=t+deltg
+        tinj=t+deltinj
         tdiv=t
         nchf=11
         ut=utstart+t*t_equiv/3600.
-        !
-        ! check for enceladus plasma torus additions
-        !
-        if(ringo)then
-            m=1
-            dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-            dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-            dz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
-            !
-            tot_o=0.
-            tot_h=0.
-            tot_q=0.
-            !
-            write(6,*)'ringo',lunar_dist,reduct,v_rot
-            !
-            do k=1,nz
-                az=(grd_zmin(m)+dz*(k-1)-zdip)
-                do j=1,ny
-                    ay=grd_ymin(m)+dy*(j-1)-ydip
-                    do i=1,nx
-                        ax=(grd_xmin(m)+dx*(i-1)-xdip)
-                        !
-                        rx=ax*re_equiv
-                        ry=ay*re_equiv
-                        rd=sqrt(rx**2+ry**2)
-                        !
-                        rvy=rx*v_rot
-                        rvx=-ry*v_rot
-                        rvz=0.
-                        corotate=sqrt(rvx**2+rvy**2)
-                        !
-                        ar_encel=sqrt(ax**2+ay**2)*re_equiv
-                        dr_encel=abs(ar_encel -lunar_dist)
-
-                        ! MAT - Corrected, according to 
-                        !   doi:10.1029/2009JE003372
-                        !   and
-                        !   doi:10.1029/JA091iA08p08749
-                        !
-                        if(abs(dr_encel.lt.2.*torus_rad)) then
-                            ! scale height in R_Saturns
-                            rscale=exp(-((dr_encel)/(0.5*torus_rad))**2) 
-                            zscale=exp(-((az*re_equiv)/(0.5*torus_rad))**2)
-                            !
-                            ! Inject W+ (O+,OH+,H2O+,H3O+)
-                            !
-                            hden=den_lunar*rmassh*rscale*zscale
-                            hrho(i,j,k,m)=hrho(i,j,k,m)+hden
-                            !temp goes as v**2
-                            del_hp=(hden/rmassh)*(corotate**2)*t_torus
-                            hpresx(i,j,k,m)=hpresx(i,j,k,m)+del_hp
-                            if(isotropic) then
-                                hpresy(i,j,k,m)=hpresx(i,j,k,m)
-                                hpresz(i,j,k,m)=hpresx(i,j,k,m)
-                            else
-                                hpresy(i,j,k,m)=hpresy(i,j,k,m)+del_hp
-                                hpresz(i,j,k,m)=hpresz(i,j,k,m)+del_hp*aniso_factor
-                            endif ! if(isotropic)
-
-                            hpx(i,j,k,m)=hpx(i,j,k,m)+reduct*hden*rvx
-                            hpy(i,j,k,m)=hpy(i,j,k,m)+reduct*hden*rvy
-                            !
-                            ! Inject H+ 
-                            !
-                            qden=0.0731*hden*rmassq/rmassh 
-                            qrho(i,j,k,m)=qrho(i,j,k,m)+qden
-                            !temp goes as v**2
-                            del_qp=(qden/rmassq)*(corotate**2)*t_torus
-                            qpresx(i,j,k,m)=qpresx(i,j,k,m)+del_qp
-                            if(isotropic) then
-                                qpresy(i,j,k,m)=qpresx(i,j,k,m)
-                                qpresz(i,j,k,m)=qpresx(i,j,k,m)
-                            else
-                                qpresy(i,j,k,m)=qpresy(i,j,k,m)+del_qp
-                                qpresz(i,j,k,m)=qpresz(i,j,k,m)+del_qp*aniso_factor
-                            endif ! if(isotropic)
-                            
-                            qpx(i,j,k,m)=qpx(i,j,k,m)+reduct*qden*rvx
-                            qpy(i,j,k,m)=qpy(i,j,k,m)+reduct*qden*rvy
-                            !
-                            ! Inject O2+ 
-                            !
-                            oden=1.93E-3*hden*rmasso/rmassh 
-                            orho(i,j,k,m)=orho(i,j,k,m)+oden
-                            !temp goes as v**2
-                            del_op=(oden/rmasso)*(corotate**2)*t_torus    
-                            opresx(i,j,k,m)=opresx(i,j,k,m)+del_op
-                            if(isotropic) then
-                                opresy(i,j,k,m)=opresx(i,j,k,m)
-                                opresz(i,j,k,m)=opresx(i,j,k,m)
-                            else
-                                opresy(i,j,k,m)=opresy(i,j,k,m)+del_op
-                                opresz(i,j,k,m)=opresz(i,j,k,m)+del_op*aniso_factor
-                            endif ! if(isotropic)
-
-                            opx(i,j,k,m)=opx(i,j,k,m)+reduct*oden*rvx
-                            opy(i,j,k,m)=opy(i,j,k,m)+reduct*oden*rvy
-                            ! equal temps
-                            epres(i,j,k,m)=epres(i,j,k,m)+(del_op+del_hp+del_qp)
-                            !
-                            tot_q=tot_q+qden*dx*dy*dz
-                            tot_h=tot_h+hden*dx*dy*dz
-                            tot_o=tot_o+oden*dx*dy*dz
-                            !
-                        endif
-                    enddo
-                enddo
-            enddo
-            !
-            !     scale factors to kg/s
-            !
-            volume=(re_equiv*planet_rad*1.e3)**3  !(cubic meters)
-            atime=tsave*t_equiv
-            injections=tstep/tsave
-            proton_mass=1.67e-27
-            write(6,*)'volume,t_equiv,atime',volume,t_equiv,atime
-            !
-            tot_q=tot_q*volume/atime*rho_equiv*1.e6/rmassq
-            tot_h=tot_h*volume/atime*rho_equiv*1.e6/rmassh
-            tot_o=tot_o*volume/atime*rho_equiv*1.e6/rmasso
-            write(6,*)'tot torus ions/s',tot_q,tot_h,tot_o
-            write(10,*)'tot torus ions/s',tot_q,tot_h,tot_o
-            !
-            tot_q=tot_q*proton_mass*rmassq
-            tot_h=tot_h*proton_mass*rmassh
-            tot_o=tot_o*proton_mass*rmasso
-            write(6,*)'injections',injections, '  single at'
-            write(6,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
-            write(10,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
-            !
-        endif  ! end ringo if
         !
         !     initialize plasma resistivity
         !
@@ -1156,9 +1003,12 @@ program multifluid
     
         write(6,*)'entering lores visual'
         ut=utstart+t*t_equiv/3600.
-        call visual(qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz,rmassq, &
-            hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz,rmassh, &
-            orho,opresx,opresy,opresz,opx,opy,opz,rmasso, &
+        call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
+            qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
+            hrho,hpresx,hpresy,hpresz,hpresxy, &
+            hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
+            orho,opresx,opresy,opresz,opresxy, &
+            opresxz,opresyz,opx,opy,opz,rmasso, &
             epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
             curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
             tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
@@ -1324,80 +1174,6 @@ program multifluid
                         !
                         epres(i,j,k,m)=(qpresx(i,j,k,m)+hpresx(i,j,k,m)+ &
                             opresx(i,j,k,m))/ti_te
-                        !
-                        !  check for enceladus plasma torus additions
-                        !
-                        ar_encel=sqrt(ax**2+ay**2)*re_equiv
-                        dr_encel=abs(ar_encel -lunar_dist)
-
-                        ! MAT - Corrected, according to 
-                        !   doi:10.1029/2009JE003372
-                        !   and
-                        !   doi:10.1029/JA091iA08p08749
-                        !
-                        if(abs(dr_encel.lt.2.*torus_rad)) then
-                            ! scale height in R_Saturns
-                            rscale=exp(-((dr_encel)/(0.5*torus_rad))**2) 
-                            zscale=exp(-((az*re_equiv)/(0.5*torus_rad))**2)
-                            !
-                            ! Inject W+ (O+,OH+,H2O+,H3O+)
-                            !
-                            hden=den_lunar*rmassh*rscale*zscale
-                            hrho(i,j,k,m)=hrho(i,j,k,m)+hden
-                            !temp goes as v**2
-                            del_hp=(hden/rmassh)*(corotate**2)*t_torus
-                            hpresx(i,j,k,m)=hpresx(i,j,k,m)+del_hp
-                            if(isotropic) then
-                                hpresy(i,j,k,m)=hpresx(i,j,k,m)
-                                hpresz(i,j,k,m)=hpresx(i,j,k,m)
-                            else
-                                hpresy(i,j,k,m)=hpresy(i,j,k,m)+del_hp
-                                hpresz(i,j,k,m)=hpresz(i,j,k,m)+del_hp*aniso_factor
-                            endif ! if(isotropic)
-
-                            hpx(i,j,k,m)=hpx(i,j,k,m)+reduct*hden*rvx
-                            hpy(i,j,k,m)=hpy(i,j,k,m)+reduct*hden*rvy
-                            !
-                            ! Inject H+ 
-                            !
-                            qden=0.0731*hden*rmassq/rmassh 
-                            qrho(i,j,k,m)=qrho(i,j,k,m)+qden
-                            !temp goes as v**2
-                            del_qp=(qden/rmassq)*(corotate**2)*t_torus
-                            qpresx(i,j,k,m)=qpresx(i,j,k,m)+del_qp
-                            if(isotropic) then
-                                qpresy(i,j,k,m)=qpresx(i,j,k,m)
-                                qpresz(i,j,k,m)=qpresx(i,j,k,m)
-                            else
-                                qpresy(i,j,k,m)=qpresy(i,j,k,m)+del_qp
-                                qpresz(i,j,k,m)=qpresz(i,j,k,m)+del_qp*aniso_factor
-                            endif ! if(isotropic)
-                            
-                            qpx(i,j,k,m)=qpx(i,j,k,m)+reduct*qden*rvx
-                            qpy(i,j,k,m)=qpy(i,j,k,m)+reduct*qden*rvy
-                            !
-                            ! Inject O2+ 
-                            !
-                            oden=1.93E-3*hden*rmasso/rmassh 
-                            orho(i,j,k,m)=orho(i,j,k,m)+oden
-                            !temp goes as v**2
-                            del_op=(oden/rmasso)*(corotate**2)*t_torus    
-                            opresx(i,j,k,m)=opresx(i,j,k,m)+del_op
-                            if(isotropic) then
-                                opresy(i,j,k,m)=opresx(i,j,k,m)
-                                opresz(i,j,k,m)=opresx(i,j,k,m)
-                            else
-                                opresy(i,j,k,m)=opresy(i,j,k,m)+del_op
-                                opresz(i,j,k,m)=opresz(i,j,k,m)+del_op*aniso_factor
-                            endif ! if(isotropic)
-
-                            opx(i,j,k,m)=opx(i,j,k,m)+reduct*oden*rvx
-                            opy(i,j,k,m)=opy(i,j,k,m)+reduct*oden*rvy
-                            ! equal temps
-                            epres(i,j,k,m)=(qpresx(i,j,k,m)+hpresx(i,j,k,m)+ &
-                                opresx(i,j,k,m))/ti_te
-                            !
-                        endif
                         !
                         bx(i,j,k,m)=0.
                         by(i,j,k,m)=0.
@@ -1968,7 +1744,7 @@ program multifluid
         !
         write(3,*)'main grid'
         do m=ngrd,1,-1
-            scale=rho_equiv*v_equiv*1.e3* &
+            scale=rho_equiv*v_equiv*1.e5* &
             (xspac(m)*planet_rad*re_equiv*1.e5)**2
             call flux_counter(qpx,qpy,qpz,hpx,hpy,hpz, &
                 opx,opy,opz,nx,ny,nz,ngrd,m, &
@@ -3122,6 +2898,140 @@ program multifluid
             !
             tgraf=tgraf+deltg
         endif !if(t.ge.tgraf)
+
+        if(t.ge.tinj.and.ringo) then
+            !
+            !     inject torus plasma
+            !
+            !      calculate size of plotting stuff and ensure no distortions
+            !         over desired scales
+            !
+            write(6,*) 'injecting plasma torus ...'
+
+            !
+            ! check for enceladus plasma torus additions
+            !
+            m=1
+            dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
+            dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
+            dz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+            !
+            tot_o=0.
+            tot_h=0.
+            tot_q=0.
+                
+            call totfld(bx,bx0,bsx,nx,ny,nz,ngrd,m)
+            call totfld(by,by0,bsy,nx,ny,nz,ngrd,m)
+            call totfld(bz,bz0,bsz,nx,ny,nz,ngrd,m)
+            !
+            do k=1,nz
+                az=(grd_zmin(m)+dz*(k-1)-zdip)
+                do j=1,ny
+                    ay=grd_ymin(m)+dy*(j-1)-ydip
+                    do i=1,nx
+                        ax=(grd_xmin(m)+dx*(i-1)-xdip)
+                        !
+                        rx=ax*re_equiv
+                        ry=ay*re_equiv
+                        rd=sqrt(rx**2+ry**2)
+                        !
+                        rvy=rx*v_rot
+                        rvx=-ry*v_rot
+                        rvz=0.
+                        corotate=sqrt(rvx**2+rvy**2)
+                        !
+                        ar_encel=sqrt(ax**2+ay**2)*re_equiv
+                        dr_encel=abs(ar_encel -lunar_dist)
+  
+                        ! MAT - Corrected, according to 
+                        !   doi:10.1029/2009JE003372
+                        !   and
+                        !   doi:10.1029/JA091iA08p08749
+                        !
+                        if(abs(dr_encel.lt.2.*torus_rad)) then
+                            ! scale height in R_Saturns
+                            rscale=exp(-((dr_encel)/(0.5*torus_rad))**2) 
+                            zscale=exp(-((az*re_equiv)/(0.5*torus_rad))**2)
+                            abtot=(bsx(i,j,k)**2+bsy(i,j,k)**2)/bsz(i,j,k)**2
+                            dscale=amax1(0.,1.-10.*abtot)
+                             
+                            !
+                            ! Inject W+ (O+,OH+,H2O+,H3O+)
+                            !
+                            hden=den_lunar*rmassh*rscale*zscale*dscale
+                            hrho(i,j,k,m)=hrho(i,j,k,m)+hden
+                            !temp goes as v**2
+                            del_hp=hden*(corotate**2)*t_torus
+                            hpresx(i,j,k,m)=hpresx(i,j,k,m)+del_hp
+                            hpresy(i,j,k,m)=hpresy(i,j,k,m)+del_hp
+                            hpresz(i,j,k,m)=hpresz(i,j,k,m)+del_hp*aniso_factor
+                            hpresxy(i,j,k,m)=hpresxy(i,j,k,m)+del_hp
+
+                            hpx(i,j,k,m)=hpx(i,j,k,m)+reduct*hden*rvx
+                            hpy(i,j,k,m)=hpy(i,j,k,m)+reduct*hden*rvy
+                            !
+                            ! Inject H+ 
+                            !
+                            qden=0.0731*hden*rmassq/rmassh 
+                            qrho(i,j,k,m)=qrho(i,j,k,m)+qden
+                            !temp goes as v**2
+                            del_qp=(qden/rmassq)*(corotate**2)*t_torus
+                            qpresx(i,j,k,m)=qpresx(i,j,k,m)+del_qp
+                            qpresy(i,j,k,m)=qpresy(i,j,k,m)+del_qp
+                            qpresz(i,j,k,m)=qpresz(i,j,k,m)+del_qp*aniso_factor
+                            qpresxy(i,j,k,m)=qpresxy(i,j,k,m)+del_qp
+                                
+                            qpx(i,j,k,m)=qpx(i,j,k,m)+reduct*qden*rvx
+                            qpy(i,j,k,m)=qpy(i,j,k,m)+reduct*qden*rvy
+                            !
+                            ! Inject O2+ 
+                            !
+                            oden=1.93E-3*hden*rmasso/rmassh 
+                            orho(i,j,k,m)=orho(i,j,k,m)+oden
+                            !temp goes as v**2
+                            del_op=(oden/rmasso)*(corotate**2)*t_torus    
+                            opresx(i,j,k,m)=opresx(i,j,k,m)+del_op
+                            opresy(i,j,k,m)=opresy(i,j,k,m)+del_op
+                            opresz(i,j,k,m)=opresz(i,j,k,m)+del_op*aniso_factor
+                            opresxy(i,j,k,m)=opresxy(i,j,k,m)+del_op
+
+                            opx(i,j,k,m)=opx(i,j,k,m)+reduct*oden*rvx
+                            opy(i,j,k,m)=opy(i,j,k,m)+reduct*oden*rvy
+                            ! equal temps
+                            epres(i,j,k,m)=epres(i,j,k,m)+(del_op+del_hp+del_qp)
+                            !
+                            tot_q=tot_q+qden*dx*dy*dz
+                            tot_h=tot_h+hden*dx*dy*dz
+                            tot_o=tot_o+oden*dx*dy*dz
+                            !
+                        endif
+                    enddo
+                enddo
+            enddo
+            !
+            !     scale factors to kg/s
+            !
+            volume=(re_equiv*planet_rad*1.e3)**3  !(cubic meters)
+            atime=deltinj*t_equiv
+            proton_mass=1.67e-27
+            write(6,*)'volume,t_equiv,atime',ut,volume,t_equiv,atime
+            !
+            tot_q=tot_q*volume/atime*rho_equiv*1.e6/rmassq
+            tot_h=tot_h*volume/atime*rho_equiv*1.e6/rmassh
+            tot_o=tot_o*volume/atime*rho_equiv*1.e6/rmasso
+            write(6,*)'tot torus ions/s',ut,tot_q,tot_h,tot_o
+            write(10,*)'tot torus ions/s',ut,tot_q,tot_h,tot_o
+            !
+            tot_q=tot_q*proton_mass*rmassq
+            tot_h=tot_h*proton_mass*rmassh
+            tot_o=tot_o*proton_mass*rmasso
+            write(6,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
+            write(10,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
+            !
+            
+            tinj=tinj+deltinj
+
+        endif !if(t.ge.tinj.and.ringo)
       
         if(t.ge.ts1) then
 
@@ -3221,136 +3131,6 @@ program multifluid
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
                 enddo  !end bndry_corer
             endif  ! end divb_lores
-            !
-            ! check for enceladus plasma torus additions
-            !
-            if(ringo)then
-                m=1
-                dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-                dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-                dz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
-                !
-                tot_o=0.
-                tot_h=0.
-                tot_q=0.
-                !
-                do k=1,nz
-                    az=(grd_zmin(m)+dz*(k-1)-zdip)
-                    do j=1,ny
-                        ay=grd_ymin(m)+dy*(j-1)-ydip
-                        do i=1,nx
-                            ax=(grd_xmin(m)+dx*(i-1)-xdip)
-                            !
-                            rx=ax*re_equiv
-                            ry=ay*re_equiv
-                            rd=sqrt(rx**2+ry**2)
-                            !
-                            rvy=rx*v_rot
-                            rvx=-ry*v_rot
-                            rvz=0.
-                            corotate=sqrt(rvx**2+rvy**2)
-                            !
-                            ar_encel=sqrt(ax**2+ay**2)*re_equiv
-                            dr_encel=abs(ar_encel -lunar_dist)
-      
-                            ! MAT - Corrected, according to 
-                            !   doi:10.1029/2009JE003372
-                            !   and
-                            !   doi:10.1029/JA091iA08p08749
-                            !
-                            if(abs(dr_encel.lt.2.*torus_rad)) then
-                                ! scale height in R_Saturns
-                                rscale=exp(-((dr_encel)/(0.5*torus_rad))**2) 
-                                zscale=exp(-((az*re_equiv)/(0.5*torus_rad))**2)
-                                !
-                                ! Inject W+ (O+,OH+,H2O+,H3O+)
-                                !
-                                hden=den_lunar*rmassh*rscale*zscale
-                                hrho(i,j,k,m)=hrho(i,j,k,m)+hden
-                                !temp goes as v**2
-                                del_hp=(hden/rmassh)*(corotate**2)*t_torus
-                                hpresx(i,j,k,m)=hpresx(i,j,k,m)+del_hp
-                                if(isotropic) then
-                                    hpresy(i,j,k,m)=hpresx(i,j,k,m)
-                                    hpresz(i,j,k,m)=hpresx(i,j,k,m)
-                                else
-                                    hpresy(i,j,k,m)=hpresy(i,j,k,m)+del_hp
-                                    hpresz(i,j,k,m)=hpresz(i,j,k,m)+del_hp*aniso_factor
-                                endif ! if(isotropic)
-    
-                                hpx(i,j,k,m)=hpx(i,j,k,m)+reduct*hden*rvx
-                                hpy(i,j,k,m)=hpy(i,j,k,m)+reduct*hden*rvy
-                                !
-                                ! Inject H+ 
-                                !
-                                qden=0.0731*hden*rmassq/rmassh 
-                                qrho(i,j,k,m)=qrho(i,j,k,m)+qden
-                                !temp goes as v**2
-                                del_qp=(qden/rmassq)*(corotate**2)*t_torus
-                                qpresx(i,j,k,m)=qpresx(i,j,k,m)+del_qp
-                                if(isotropic) then
-                                    qpresy(i,j,k,m)=qpresx(i,j,k,m)
-                                    qpresz(i,j,k,m)=qpresx(i,j,k,m)
-                                else
-                                    qpresy(i,j,k,m)=qpresy(i,j,k,m)+del_qp
-                                    qpresz(i,j,k,m)=qpresz(i,j,k,m)+del_qp*aniso_factor
-                                endif ! if(isotropic)
-                                
-                                qpx(i,j,k,m)=qpx(i,j,k,m)+reduct*qden*rvx
-                                qpy(i,j,k,m)=qpy(i,j,k,m)+reduct*qden*rvy
-                                !
-                                ! Inject O2+ 
-                                !
-                                oden=1.93E-3*hden*rmasso/rmassh 
-                                orho(i,j,k,m)=orho(i,j,k,m)+oden
-                                !temp goes as v**2
-                                del_op=(oden/rmasso)*(corotate**2)*t_torus    
-                                opresx(i,j,k,m)=opresx(i,j,k,m)+del_op
-                                if(isotropic) then
-                                    opresy(i,j,k,m)=opresx(i,j,k,m)
-                                    opresz(i,j,k,m)=opresx(i,j,k,m)
-                                else
-                                    opresy(i,j,k,m)=opresy(i,j,k,m)+del_op
-                                    opresz(i,j,k,m)=opresz(i,j,k,m)+del_op*aniso_factor
-                                endif ! if(isotropic)
-    
-                                opx(i,j,k,m)=opx(i,j,k,m)+reduct*oden*rvx
-                                opy(i,j,k,m)=opy(i,j,k,m)+reduct*oden*rvy
-                                ! equal temps
-                                epres(i,j,k,m)=epres(i,j,k,m)+(del_op+del_hp+del_qp)
-                                !
-                                tot_q=tot_q+qden*dx*dy*dz
-                                tot_h=tot_h+hden*dx*dy*dz
-                                tot_o=tot_o+oden*dx*dy*dz
-                                !
-                            endif
-                        enddo
-                    enddo
-                enddo
-                !
-                !     scale factors to kg/s
-                !
-                volume=(re_equiv*planet_rad*1.e3)**3  !(cubic meters)
-                atime=tsave*t_equiv
-                injections=tstep/tsave
-                proton_mass=1.67e-27
-                write(6,*)'volume,t_equiv,atime',ut,volume,t_equiv,atime
-                !
-                tot_q=tot_q*volume/atime*rho_equiv*1.e6/rmassq
-                tot_h=tot_h*volume/atime*rho_equiv*1.e6/rmassh
-                tot_o=tot_o*volume/atime*rho_equiv*1.e6/rmasso
-                write(6,*)'tot torus ions/s',ut,tot_q,tot_h,tot_o
-                write(10,*)'tot torus ions/s',ut,tot_q,tot_h,tot_o
-                !
-                tot_q=tot_q*proton_mass*rmassq
-                tot_h=tot_h*proton_mass*rmassh
-                tot_o=tot_o*proton_mass*rmasso
-                write(6,*)'injections',injections, '  single at'
-                write(6,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
-                write(10,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
-                !
-            endif  ! end ringo if
-            !
         endif ! if(t.ge.ts1)
     enddo ! do while(t.lt.tmax)
           
@@ -3482,7 +3262,7 @@ subroutine set_resist(rst,nx,ny,nz,mbndry,resist, &
     !
     !     interior resistivity
     !
-    do n=1,numzero(m)
+    do n=1,numzero(mbndry)
         do m=1,mbndry
             i=ijzero(m,1,n)
             j=ijzero(m,2,n)
@@ -3494,7 +3274,7 @@ subroutine set_resist(rst,nx,ny,nz,mbndry,resist, &
     !
     !     lower ionosphere resistivity
     !
-    do n=1,nummid(m)
+    do n=1,nummid(mbndry)
         do m=1,mbndry
             i=ijmid(m,1,n)
             j=ijmid(m,2,n)
@@ -3506,7 +3286,7 @@ subroutine set_resist(rst,nx,ny,nz,mbndry,resist, &
     !
     !     upper ionosphere
     !
-    do n=1,numsrf(m)
+    do n=1,numsrf(mbndry)
         do m=1,mbndry
             i=ijsrf(m,1,n)
             j=ijsrf(m,2,n)
@@ -4196,9 +3976,12 @@ end
 !     **************************************************
 !
 subroutine visual( &
-    qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz,rmassq, &
-    hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz,rmassh, &
-    orho,opresx,opresy,opresz,opx,opy,opz,rmasso, &
+    qrho,qpresx,qpresy,qpresz,qpresxy, &
+    qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
+    hrho,hpresx,hpresy,hpresz,hpresxy, &
+    hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
+    orho,opresx,opresy,opresz,opresxy, &
+    opresxz,opresyz,opx,opy,opz,rmasso, &
     epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
     curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
     tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
@@ -4213,12 +3996,18 @@ subroutine visual( &
     qpx(nx,ny,nz,ngrd),qpy(nx,ny,nz,ngrd),qpz(nx,ny,nz,ngrd), &
     qrho(nx,ny,nz,ngrd),qpresx(nx,ny,nz,ngrd), &
     qpresy(nx,ny,nz,ngrd),qpresz(nx,ny,nz,ngrd), &
+    qpresxy(nx,ny,nz,ngrd),qpresxz(nx,ny,nz,ngrd), &
+    qpresyz(nx,ny,nz,ngrd), &
     opx(nx,ny,nz,ngrd),opy(nx,ny,nz,ngrd),opz(nx,ny,nz,ngrd), &
     orho(nx,ny,nz,ngrd),opresx(nx,ny,nz,ngrd), &
     opresy(nx,ny,nz,ngrd),opresz(nx,ny,nz,ngrd), &
+    opresxy(nx,ny,nz,ngrd),opresxz(nx,ny,nz,ngrd), &
+    opresyz(nx,ny,nz,ngrd), &
     hpx(nx,ny,nz,ngrd),hpy(nx,ny,nz,ngrd),hpz(nx,ny,nz,ngrd), &
     hrho(nx,ny,nz,ngrd),hpresx(nx,ny,nz,ngrd), &
     hpresy(nx,ny,nz,ngrd),hpresz(nx,ny,nz,ngrd), &
+    hpresxy(nx,ny,nz,ngrd),hpresxz(nx,ny,nz,ngrd), &
+    hpresyz(nx,ny,nz,ngrd), &
     epres(nx,ny,nz,ngrd)
     real bx0(nx,ny,nz,ngrd),by0(nx,ny,nz,ngrd),bz0(nx,ny,nz,ngrd)
     real efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz), &
@@ -4262,10 +4051,10 @@ subroutine visual( &
         call qvset(0.,curz,nx*ny*nz)
         !
         if(m.le.3)then
-            preslim=16.0/float(m)
+            preslim=20.0/float(m)
             po=preslim*0.33
         else
-            preslim=16.0/(m-1.)
+            preslim=20.0/(m-1.)
             po=preslim*0.33
         endif
         !
@@ -4278,8 +4067,13 @@ subroutine visual( &
                     presx=qpresx(i,j,k,m)
                     presy=qpresy(i,j,k,m)
                     presz=qpresz(i,j,k,m)
-                    presmag=sqrt(presx**2+presy**2+presz**2)+1.e-11
-                    apres=(presx+presy+presz)/3.+1.e-11
+                    presxy=qpresxy(i,j,k,m)
+                    presxz=qpresxz(i,j,k,m)
+                    presyz=qpresyz(i,j,k,m)
+                    presmag=sqrt(presx**2+presy**2+presz**2+ &
+                        2*(presxy**2)+2*(presyz**2)+2*(presxz**2))+1.e-11
+                    apres=(presx+presy+presz+2*presxy+ &
+                        2*presxz+2*presyz)/9.+1.e-11
                     !
                     abx=bsx(i,j,k)
                     aby=bsy(i,j,k)
@@ -4298,30 +4092,24 @@ subroutine visual( &
                     !
                     !       find vparallel
                     !
-                    vbx=avx-vcrossb_x
-                    vby=avy-vcrossb_y
-                    vbz=avz-vcrossb_z
-                    vbmag=sqrt((vbx**2+vby**2+vbz**2))+1.e-8
-                    !
-                    p_para=sqrt((presx*abx)**2+(presy*aby)**2+(presz*abz)**2) &
-                        /(bmag)
-                    p_cross=sqrt((presx*vcrossb_x)**2+(presy*vcrossb_y)**2+ &
-                    (presz*vcrossb_z)**2) &
-                        /(vcmag)
+                    p_para=sqrt((presx*abx)**2+(presxy*aby)**2+(presxz*abz)**2 + &
+                        (presxy*abx)**2+(presy*aby)**2+(presyz*abz)**2 + &
+                        (presxz*abx)**2+(presyz*aby)**2+(presz*abz)**2)/(bmag)
+
+                    p_cross=sqrt((presx*vcrossb_x)**2+(presxy*vcrossb_y)**2+(presxz*vcrossb_z)**2+ &
+                        (presxy*vcrossb_x)**2+(presy*vcrossb_y)**2+(presyz*vcrossb_z)**2+ &
+                        (presxz*vcrossb_x)**2+(presyz*vcrossb_y)**2+(presz*vcrossb_z)**2)/(vcmag)
                     p_perp=sqrt(abs(presmag**2-(p_para**2+p_cross**2)))
-                    !
-    
-                    tvx(i,j,k)=sqrt(presx)
-                    tvy(i,j,k)=sqrt(presy)
-                    tvz(i,j,k)=sqrt(presz)
+                    !  
+                    tvx(i,j,k)=sqrt(apres)
                     !
                     !       efldx(i,j,k)=p_para/((presmag+1.e-13)/sqrt(3.))
                     !       efldy(i,j,k)=p_cross/((presmag+1.e-13)/sqrt(3.))
                     !       efldz(i,j,k)=p_perp/((presmag+1.e-13)/sqrt(3.))
                     !
-                    efldx(i,j,k)=presx/apres+0.0001
-                    efldy(i,j,k)=presy/apres+0.0001
-                    efldz(i,j,k)=presz/apres+0.0001
+                    efldx(i,j,k)=p_para/apres+0.0001
+                    efldy(i,j,k)=p_cross/apres+0.0001
+                    efldz(i,j,k)=p_perp/apres+0.0001
                 enddo
             enddo
         enddo
@@ -4329,41 +4117,31 @@ subroutine visual( &
         wd1=''
         label=''
         write(wd1,'(i1)')m
-        label='qpresx '//wd1
+        label='qpres '//wd1
         call conhot(tvx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
             ut,label,3,18,1,2.0,preslim, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-        label='qpresy '//wd1
-        call conhot(tvy,curx,cury,curz,nx,ny,nz,1,1,m, &
-            xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
-            tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
-            grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-        label='qpresz '//wd1
-        call conhot(tvz,curx,cury,curz,nx,ny,nz,1,1,m, &
-            xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
-            tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
-            grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     
-        label='rqprx '//wd1
-        call conlog(efldx,curx,cury,curz,nx,ny,nz,1,1,m, &
+        label='qpara '//wd1
+        call conhot(efldx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.5,2.25, &
+            ut,label,3,18,1,2.0,3.0, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-        label='rqpry '//wd1
-        call conlog(efldy,curx,cury,curz,nx,ny,nz,1,1,m, &
+
+        label='qcross '//wd1
+        call conhot(efldy,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.5,2.25, &
+            ut,label,3,18,1,2.0,3.0, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-        label='rqprz '//wd1
-        call conlog(efldz,curx,cury,curz,nx,ny,nz,1,1,m, &
+
+        label='qperp '//wd1
+        call conhot(efldz,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.5,2.25, &
+            ut,label,3,18,1,2.0,2.0, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
@@ -4377,8 +4155,13 @@ subroutine visual( &
                     presx=hpresx(i,j,k,m)
                     presy=hpresy(i,j,k,m)
                     presz=hpresz(i,j,k,m)
-                    presmag=sqrt(presx**2+presy**2+presz**2)+1.e-11
-                    apres=(presx+presy+presz)/3.+1.e-11
+                    presxy=hpresxy(i,j,k,m)
+                    presxz=hpresxz(i,j,k,m)
+                    presyz=hpresyz(i,j,k,m)
+                    presmag=sqrt(presx**2+presy**2+presz**2+ &
+                        2*(presxy**2)+2*(presxz**2)+2*(presyz**2))+1.e-11
+                    apres=(presx+presy+presz+2*presxy+ &
+                        2*presxz+2*presyz)/9.+1.e-11
                     !
                     abx=bsx(i,j,k)
                     aby=bsy(i,j,k)
@@ -4397,69 +4180,55 @@ subroutine visual( &
                     !
                     !       find vparallel
                     !
-                    vbx=avx-vcrossb_x
-                    vby=avy-vcrossb_y
-                    vbz=avz-vcrossb_z
-                    vbmag=sqrt((vbx**2+vby**2+vbz**2))+1.e-8
-                    !
-                    p_para=sqrt((presx*abx)**2+(presy*aby)**2+(presz*abz)**2) &
-                        /(bmag)
-                    p_cross=sqrt((presx*vcrossb_x)**2+(presy*vcrossb_y)**2+ &
-                    (presz*vcrossb_z)**2) &
-                        /(vcmag)
+                    p_para=sqrt((presx*abx)**2+(presxy*aby)**2+(presxz*abz)**2 + &
+                        (presxy*abx)**2+(presy*aby)**2+(presyz*abz)**2 + &
+                        (presxz*abx)**2+(presyz*aby)**2+(presz*abz)**2)/(bmag)
+
+                    p_cross=sqrt((presx*vcrossb_x)**2+(presxy*vcrossb_y)**2+(presxz*vcrossb_z)**2+ &
+                        (presxy*vcrossb_x)**2+(presy*vcrossb_y)**2+(presyz*vcrossb_z)**2+ &
+                        (presxz*vcrossb_x)**2+(presyz*vcrossb_y)**2+(presz*vcrossb_z)**2)/(vcmag)
+
                     p_perp=sqrt(abs(presmag**2-(p_para**2+p_cross**2)))
                     !
     
-                    tvx(i,j,k)=sqrt(presx)
-                    tvy(i,j,k)=sqrt(presy)
-                    tvz(i,j,k)=sqrt(presz)
+                    tvx(i,j,k)=sqrt(apres)
                     !
                     !       efldx(i,j,k)=p_para/((presmag+1.e-13)/sqrt(3.))
                     !       efldy(i,j,k)=p_cross/((presmag+1.e-13)/sqrt(3.))
                     !       efldz(i,j,k)=p_perp/((presmag+1.e-13)/sqrt(3.))
                     !
-                    efldx(i,j,k)=presx/apres+0.0001
-                    efldy(i,j,k)=presy/apres+0.0001
-                    efldz(i,j,k)=presz/apres+0.0001
+                    efldx(i,j,k)=p_para/apres+0.0001
+                    efldy(i,j,k)=p_cross/apres+0.0001
+                    efldz(i,j,k)=p_perp/apres+0.0001
                 enddo
             enddo
         enddo
         !
-        label='hpresx '//wd1
+        label='hpres '//wd1
         call conhot(tvx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
             ut,label,3,18,1,2.0,preslim, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-        label='hpresy '//wd1
-        call conhot(tvy,curx,cury,curz,nx,ny,nz,1,1,m, &
-            xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
-            tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
-            grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-        label='hpresz '//wd1
-        call conhot(tvz,curx,cury,curz,nx,ny,nz,1,1,m, &
-            xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
-            tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
-            grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     
-        label='rhprx '//wd1
-        call conlog(efldx,curx,cury,curz,nx,ny,nz,1,1,m, &
+        label='h_para '//wd1
+        call conhot(efldx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.75,1.25, &
+            ut,label,3,18,1,2.0,2.0, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-        label='rhpry '//wd1
-        call conlog(efldy,curx,cury,curz,nx,ny,nz,1,1,m, &
+
+        label='h_cross '//wd1
+        call conhot(efldy,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.75,1.25, &
+            ut,label,3,18,1,2.0,2.0, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-        label='rhprz '//wd1
-        call conlog(efldz,curx,cury,curz,nx,ny,nz,1,1,m, &
+
+        label='h_perp '//wd1
+        call conhot(efldz,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.75,1.25, &
+            ut,label,3,18,1,2.0,2.0, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
@@ -4473,8 +4242,13 @@ subroutine visual( &
                     presx=opresx(i,j,k,m)
                     presy=opresy(i,j,k,m)
                     presz=opresz(i,j,k,m)
-                    presmag=sqrt(presx**2+presy**2+presz**2)+1.e-11
-                    apres=(presx+presy+presz)/3.+1.e-11
+                    presxy=opresxy(i,j,k,m)
+                    presxz=opresxz(i,j,k,m)
+                    presyz=opresyz(i,j,k,m)
+                    presmag=sqrt(presx**2+presy**2+presz**2+ &
+                        2*(presxy**2)+2*(presxz**2)+2*(presyz**2))+1.e-11
+                    apres=(presx+presy+presz+2*presxy+ &
+                        2*presxz+2*presyz)/9.+1.e-11
                     !
                     abx=bsx(i,j,k)
                     aby=bsy(i,j,k)
@@ -4493,69 +4267,55 @@ subroutine visual( &
                     !
                     !       find vparallel
                     !
-                    vbx=avx-vcrossb_x
-                    vby=avy-vcrossb_y
-                    vbz=avz-vcrossb_z
-                    vbmag=sqrt((vbx**2+vby**2+vbz**2))+1.e-8
-                    !
-                    p_para=sqrt((presx*abx)**2+(presy*aby)**2+(presz*abz)**2) &
-                        /(bmag)
-                    p_cross=sqrt((presx*vcrossb_x)**2+(presy*vcrossb_y)**2+ &
-                    (presz*vcrossb_z)**2) &
-                        /(vcmag)
+                    p_para=sqrt((presx*abx)**2+(presxy*aby)**2+(presxz*abz)**2 + &
+                        (presxy*abx)**2+(presy*aby)**2+(presyz*abz)**2 + &
+                        (presxz*abx)**2+(presyz*aby)**2+(presz*abz)**2)/(bmag)
+
+                    p_cross=sqrt((presx*vcrossb_x)**2+(presxy*vcrossb_y)**2+(presxz*vcrossb_z)**2+ &
+                        (presxy*vcrossb_x)**2+(presy*vcrossb_y)**2+(presyz*vcrossb_z)**2+ &
+                        (presxz*vcrossb_x)**2+(presyz*vcrossb_y)**2+(presz*vcrossb_z)**2)/(vcmag)
+
                     p_perp=sqrt(abs(presmag**2-(p_para**2+p_cross**2)))
                     !
     
-                    tvx(i,j,k)=sqrt(presx)
-                    tvy(i,j,k)=sqrt(presy)
-                    tvz(i,j,k)=sqrt(presz)
+                    tvx(i,j,k)=sqrt(apres)
                     !
                     !       efldx(i,j,k)=p_para/((presmag+1.e-13)/sqrt(3.))
                     !       efldy(i,j,k)=p_cross/((presmag+1.e-13)/sqrt(3.))
                     !       efldz(i,j,k)=p_perp/((presmag+1.e-13)/sqrt(3.))
                     !
-                    efldx(i,j,k)=presx/apres+0.0001
-                    efldy(i,j,k)=presy/apres+0.0001
-                    efldz(i,j,k)=presz/apres+0.0001
+                    efldx(i,j,k)=p_para/apres+0.0001
+                    efldy(i,j,k)=p_cross/apres+0.0001
+                    efldz(i,j,k)=p_perp/apres+0.0001
                 enddo
             enddo
         enddo
         !
-        label='opresx '//wd1
+        label='opres '//wd1
         call conhot(tvx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
             ut,label,3,18,1,2.0,preslim, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-        label='opresy '//wd1
-        call conhot(tvy,curx,cury,curz,nx,ny,nz,1,1,m, &
-            xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
-            tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
-            grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-        label='opresz '//wd1
-        call conhot(tvz,curx,cury,curz,nx,ny,nz,1,1,m, &
-            xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
-            tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
-            grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         
-        label='roprx '//wd1
-        call conlog(efldx,curx,cury,curz,nx,ny,nz,1,1,m, &
+        label='o_para '//wd1
+        call conhot(efldx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.75,1.25, &
+            ut,label,3,18,1,2.0,2.0, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-        label='ropry '//wd1
-        call conlog(efldy,curx,cury,curz,nx,ny,nz,1,1,m, &
+
+        label='o_cross '//wd1
+        call conhot(efldy,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.75,1.25, &
+            ut,label,3,18,1,2.0,2.0, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-        label='roprz '//wd1
-        call conlog(efldz,curx,cury,curz,nx,ny,nz,1,1,m, &
+
+        label='o_perp '//wd1
+        call conhot(efldz,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.75,1.25, &
+            ut,label,3,18,1,2.0,2.0, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
