@@ -21,7 +21,7 @@
 !       ncts is the size of the data array for the imf data file
 !
 program multifluid
-    integer,parameter :: nx=61,ny=61,nz=33,ngrd=3, &
+    integer,parameter :: nx=93,ny=93,nz=49,ngrd=3, &
     mbndry=1,msrf=2000,mmid=1500,mzero=5000, &
     ncraft=30,ncts=281
     !
@@ -1239,9 +1239,9 @@ program multifluid
                         !        test for boundary point of planets surface or
                         !        interior to planet
                         !
-                        if((ar.le.rearth+.6).and.(m.le.mbndry))then
+                        if((ar.le.rearth+.5).and.(m.le.mbndry))then
                             !
-                            if(ar.lt.rearth-1.5) then
+                            if(ar.lt.rearth-1.2) then
                                 numzero(m)=numzero(m)+1
                                 ijzero(m,1,numzero(m))=i
                                 ijzero(m,2,numzero(m))=j
@@ -1256,7 +1256,7 @@ program multifluid
                                 parm_zero(m,6,numzero(m))=opresx(i,j,k,m)
                                 parm_zero(m,7,numzero(m))=epres(i,j,k,m)
                                 !
-                            else  if(ar.lt.rearth-.5) then
+                            else  if(ar.lt.rearth-.4) then
                                 nummid(m)=nummid(m)+1
                                 ijmid(m,1,nummid(m))=i
                                 ijmid(m,2,nummid(m))=j
