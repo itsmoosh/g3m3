@@ -6,11 +6,11 @@
 
 FC = ncargf90
 FCFLAGS = -zero -save -openmp
-FCFLAGS += -liomp5 
-FILES = saturn3d_main.f90 \
-		saturnd_main.f90 \
-		saturng_main.f90 \
-		saturns_main.f90
+FCFLAGS += -liomp5 -g -traceback 
+FILES = code/saturn3d_main.f90 \
+		code/saturnd_main.f90 \
+		code/saturng_main.f90 \
+		code/saturns_main.f90
 LIBS = -L/opt/intel/composer_xe_2013/lib/intel64
 
 saturn.x: $(OBJECTS)

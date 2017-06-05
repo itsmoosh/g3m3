@@ -1,0 +1,72 @@
+#!/bin/bash
+# Run this script as ./fname num num &
+# The numbers indicate index of start and end runs
+# Required to run:
+#	@ Folders matching the paths of $execdir, $datadir, and $compdir below
+#	@ An input file in $execdir named e.g. input_saturn_001, where saturn is the runname and 1 is the run number
+#	@ An executable created by the makefile, e.g. saturn.x where saturn is the runname. The executable may be renamed from the output of the makefile.
+#	@ This file must be in $execdir
+#	@ Fluid files in $execdir named fluid11 and fluid12
+#		& Note: if the "start" variable in input is set to .t., no fluid files are required, but subsequent runs must have their own input files
+
+execdir=$HOME/multifluid # If any data/run directory or input name is changed here it must also be changed in archive.run
+datadir=$HOME/multifluid/data
+compdir=$HOME/multifluid/data/complete
+runname=$1 # Passed to archive.run
+inp=input_${runname}_
+
+if [ $2 -eq 0 ] || [ $3 -eq 0 ] ; then
+    echo "Run script as: ./run_multi.run runname first last"
+    echo "Where runname is a descriptor matching input_<runname>_###, and first and last are integers corresponding to the first and last run numbers."
+    echo "Aborted, try again with valid start/stop numbers."
+    exit
+fi
+
+# Automate multiple saturn runs
+for k in $(seq $2 $3)
+do
+    kk=$(printf %03d $k) # Append fnames with left-padded integers, always 3 digits
+    kknext=$(printf %03d $((k+1)))
+    prek=$((k-1))
+    kkpre=$(printf %03d $prek)
+#
+    if [[ ! -f $inp$kk ]] ; then # We must abort here if correct files do not exist, otherwise multifluid code will fail after some files are rearranged, creating headaches.
+        echo $inp$(printf %03d $kk)' file does not exist. Aborting...\n'
+        exit 1
+    fi
+    if [[ -f $datadir/output_$kkpre.log ]] ; then # If an output file from a past run exists, archive that past run's data. We do this at the start so that the most recent run's data files are easily accessible for debugging and exploration.
+        sh $execdir/archive.run $runname $prek # Compress data files from past runs into tar archive + gmeta
+    fi
+#
+    cp -f $inp$kk input
+    date +"START: %T-%Y-%m-%d" >> output.log
+#
+#
+    $execdir/$runname.x >> output.log # Main code runs here
+#
+#
+    MAIN_EXIT_STATUS=$? # Check STDERR in case main code had errors. This usually indicates missing/problem files.
+    if [ $MAIN_EXIT_STATUS -ne 0 ] ; then # Save us overwriting files we need to restart if the main code fails.
+        echo "File ${runname}_${kk} exited with errors." | mail -s "${runname}_${kk} script reported errors, runscript aborted." mjstyczi@uw.edu
+        exit 1
+    fi
+#
+    date +"FINISH: %T-%Y-%m-%d" >> output.log
+    mv -f output.log $datadir/output_$kk.log # Move old data files to data directory
+    mv -f gmeta $datadir/${runname}_$kk
+    mv -f fluxes.dat $datadir/fluxes_$kk.dat
+    mv -f conc.dat $datadir/conc_$kk.dat
+    cp -f input $datadir/$inp$kk
+#
+    mv -f input $inp$kknext
+    rm -f $inp$kk
+    mv -f fluid11 $datadir/$runname${kk}_11
+    mv -f fluid12 $datadir/$runname${kk}_12
+#
+    cp -f fluid13 fluid11 # Transfer last two fluid files from completed run to be first two for next run
+    cp -f fluid14 fluid12 
+    mv -f fluid13 $datadir/$runname${kk}_13
+    mv -f fluid14 $datadir/$runname${kk}_14
+#
+    echo "DONE!" | mail -s "echidna ${runname} run ${kk} complete" mjstyczi@uw.edu
+done
