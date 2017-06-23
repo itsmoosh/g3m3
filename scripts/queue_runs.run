@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+
+$execdir=$HOME/multifluid
+$scriptdir=$HOME/multifluid/scripts
+
+$scriptdir/run_multi.run decmag1 1 8
+$scritpdir/archive.run decmag1 8
+mv $execdir/decmag1.x $execdir/decmag2.x
+$scriptdir/run_multi.run decmag2 1 8
+$scriptdir/archive.run decmag2 8
+
+echo "FULLY DONE!" | mail -s "Step-down runs complete" mjstyczi@uw.edu
