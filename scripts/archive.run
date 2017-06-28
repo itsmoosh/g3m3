@@ -38,8 +38,7 @@ tar -cz --file=$farchive --directory=/home/mjstyczi/ $relinput $reloutput $relco
 
 TAR_EXIT_STATUS=$? # Check STDERR in case a file is missing
 if [ $TAR_EXIT_STATUS -ne 0 ] ; then
-    echo "File missing for tar archive of ${nrun}_${kk}. STDERR: ${TAR_EXIT_STATUS}" | mail -s "${nrun}_${kk} archive script aborted due to tar errors." $myemail
-    exit 1
+    echo "File missing for tar archive of ${nrun}_${kk}. STDERR: ${TAR_EXIT_STATUS}" | mail -s "${nrun}_${kk} archive script errors." $myemail
 fi
 
 # Move gmeta file into 'complete' directory to store next to (but outside of) tar archive
