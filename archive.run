@@ -3,41 +3,54 @@
 # Where runname is hard-coded in the resume.run script and run# is the number a file ends with. Example: to compress saturn_001, do:
 # ./archive.run saturn 1
 
-set -e
-
 execdir=$HOME/multifluid
 datadir=$HOME/multifluid/data
 compdir=$HOME/multifluid/data/complete
 garbage=$HOME/multifluid/trash
-inp=input_${1}_
-
+reldir=multifluid/data
+tlog=$datadir/tar_out.log
 
 kk=$(printf %03d $2)
+nrun=$1
+[ -f $datadir/$1${kk}_11 ] || nrun=decmag2
+[ -f $datadir/$nrun${kk}_11 ] || nrun=decmag3
+[ -f $datadir/$nrun${kk}_11 ] || nrun=decmag4
+[ -f $datadir/$nrun${kk}_11 ] || nrun=decmag5
+[ -f $datadir/$nrun${kk}_11 ] || nrun=decmag6
+[ -f $datadir/$nrun${kk}_11 ] || nrun=decmag7
 
-farchive=$compdir/$1$kk.tar.gz
-fgmeta=$datadir/${1}_$kk
-finput=$datadir/$inp$kk
-foutput=$datadir/output_$kk.log
-fconc=$datadir/conc_$kk.dat
-ffluxes=$datadir/fluxes_$kk.dat
-fflu=$datadir/$1${kk}_1
+echo "$nrun " >> $tlog
 
+inp=input_${nrun}_
 
-tar -czf $farchive $finput $foutput $fconc $ffluxes ${fflu}1 ${fflu}2 ${fflu}3 ${fflu}4 $fgmeta # Compress EVERYTHING to do with run run# into a single tar file named runname00#.tar.gz
+farchive=$compdir/$nrun$kk.tar.gz
+# File paths to be archived are named relative to home directory so that tar will not throw an error when it removes leading slashes from path names. Requires -C flag and home directory to be specified in tar invocation.
+relgmeta=$reldir/${nrun}_$kk
+relinput=$reldir/$inp$kk
+reloutput=$reldir/output_$kk.log
+relconc=$reldir/conc_$kk.dat
+relfluxes=$reldir/fluxes_$kk.dat
+relflu=$reldir/$nrun${kk}_1
+
+# Compress EVERYTHING to do with run run# into a single tar file named runname00#.tar.gz
+tar -cvz --file=$farchive --directory=/home/mjstyczi/ $relinput $reloutput $relconc $relfluxes ${relflu}1 ${relflu}2 ${relflu}3 ${relflu}4 $relgmeta >> $tlog
+
 TAR_EXIT_STATUS=$? # Check STDERR in case a file is missing
 if [ $TAR_EXIT_STATUS -ne 0 ] ; then
-    echo "File missing for tar archive of ${1}_${kk}" | mail -s "${1}_${kk} script aborted due to missing files." mjstyczi@uw.edu
-    exit 1
+    echo "File missing for tar archive of ${nrun}_${kk}. STDERR: ${TAR_EXIT_STATUS}" | mail -s "${nrun}_${kk} archive script errors." mjstyczi@uw.edu
 fi
 
-mv $fgmeta $compdir/${1}_$kk # Move gmeta file into 'complete' directory to store next to (but outside of) tar archive
+# Move gmeta file into 'complete' directory to store next to (but outside of) tar archive
+mv $HOME/$relgmeta $compdir/${nrun}_$kk >> $tlog
 
 # Tidy up data directory:
-mv $finput $garbage/$inp$kk
-mv $foutput $garbage/output_$kk.log
-mv $fconc $garbage/conc_$kk.dat
-mv $ffluxes $garbage/fluxes_$kk.dat
-mv ${fflu}1 $garbage/$1${kk}_11
-mv ${fflu}2 $garbage/$1${kk}_12
-mv ${fflu}3 $garbage/$1${kk}_13
-mv ${fflu}4 $garbage/$1${kk}_14
+mv $HOME/$relinput $garbage/$inp$kk >> $tlog
+mv $HOME/$reloutput $garbage/output_$kk.log >> $tlog
+mv $HOME/$relconc $garbage/conc_$kk.dat >> $tlog
+mv $HOME/$relfluxes $garbage/fluxes_$kk.dat >> $tlog
+mv $HOME/${relflu}1 $garbage/$nrun${kk}_11 >> $tlog
+mv $HOME/${relflu}2 $garbage/$nrun${kk}_12 >> $tlog
+mv $HOME/${relflu}3 $garbage/$nrun${kk}_13 >> $tlog
+mv $HOME/${relflu}4 $garbage/$nrun${kk}_14 >> $tlog
+
+echo " " >> $tlog
