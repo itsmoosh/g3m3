@@ -1,0 +1,25 @@
+#!/bin/bash
+# Parses binary fluid files into ASCII text. A collection of output files ending in .dat will be written to the execution directory.
+# Run this script as ./parse_fluid.run runname run# qtr
+# Where runname is the pre-extension executable name, run# is the number the gmeta file ends with, and qtr is a number 1-4 that corresponds to which fluid file is being handled. Example: To parse saturn054_13, do:
+# ./parse_fluid.run saturn 54 3
+#
+# Fluid file and associated input file are expected to be found in multifluid/data directory.
+
+execdir=$HOME/multifluid
+datadir=$HOME/multifluid/data
+codedir=$HOME/multifluid/code
+kk=$(printf %03d $2)
+
+# Create executable from "cutter file" Fortran code
+ncargf90 -o $execdir/cutting_fluid.x $codedir/cut_fluid_to_ascii.f90
+
+# Move selected fluid and input files to execution directory
+cp $datadir/$1${kk}_1$qtr $execdir/cutter_fluid
+cp $datadir/input_${1}_$kk $execdir/cutter_input
+
+# Parse files into ASCII
+$execdir/cutting_fluid.x >> cutter_out.log
+
+# Clean up
+rm $execdir/cutter_fluid $execdir/cutter_input $execdir/cutting_fluid.x
