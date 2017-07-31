@@ -167,7 +167,7 @@ subroutine divb_correct(bx,by,bz,dbx,dby,dbz,poten, &
         enddo
     enddo
     !
-    !    calculate  perturbed magnetic field
+    !    calculate perturbed magnetic field
     !
     !
     do k=2,nz-1
@@ -368,7 +368,7 @@ subroutine divb_correct_n(bx,by,bz,dbx,dby,dbz,poten, &
         enddo
     enddo
     !
-    !    calculate  perturbed magnetic field
+    !    calculate perturbed magnetic field
     !
     !
     do k=2,nz-1
@@ -612,7 +612,7 @@ subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
         enddo
     enddo
     !
-    !    calculate  perturbed magnetic field
+    !    calculate perturbed magnetic field
     !
     !
     do k=2,nz-1
@@ -714,7 +714,7 @@ recursive subroutine sparse(abd,nband,n,b,x,ipvt,rsq, &
     !
     !    nmax is the anticpated maximum value of n
     !       should be reset if you want a big system
-    !     eps is an error limit onthe solution
+    !     eps is an error limit on the solution
     !
     parameter(eps=1.e-4)
     !

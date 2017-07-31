@@ -1,31 +1,31 @@
 !
-!     this is a 3-d modified three fluid simulation using the
-!           electrons : arrays starting with e
-!           solar wind : arrays starting wit q
+!     This is a 3-d modified three fluid simulation using
+!           electrons  : arrays starting with e
+!           solar wind : arrays starting with q (protons)
 !           ionospheric: arrays starting with o oxygen,
-!                                         h hydrogen
+!                                             h hydrogen
 !
-!      and change set33(0.1,1.,0.1,1.0  to
+!     ?[ and change set33(0.1,1.,0.1,1.0  to
 !                 set3(0.,1.,0.,1.
-!     warning - make sure space is compatible with graphics
-!               routines
+!     ]?
+!     Warnings: make sure space is compatible with graphics
+!                 routines
 !               the arrays ijzero,ijmid  and ijsrf have to
-!               be modified in bsubs.f if modified in main
-!     add in mirror dipole  so bx is zero at wind boundary
-!     graphics - contour and flows - have to be manually set
-!                for right aspect ratios
+!                 be modified in bsubs.f if modified in main
+!               add in mirror dipole so bx is zero at wind boundary
+!               graphics - contour and flows - have to be manually set
+!                 for right aspect ratios
+!               plasma and magnetic field data must be aligned in time
 !
-!      warming plasma and magnetic field data must be aligned in time
-!
-!       grid within grid size nt = 2*ngrd
-!       ncts is the size of the data array for the imf data file
+!     grid within grid size nt = 2*ngrd
+!     ncts is the size of the data array for the imf data file
 !
 program multifluid
     integer,parameter :: nx=121,ny=121,nz=61,ngrd=5, &
     mbndry=1,msrf=2000,mmid=1500,mzero=5000, &
     ncraft=30,ncts=281
     !
-    !      graphics parameters:muvwp2=amax(mx,my,mz)+2,mz2=(mz-1)/2+1
+    !      graphics parameters: muvwp2=amax(mx,my,mz)+2,mz2=(mz-1)/2+1
     !
     integer,parameter :: mx=61,my=61,mz=31, &
                          muvwp2=63,mz2=16,ntinj=120
@@ -45,17 +45,17 @@ program multifluid
     xspac(ngrd)
     !
     !
-    !      grid limits now set by grd_min grd_max arrays
-    !      xspac is the relative grid spacing relative to inner grid system
+    !      grid limits are set by grd_min grd_max arrays
+    !      xspac is the relative grid spacing, relative to inner grid system
     !      xcraft is the actual position of the spacecraft in re
-    !          4th dimension of the actual time
+    !      ?[  4th dimension of the actual time  ]?
     !      zcraft is the future position of the spacecraft in re
     !      rcraft is the position of the spacecraft for which
-    !           imf is reference. no alteration from boundary conditions applied
+    !           IMF is reference. No alteration from boundary conditions applied
     !
     real xcraft(4,ncraft),zcraft(4,ncraft),rcraft(3)
     !
-    !     physics plasma quantities :main grid
+    !     physics plasma quantities: main grid
     !
     real bx(nx,ny,nz,ngrd),by(nx,ny,nz,ngrd),bz(nx,ny,nz,ngrd), &
     qpx(nx,ny,nz,ngrd),qpy(nx,ny,nz,ngrd),qpz(nx,ny,nz,ngrd), &
@@ -78,7 +78,7 @@ program multifluid
     !
     epres(nx,ny,nz,ngrd)
     !
-    !     work arrays for runge-kutta and smothing: main grid
+    !     work arrays for runge-kutta and smoothing: main grid
     !
     real, allocatable, dimension(:,:,:,:) :: &
     oldbx,oldby,oldbz, &
@@ -3576,7 +3576,7 @@ subroutine mak_dip_all(bx0,by0,bz0,nx,ny,nz,ngrd, &
                     ax=grd_xmin(m)+dx*(i-1)
                     x1=(ax-xdip)
                     !
-                    !       rotate corrdinates for planet motion
+                    !       rotate coordinates for planet motion
                     !
                     xr=x1*cos_rot+y1*sin_rot
                     yr=-x1*sin_rot+y1*cos_rot
@@ -3697,7 +3697,7 @@ subroutine mak_dip_grd(bx0,by0,bz0,nx,ny,nz,ngrd, &
                 !
                 !        determine magnetic dipole field
                 !
-                !       rotate corrdinates for planet motion
+                !       rotate coordinates for planet motion
                 !
                 xr=x1*cos_rot+y1*sin_rot
                 yr=-x1*sin_rot+y1*cos_rot
@@ -3817,7 +3817,7 @@ subroutine mak_dip_moon(bx0,by0,bz0,nx,ny,nz,ngrd, &
                 !
                 !        determine magnetic dipole field
                 !
-                !       rotate corrdinates for planet motion
+                !       rotate coordinates for planet motion
                 !
                 xr=x1*cos_rot+y1*sin_rot
                 yr=-x1*sin_rot+y1*cos_rot
@@ -3891,7 +3891,7 @@ subroutine dipole(abx,aby,abz,ax,ay,az)
     y1=(ay-ydip)
     z1=(az-zdip)
     !
-    !       rotate corrdinates for planet motion
+    !       rotate coordinates for planet motion
     !
     xr=x1*cos_rot+y1*sin_rot
     yr=-x1*sin_rot+y1*cos_rot
@@ -3939,7 +3939,7 @@ subroutine limcraft(xcraft,ncraft,re_equiv,ngrd, &
     !
     !
     !      tests to see whether spacecraft is in the system and
-    !           resets their position in not
+    !           resets their position if not
     !
     dimension grd_xmin(ngrd),grd_xmax(ngrd), &
         grd_ymin(ngrd),grd_ymax(ngrd), &

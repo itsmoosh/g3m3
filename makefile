@@ -4,10 +4,7 @@
 FC = ncargf90
 FCFLAGS = -zero -save -openmp
 FCFLAGS += -liomp5 -g -traceback 
-FILES = code/3d_main.f90 \
-	code/d_aniso_subrout.f90 \
-	code/g_gfx.f90 \
-	code/s_subrout.f90
+FILES = code/*.f90
 LIBS = -L/opt/intel/composer_xe_2013/lib/intel64
 
 saturn.x: $(OBJECTS)

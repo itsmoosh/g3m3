@@ -616,7 +616,7 @@ subroutine aurora_cur(stuff,nx,ny,nz,m,radstrt,re_equiv, &
     b_equiv,planet_rad,tot_cur,peak_cur,ngrd, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
-    !      this subroutine will try to make  close up image
+    !      this subroutine will try to make close up image
     !      of stuff near the auroral regions at a fixed distance radstrt
     !       re_equiv converts grid units to r_e
     !        add_two adds two current densities to produce
@@ -638,7 +638,7 @@ subroutine aurora_cur(stuff,nx,ny,nz,m,radstrt,re_equiv, &
     character*20 title
     logical save_dat,add_two,write_dat
     !
-    !     for no line labeling set ilab  to zero
+    !     for no line labeling set ilab to zero
     !
     common /conre4/ isizel,isizem,isizep,nrep, &
     ncrt,ilab,nulbll,ioffd, & 
