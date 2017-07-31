@@ -8,11 +8,11 @@
 
 execdir=$HOME/multifluid
 datadir=$HOME/multifluid/data
-codedir=$HOME/multifluid/code
+scriptdir=$HOME/multifluid/scripts
 kk=$(printf %03d $2)
 
 # Create executable from "cutter file" Fortran code
-ncargf90 -o $execdir/cutting_fluid.x $codedir/cut_fluid_to_ascii.f90
+ncargf90 -o $execdir/cutting_fluid.x $scriptdir/cut_fluid_to_ascii.f90
 
 # Move selected fluid and input files to execution directory
 cp $datadir/$1${kk}_1$qtr $execdir/cutter_fluid
