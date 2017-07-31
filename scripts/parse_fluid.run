@@ -1,5 +1,5 @@
 #!/bin/bash
-# Parses binary fluid files into ASCII text. A collection of output files ending in .dat will be written to the execution directory.
+# Parses binary fluid files into ASCII text. A collection of output files ending in .dat will be written to $execdir.
 # Run this script as ./parse_fluid.run runname run# qtr
 # Where runname is the pre-extension executable name, run# is the number the gmeta file ends with, and qtr is a number 1-4 that corresponds to which fluid file is being handled. Example: To parse saturn054_13, do:
 # ./parse_fluid.run saturn 54 3

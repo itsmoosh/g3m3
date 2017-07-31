@@ -1,4 +1,4 @@
-﻿NOTE: many of these pre-date me, and I never updated the var names - confusion expected
+﻿NOTE: many of these pre-date me (MAT), and I never updated the var names - confusion expected
  
 $ option
 tmax - duration in seconds of physical time for single call to executable
