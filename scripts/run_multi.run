@@ -1,5 +1,6 @@
 #!/bin/bash
-# Run this script as $path/run_multi.run runname num num &
+# Queues up multiple runs, either for longer time-stepping or for varying input parameters. Create appropriately-named input files for subsequent runs and place them in $execdir. If no input file is found for the next run, the previous file will be copied, effectively just time-stepping for longer.
+# Run this script as $path/run_multi.run runname startnum stopnum &
 # runname is the name of the executable file to run, before extension. Example: The runname for saturn.x is saturn
 # The numbers indicate index of start and end runs
 # Required to run:

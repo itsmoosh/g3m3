@@ -1,13 +1,25 @@
 #!/bin/bash
+# Queues up sequences of long-time-stepping runs with input parameter adjustment in between. To queue up more changes, edit the highlighted variable $numqs.
+# Run this script as ./queue_runs.run &
+# Executable expected as $execdir/$runname.x ; queue numbers are added and modified in each step.
+# Input files may be created for every individual run, if desired. Existing input files are required for the first time step for each new runname$k.
 set -e
 
-$execdir=$HOME/multifluid
-$scriptdir=$HOME/multifluid/scripts
+execdir=$HOME/multifluid
+scriptdir=$HOME/multifluid/scripts
+runname=master
 
-$scriptdir/run_multi.run decmag1 1 8
-$scritpdir/archive.run decmag1 8
-mv $execdir/decmag1.x $execdir/decmag2.x
-$scriptdir/run_multi.run decmag2 1 8
-$scriptdir/archive.run decmag2 8
+# Number of times to continue time-stepping with each parameter set
+numsteps=8
 
-echo "FULLY DONE!" | mail -s "Step-down runs complete" mjstyczi@uw.edu
+# @@@@@ Edit number of parameter steps here @@@@@
+numqs=2
+
+for k in $(seq 1 $numqs)
+do
+	mv $execdir/$runname.x $execdir/$runname$k.x
+	$scriptdir/run_multi.run $runname$k 1 $numsteps
+	$scriptdir/archive.run $runname$k $numsteps
+done
+
+echo "FULLY DONE!" | mail -s "Queued runs complete" mjstyczi@uw.edu

@@ -1,4 +1,5 @@
 #!/bin/bash
+# Compresses fluid files, gmeta file, and associated input and output files into a single .tar.gz archive, then transfers all files which were archived into the trash directory.
 # Run this script as ./archive.run runname run#
 # Where runname is the pre-extension executable name and run# is the number a file ends with. Example: to compress saturn_001, do:
 # ./archive.run saturn 1
@@ -13,12 +14,6 @@ myemail=mjstyczi@uw.edu
 
 kk=$(printf %03d $2)
 nrun=$1
-[ -f $datadir/$1${kk}_11 ] || nrun=decmag2
-[ -f $datadir/$nrun${kk}_11 ] || nrun=decmag3
-[ -f $datadir/$nrun${kk}_11 ] || nrun=decmag4
-[ -f $datadir/$nrun${kk}_11 ] || nrun=decmag5
-[ -f $datadir/$nrun${kk}_11 ] || nrun=decmag6
-[ -f $datadir/$nrun${kk}_11 ] || nrun=decmag7
 
 echo "$nrun " >> $tlog
 
@@ -34,7 +29,7 @@ relfluxes=$reldir/fluxes_$kk.dat
 relflu=$reldir/$nrun${kk}_1
 
 # Compress EVERYTHING to do with run run# into a single tar file named runname00#.tar.gz
-tar -cz --file=$farchive --directory=/home/mjstyczi/ $relinput $reloutput $relconc $relfluxes ${relflu}1 ${relflu}2 ${relflu}3 ${relflu}4 $relgmeta >> $tlog
+tar -cvz --file=$farchive --directory=/home/mjstyczi/ $relinput $reloutput $relconc $relfluxes ${relflu}1 ${relflu}2 ${relflu}3 ${relflu}4 $relgmeta >> $tlog
 
 TAR_EXIT_STATUS=$? # Check STDERR in case a file is missing
 if [ $TAR_EXIT_STATUS -ne 0 ] ; then
