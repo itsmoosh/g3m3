@@ -1,10 +1,16 @@
+!
+!	This file contains three subroutines:
+!	divb_correct
+!	divb_correct_n
+!	divb_correct_tst
+!
 subroutine divb_correct(bx,by,bz,dbx,dby,dbz,poten, &
     b,x,g,h,xi,xj,nband,ntot,nx,ny,nz,ngrd,m, &
     xspac)
     !
     !     this program solves the matrix equation
     !            a.x=b
-    !      using using conjuage gradient method from
+    !      using using conjugate gradient method from
     !          numerical recipes
     !     3: d solution of poisson's eqn :
     !          ntot=nx*ny*nz
@@ -15,7 +21,7 @@ subroutine divb_correct(bx,by,bz,dbx,dby,dbz,poten, &
     !     original solutions done on small grid
     !     parameter (ntot=893101,nx=121,ny=121,nz=61,nband=7)
     !
-    !     store only non-zero bnads of matrix a in
+    !     store only non-zero bands of matrix a in
     !       array abd, and the position of these bands is
     !       stored in ipvt
     !       abd gives values of bands in matrix
@@ -197,9 +203,10 @@ subroutine divb_correct(bx,by,bz,dbx,dby,dbz,poten, &
     if(allocated(abd)) deallocate(abd)
     return
 end
-
 !
-!    **********************************************************
+!
+!	****************************************
+!
 !
 subroutine divb_correct_n(bx,by,bz,dbx,dby,dbz,poten, &
     b,x,g,h,xi,xj,nband,ntot,nx,ny,nz,ngrd,m, &
@@ -397,9 +404,10 @@ subroutine divb_correct_n(bx,by,bz,dbx,dby,dbz,poten, &
     !
     return
 end
-
 !
-!     *****************************************************
+!
+!	****************************************
+!
 !
 subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
     b,x,g,h,xi,xj,nband,ntot,nx,ny,nz,ngrd,m, &
@@ -686,207 +694,6 @@ subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
         xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
         ut,'divb fin',3,11,1,2.0, &
         tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2)
-    !
-    return
-end
-
-!
-!      ***************************************
-!
-recursive subroutine sparse(abd,nband,n,b,x,ipvt,rsq, &
-    g,h,xi,xj,recurse,rirst)
-    !
-    !     sparse matrix solver:
-    !       abd is the banded matrix
-    !       nband is the number of bands
-    !       ivpt is the position of the bands relative
-    !              to the diagonal
-    !
-    !       n is the order of the original matrix
-    !       b(n) the real vector for the right hand side
-    !       x(n) is the solution vector
-    !
-    !       rsq is the sum of the squares of the components
-    !         of the residual vector a.x -b
-    !       if this is not small then the matrix is numerically
-    !       singular and the solution represents a least
-    !        squares best approximation
-    !
-    !    nmax is the anticpated maximum value of n
-    !       should be reset if you want a big system
-    !     eps is an error limit on the solution
-    !
-    parameter(eps=1.e-4)
-    !
-    real abd(nband,n),b(n),x(n)
-    integer ipvt(nband)
-    real g(n),h(n),xi(n),xj(n)
-    logical,optional :: recurse
-    integer, optional :: rirst
-    
-    !
-    !      criterion for sum-squared residuals
-    !       and number of restarts attempted internally
-    !
-    eps2=n*eps**2
-    
-    if(recurse) then
-        irst = rirst
-    else
-        irst=0
-    endif
-    
-    !
-    irst=irst+1
-    call asub(abd,nband,n,ipvt,x,xi)
-    rp=0.
-    !
-    !      add the magntiude of the right side
-    !       and find the residue
-    !
-    bsq=0.
-    do j=1,n
-        bsq=bsq+b(j)**2
-        xi(j)=xi(j)-b(j)
-        rp=rp+xi(j)**2
-    enddo
-    !
-    call atsub(abd,nband,n,ipvt,xi,g)
-    do j=1,n
-        g(j)=-g(j)
-        h(j)=g(j)
-    enddo
-    !
-    !      main iterative loop
-    !
-    max_iter=10*n
-    do iter=1,max_iter
-        call asub(abd,nband,n,ipvt,h,xi)
-        !
-        !     calculate the gradient
-        !
-        anum=0.
-        aden=0.
-        !
-        do j=1,n
-            anum=anum+g(j)*h(j)
-            aden=aden+xi(j)**2
-        enddo
-        if(aden.eq.0.)pause 'very singular matrix'
-        !
-        anum=anum/aden
-        do j=1,n
-            xi(j)=x(j)
-            x(j)=x(j)+anum*h(j)
-        enddo
-        !
-        call asub(abd,nband,n,ipvt,x,xj)
-        !
-        rsq=0.
-        do j=1,n
-            xj(j)=xj(j)-b(j)
-            rsq=rsq+xj(j)**2
-        enddo
-        !
-        !      test for convergence and exit if okay
-        !
-        if(rsq.eq.rp.or.rsq.le.bsq*eps2)return
-        !
-        !     test to see whether solution is improving
-        !     and restart if necessary
-        !
-        if(rsq.gt.rp)then
-            do j=1,n
-                x(j)=xi(j)
-            enddo
-            !
-            !      return if too many restarts - hitting roundoff error
-            !
-            if(irst.ge.3)return
-            !
-            call sparse(abd,nband,n,b,x,ipvt,rsq, &
-                g,h,xi,xj,.true.,irst)
-        endif
-        !
-        !      compute gradient for next iteration
-        !
-        rp=rsq
-        call atsub(abd,nband,n,ipvt,xj,xi)
-        gg=0.
-        dgg=0.
-        do j=1,n
-            gg=gg+g(j)**2
-            dgg=dgg+(xi(j)+g(j))*xi(j)
-        enddo
-        !
-        !     test to see if you have a solution and return if okay
-        !
-        if(gg.eq.0.)return
-        !
-        gam=dgg/gg
-        do j=1,n
-            g(j)=-xi(j)
-            h(j)=g(j)+gam*h(j)
-        enddo
-        !
-    enddo
-    !
-    !     never found solution if you get here
-    !
-    pause 'too many iterations'
-    return
-end
-
-!
-!     **************************
-!
-subroutine asub(abd,nband,n,ipvt,x,xi)
-    !
-    !    calculates a.x taking advantage of the banded
-    !       structure of a
-    !
-    real abd(nband,n),x(n),xi(n)
-    integer ipvt(nband)
-    
-    !
-    !     initialize product
-    !
-    do i=1,n
-        xi(i)=0.
-        !
-        do m=1,nband
-            ii=i+ipvt(m)
-            if((ii.ge.1).and.(ii.le.n)) xi(i)=xi(i)+abd(m,ii)*x(ii)
-        enddo
-    enddo
-    !
-    return
-end
-
-!
-!     **************************
-!
-subroutine atsub(abd,nband,n,ipvt,x,xi)
-    !
-    !    beware: symmetrical matrix assumed here
-    !    calculates transpose(a).x
-    !         taking advantage of the banded
-    !          structure of a
-    !
-    real abd(nband,n),x(n),xi(n)
-    integer ipvt(nband)
-    !
-    !     initialize product
-    !
-    do i=1,n
-        xi(i)=0.
-        !
-        do m=1,nband
-            ii=i+ipvt(m)
-            if((ii.ge.1).and.(ii.le.n))xi(i)=xi(i)+abd(m,ii)*x(ii)
-        enddo
-    enddo
-    !
     !
     return
 end

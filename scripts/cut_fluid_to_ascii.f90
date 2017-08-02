@@ -1,6 +1,6 @@
 
 !     this is a 3-d modified three fluid simulation using the
-!           electrons : arrays starting with e
+!           electrons :  arrays starting with e
 !           solar wind : arrays starting with q
 !           ionospheric: arrays starting with o oxygen,
 !                                         h hydrogen
@@ -793,7 +793,7 @@ program cut_fluid_to_ascii
       nx1=nx-1
       ny1=ny-1
       nz1=nz-1
-!     parallelizes loop rw, oct. 23, 2002
+!     parallelizes loop. RW, oct. 23, 2002
 !$omp  parallel do
       do j=2,ny1
          do i=2,nx1
@@ -813,7 +813,7 @@ program cut_fluid_to_ascii
 !
 !     set boundary regions - front and back
 !
-!     parallelizes loop rw, oct. 23, 2002
+!     parallelizes loop. RW, oct. 23, 2002
 !$omp  parallel do
       do k=2,nz1
          do j=2,ny1
@@ -830,7 +830,7 @@ program cut_fluid_to_ascii
 !
 !     set boundary regions - left and right
 !
-!     parallelizes loop rw, oct. 23, 2002
+!     parallelizes loop. RW, oct. 23, 2002
 !$omp  parallel do
       do j=2,nz1
          do i=2,nx1
@@ -847,7 +847,7 @@ program cut_fluid_to_ascii
 !
 !     set corner lines
 !
-!     parallelizes loop rw, oct. 23, 2002
+!     parallelizes loop. RW, oct. 23, 2002
 !$omp  parallel do
       do i=2,nx1
          curx(i,1,1)=curx(i,1,2)
@@ -865,7 +865,7 @@ program cut_fluid_to_ascii
          curz(i,ny,nz)=curz(i,ny1,nz)
       enddo
 !
-!     parallelizes loop rw, oct. 23, 2002
+!     parallelizes loop. RW, oct. 23, 2002
 !$omp  parallel do
       do j=2,ny1
          curx(1,j,1)=curx(1,j,2)
@@ -883,7 +883,7 @@ program cut_fluid_to_ascii
          curz(nx,j,nz)=curz(nx,j,nz1)
       enddo
 !
-!     parallelizes loop rw, oct. 23, 2002
+!     parallelizes loop. RW, oct. 23, 2002
 !$omp  parallel do
       do k=2,nz1
          curx(1,1,k)=curx(1,2,k)
@@ -960,7 +960,7 @@ program cut_fluid_to_ascii
 !
 !      print*, 'in bande subroutine'
 
-! parallelizes loop rw, oct. 23, 2002
+! parallelizes loop. RW, oct. 23, 2002
 !$omp  parallel do
       do k=1,nz
       do j=1,ny
@@ -987,7 +987,7 @@ program cut_fluid_to_ascii
       dxt=2.*rx
       dyt=2.*ry
       dzt=2.*rz
-! parallelizes loop rw, oct. 23, 2002
+! parallelizes loop. RW, oct. 23, 2002
 !$omp  parallel do
       do k=2,nz-1
       kp=k+1
@@ -1032,7 +1032,7 @@ program cut_fluid_to_ascii
 !      add in ionospheric resistance
 !
       if((m.le.mbndry).and.(resist.lt.5000.))then
-! parallelizes loop rw, oct. 23, 2002
+! parallelizes loop. RW, oct. 23, 2002
 !$omp  parallel do
        do n=1,nummid
          i=ijmid(m,1,n)
@@ -1083,7 +1083,7 @@ program cut_fluid_to_ascii
       ny1=ny-1
       nz1=nz-1
 !
-! parallelizes loop rw, oct. 23, 2002
+! parallelizes loop. RW, oct. 23, 2002
 !$omp  parallel do
       do k=1,nz
       do j=1,ny
@@ -1096,7 +1096,7 @@ program cut_fluid_to_ascii
       enddo
       enddo
 !
-! parallelizes loop rw, oct. 23, 2002
+! parallelizes loop. RW, oct. 23, 2002
 !$omp  parallel do
       do j=1,ny
       do i=1,nx
@@ -1109,7 +1109,7 @@ program cut_fluid_to_ascii
       enddo
       enddo
 !
-! parallelizes loop rw, oct. 23, 2002
+! parallelizes loop. RW, oct. 23, 2002
 !$omp  parallel do
       do k=1,nz
       do i=1,ny
