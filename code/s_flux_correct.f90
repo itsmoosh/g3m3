@@ -99,7 +99,6 @@ subroutine flux_correct(qrho,qpresx,qpresy,qpresz, &
     oldbx(nx,ny,nz,ngrd),oldby(nx,ny,nz,ngrd), &
     oldbz(nx,ny,nz,ngrd),oldepres(nx,ny,nz,ngrd)
     !
-    !
     !      write(6,*)'in flux correct with',nx,ny,nz,ngrd,m,chirho,
     !    +              diferg,xspac
     !
@@ -175,7 +174,6 @@ subroutine flux_correct(qrho,qpresx,qpresy,qpresz, &
     vvx,vvy,vvz)
     call fcsmooth(opz,oldopz,wrkopz,nx,ny,nz,ngrd,m,chifcs, &
     vvx,vvy,vvz)
-    !
     !
     call fcsmooth(epres,oldepres,wrkepres,nx,ny,nz,ngrd,m,chifcs, &
     vvx,vvy,vvz)

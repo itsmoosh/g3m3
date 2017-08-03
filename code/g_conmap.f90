@@ -68,7 +68,6 @@ subroutine conmap(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz,ngrd,mm,m, &
     !
     !      set up evenly spaced gridding for t to be plotted
     !
-    !
     axmax=amin1(xmax,grd_xmax(m)-.0001)
     aymax=amin1(ymax,grd_ymax(m)-.0001)
     azmax=amin1(zmax,grd_zmax(m)-.0001)
@@ -145,7 +144,6 @@ subroutine conmap(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz,ngrd,mm,m, &
     !
     !    set viewport size
     !
-    !
     vpl=3200
     vpr=32760
     vpb=3200
@@ -205,7 +203,6 @@ subroutine conmap(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz,ngrd,mm,m, &
     tisom=rearth
     call isosrf(tt,mx,mx,my,my,mz,eye,muvwp2,work,tisom,-3, &
     vpl,vpr,vpb,vpt)
-    !
     !
     !     zero subset array tt
     !

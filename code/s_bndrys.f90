@@ -22,7 +22,6 @@ subroutine bndry_corer( &
     !     this routine applies boundary conditions to all grid types
     !     of the system and at any irregular boundaries
     !
-    !
     dimension &
     bx(nx,ny,nz,ngrd),by(nx,ny,nz,ngrd),bz(nx,ny,nz,ngrd), &
     qrho(nx,ny,nz,ngrd),qpx(nx,ny,nz,ngrd), &
@@ -158,9 +157,8 @@ subroutine bndry_flanks( &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
     grd_zmin,grd_zmax)
     !
-    !     this routine applies boundary conditions to all grid types
+    !     this subroutine applies boundary conditions to all grid types
     !     of the system and at any irregular boundaries
-    !
     !
     dimension qrho(nx,ny,nz,ngrd),qpresx(nx,ny,nz,ngrd), &
     qpresy(nx,ny,nz,ngrd),qpresz(nx,ny,nz,ngrd), &
@@ -365,9 +363,8 @@ subroutine bndry_grd_core( &
     grd_xmin_n,grd_xmax_n,grd_ymin_n,grd_ymax_n, &
     grd_zmin_n,grd_zmax_n)
     !
-    !     this routine applies boundary conditions to all grid types
+    !     this subroutine applies boundary conditions to all grid types
     !     of the system and at any irregular boundaries
-    !
     !
     dimension &
     bx(nx,ny,nz,ngrd),by(nx,ny,nz,ngrd),bz(nx,ny,nz,ngrd), &
@@ -678,7 +675,7 @@ subroutine bndry_grds( &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
     grd_zmin,grd_zmax)
     !
-    !     this routine applies boundary conditions to all grid types
+    !     this subroutine applies boundary conditions to all grid types
     !     of the system and at any irregular boundaries
     !
     dimension qrho_n(nx_n,ny_n,nz_n,ngrd_n), &
@@ -1000,7 +997,7 @@ subroutine bndry_inner( &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
     grd_zmin,grd_zmax)
     !
-    !     this routine applies boundary conditions around the edges
+    !     this subroutine applies boundary conditions around the edges
     !     of the system and at any irregular boundaries
     !
     dimension &
@@ -1038,7 +1035,6 @@ subroutine bndry_inner( &
     !
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
-    !
     !
     !     set surface conditions around earth
     !      withinterior temperature as constant
@@ -1187,7 +1183,6 @@ subroutine bndry_inner( &
         !
     enddo
     !
-    !
     !      reset interior points
     !
     do n=1,numzero(m)
@@ -1273,7 +1268,7 @@ subroutine bndry_moon(qrho,qpresx,qpresy,qpresz, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax, &
     isotropic)
     !
-    !     this routine applies boundary conditions around the edges
+    !     this subroutine applies boundary conditions around the edges
     !     of the system and at any irregular boundaries
     !
     dimension qrho(nx,ny,nz,ngrd),qpresx(nx,ny,nz,ngrd), &
@@ -1316,7 +1311,7 @@ subroutine bndry_moon(qrho,qpresx,qpresy,qpresz, &
     dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
     dz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
     !
-    !     set atmospheric boundary points - specify magnetic field profile
+    !     set atmospheric boundary points -- specify magnetic field profile
     !
     do n=1,nummid(m)
         !
@@ -1365,7 +1360,6 @@ subroutine bndry_moon(qrho,qpresx,qpresy,qpresz, &
         !        opres(i,j,k,m)=amax1(0.25*opres(i,j,k,m),parm_mid(m,6,n))
         !        epres(i,j,k,m)=amax1(0.25*epres(i,j,k,m),parm_mid(m,7,n))
         !
-        !
         opx(i,j,k,m)=orho(i,j,k,m)*rvx
         opy(i,j,k,m)=orho(i,j,k,m)*rvy
         opz(i,j,k,m)=orho(i,j,k,m)*rvz
@@ -1381,7 +1375,6 @@ subroutine bndry_moon(qrho,qpresx,qpresy,qpresz, &
         !        bz(i,j,k,m)=0.
         !
     enddo
-    !
     !
     !      reset interior points
     !
@@ -1419,7 +1412,6 @@ subroutine bndry_moon(qrho,qpresx,qpresy,qpresz, &
         opresyz(i,j,k,m)=0.
         !
         epres(i,j,k,m)=parm_zero(m,7,n)
-        !
         !
         !        qrho(i,j,k,m)=amax1(0.10*qrho(i,j,k,m),parm_zero(m,1,n))
         !        hrho(i,j,k,m)=amax1(0.10*hrho(i,j,k,m),parm_zero(m,2,n))
@@ -1462,9 +1454,8 @@ subroutine bndry_outer( &
     srho,rho_frac,o_conc,spress,spx,spy,spz, &
     sbx_wind,sby_wind,sbz_wind,ti_te,isotropic)
     !
-    !     this routine applies boundary conditions around the edges
+    !     this subroutine applies boundary conditions around the edges
     !     of the system and at any irregular boundaries
-    !
     !
     dimension &
     qrho(nx,ny,nz,ngrd),qpx(nx,ny,nz,ngrd), &
@@ -1543,7 +1534,6 @@ subroutine bndry_outer( &
             opresxz(i,j,k,m)=0.
             opresyz(i,j,k,m)=0.
             !
-            !
             !       set bx of wind to zero, by to the wind values
             !          and subtract any geomagnetic field
             !
@@ -1557,7 +1547,6 @@ subroutine bndry_outer( &
             !
         enddo
     enddo
-    !
     !
     !     do x boundary conditions - back wall
     !
@@ -1695,7 +1684,6 @@ subroutine bndry_outer( &
             !
             !       continuous boundary condition
             !
-            !
             qpresxy(i,ny,k,m)=qpresxy(i1,ny1,k,m)
             qpresxz(i,ny,k,m)=qpresxz(i1,ny1,k,m)
             qpresyz(i,ny,k,m)=qpresyz(i1,ny1,k,m)
@@ -1706,7 +1694,6 @@ subroutine bndry_outer( &
             opresxz(i,ny,k,m)=opresxz(i1,ny1,k,m)
             opresyz(i,ny,k,m)=opresyz(i1,ny1,k,m)
 			!
-            !
             by(i,ny,k,m)=by(i1,ny1,k,m)
             !    +              +(by0(i1,ny1,k,m)-by0(i,ny,k,m))
             bx(i,ny,k,m)=bx(i1,ny1,k,m)
@@ -1763,7 +1750,6 @@ subroutine bndry_outer( &
             opresxy(i,j,nz,m)=opresxy(i1,j,nz1,m)
             opresxz(i,j,nz,m)=opresxz(i1,j,nz1,m)
             opresyz(i,j,nz,m)=opresyz(i1,j,nz1,m)
-            !
             !
             bz(i,j,nz,m)=bz(i1,j,nz1,m)
             !    +            +bz0(i1,j,nz1,m)-bz0(i,j,nz,m)
@@ -1881,7 +1867,7 @@ subroutine bndry_outer( &
         epres(nx,ny,k,m)=(epres(nx1,ny,k,m) &
         +epres(nx,ny1,k,m))/2.
         !
-        !       off diagonal elements
+        !       off-diagonal elements
         !
         qpresxy(nx,1,k,m)=(qpresxy(nx1,1,k,m) &
             +qpresxy(nx,2,k,m))/2.
@@ -1962,7 +1948,7 @@ subroutine bndry_outer( &
         !
     enddo
     !
-    !     do corner lines at up and bottom back wall
+    !     do corner lines at top and bottom back wall
     !
     do j=2,ny-1
         qrho(nx,j,1,m)=qrho(nx,j,2,m)
@@ -2114,7 +2100,7 @@ subroutine bndry_outer( &
         epres(i,1,nz,m)=epres(i,1,nz1,m)
         epres(i,ny,nz,m)=epres(i,ny,nz1,m)
         !
-        !       off diagonal elements
+        !       off-diagonal elements
         !
         qpresxy(i,1,1,m)=qpresxy(i,1,2,m)
         qpresxy(i,ny,1,m)=qpresxy(i,ny,2,m)

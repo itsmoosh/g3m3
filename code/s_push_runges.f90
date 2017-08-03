@@ -1,3 +1,121 @@
+!
+!	This file contains three subroutines:
+!	push_bfld
+!	push_elec
+!	push_ion
+!
+subroutine push_bfld(bx,by,bz,oldbx,oldby,oldbz, &
+    efldx,efldy,efldz,nx,ny,nz,ngrd,m,delt, &
+    rx,ry,rz)
+    !
+    !      standard runge-kutta time step
+    !
+    dimension bx(nx,ny,nz,ngrd),by(nx,ny,nz,ngrd),bz(nx,ny,nz,ngrd), &
+    oldbx(nx,ny,nz,ngrd),oldby(nx,ny,nz,ngrd),oldbz(nx,ny,nz,ngrd), &
+    efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz)
+    !
+    !       set physical grid spacing
+    !
+    dxt=2.*rx
+    dyt=2.*ry
+    dzt=2.*rz
+    !
+    ! parallelizes loop. RW, aug. 17, 2004
+    !$omp  parallel do
+    do k=2,nz-1
+        km=k-1
+        kk=k+1
+        do j=2,ny-1
+            jm=j-1
+            jj=j+1
+    
+            do i=2,nx-1
+                ii=i+1
+                im=i-1
+                !
+                !       induction equation
+                !
+                bx(i,j,k,m)=oldbx(i,j,k,m)-delt*( &
+                (  (efldz(i,jj,k)-efldz(i,jm,k))/dyt ) &
+                -( (efldy(i,j,kk)-efldy(i,j,km))/dzt )  )
+                !
+                by(i,j,k,m)=oldby(i,j,k,m)+delt*( &
+                (  (efldz(ii,j,k)-efldz(im,j,k))/dxt ) &
+                -( (efldx(i,j,kk)-efldx(i,j,km))/dzt )  )
+                !
+                bz(i,j,k,m)=oldbz(i,j,k,m)-delt*( &
+                (  (efldy(ii,j,k)-efldy(im,j,k))/dxt) &
+                -( (efldx(i,jj,k)-efldx(i,jm,k))/dyt )     )
+                !
+            enddo             ! k loop
+        enddo             ! j loop
+        !
+    enddo             ! i loop
+    !
+    return
+end
+!
+!
+!	****************************************
+!
+!
+subroutine push_elec(epres,oldepres,wrkepres,evx,evy,evz, &
+    gamma,gamma1,nx,ny,nz,ngrd,m,delt,rx,ry,rz)
+    !
+    !      evolves the electron pressure equation
+    !
+    dimension epres(nx,ny,nz,ngrd),oldepres(nx,ny,nz,ngrd), &
+    wrkepres(nx,ny,nz,ngrd)
+    !
+    dimension evx(nx,ny,nz),evy(nx,ny,nz),evz(nx,ny,nz)
+    !
+    !       set physical grid spacing
+    !
+    dxt=2.*rx
+    dyt=2.*ry
+    dzt=2.*rz
+    !
+    !$omp  parallel do
+    do k=2,nz-1
+        km=k-1
+        kk=k+1
+    	!
+        do j=2,ny-1
+            jm=j-1
+            jj=j+1
+    		!
+            do i=2,nx-1
+                ii=i+1
+                im=i-1
+                egradp_x=(wrkepres(ii,j,k,m)-wrkepres(im,j,k,m))/dxt
+                egradp_y=(wrkepres(i,jj,k,m)-wrkepres(i,jm,k,m))/dyt
+                egradp_z=(wrkepres(i,j,kk,m)-wrkepres(i,j,km,m))/dzt
+                !
+                !       pressure equations:
+                !
+                epres(i,j,k,m)=oldepres(i,j,k,m)-delt*gamma* &
+                ( ( (wrkepres(ii,j,k,m)*evx(ii,j,k) &
+                -wrkepres(im,j,k,m)*evx(im,j,k))/dxt ) + &
+                ( (wrkepres(i,jj,k,m)*evy(i,jj,k) &
+                -wrkepres(i,jm,k,m)*evy(i,jm,k))/dyt ) + &
+                ( (wrkepres(i,j,kk,m)*evz(i,j,kk) &
+                -wrkepres(i,j,km,m)*evz(i,j,km))/dzt ) )
+                epres(i,j,k,m)=epres(i,j,k,m) &
+                + delt*gamma1*( &
+                evx(i,j,k)*egradp_x+evy(i,j,k)*egradp_y &
+                +evz(i,j,k)*egradp_z )
+                !
+            enddo
+        enddo
+    enddo
+    !
+    return
+end
+!
+!
+!	****************************************
+!
+!
 subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
     qpx,qpy,qpz, &
     oldqrho,oldqpresx,oldqpresy,oldqpresz, &
@@ -42,10 +160,9 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
     dimension grd_xmin(ngrd),grd_xmax(ngrd), &
     grd_ymin(ngrd),grd_ymax(ngrd), &
     grd_zmin(ngrd),grd_zmax(ngrd)
-    
     !
     !       maximum ion cyclotron frequency in normalized units
-    !           that that can be rsolved
+    !           that can be resolved
     bmax=0.20*rmassq/delt/reynolds
     !
     !        set distance scales
@@ -61,11 +178,12 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
     d_min=1.e-6
     !
     !       maximum ion cyclotron frequency in normalized units
-    !           that that can be rsolved
+    !           that can be resolved
+	!
     rmass=rmassq
     bmax=0.20*rmassq/delt/reynolds
     !
-    ! parallelizes loop rw, aug. 17, 2004
+    ! parallelizes loop. RW, aug. 17, 2004
     !$omp  parallel do
     do k=1,nz
     
@@ -84,16 +202,16 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
     !
     !     begin main loop for finding all terms at n+1/2 from i=2,nx-1
     !           and from j=2,ny-1 using boundary conditions
-    
-    ! parallelizes the loop bu, oct. 10 2002
+    !
+    ! parallelizes loop. BU, oct. 10 2002
     !$omp  parallel do
     do k=2,nz-1
         km=k-1
         kk=k+1
         az=grd_zmin(m)+ddz*(k-1)
-    
+    	!
         !        find estimates for the fluid at n+1/2
-    
+    	!
         do j=2,ny-1
             jm=j-1
             jj=j+1
@@ -151,7 +269,7 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
                 qvcrossb_x=(qvy(i,j,k)*abz-qvz(i,j,k)*aby)
                 qvcrossb_y=-(qvx(i,j,k)*abz-qvz(i,j,k)*abx)
                 qvcrossb_z=(qvx(i,j,k)*aby-qvy(i,j,k)*abx)
-                
+                !
                 qgradp_x=(wrkqpresx(ii,j,k,m)-wrkqpresx(im,j,k,m))/dxt &
                     +(wrkqpresxy(i,jj,k,m)-wrkqpresxy(i,jm,k,m))/dxt &
                     +(wrkqpresxz(i,j,kk,m)-wrkqpresxz(i,j,km,m))/dxt
@@ -180,7 +298,6 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
                 qpz(i,j,k,m)=aqpz+delt* &
                 ( qden*(dele_z+delv_z) -qgradp_z )
                 !
-                !
                 !       add in jxb and grad p forces
                 !       qjcrossb_x=(cury(i,j,k)*abz-curz(i,j,k)*aby)
                 !       qjcrossb_y=-(curx(i,j,k)*abz-curz(i,j,k)*abx)
@@ -199,7 +316,6 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
                 qpz(i,j,k,m)=qpz(i,j,k,m)-g*az/radius
                 !
                 !       pressure equations: isotropic components
-                !
                 !
                 qpresx(i,j,k,m)=oldqpresx(i,j,k,m)-delt* &
                     ( ( (wrkqpresx(ii,j,k,m)*qvx(ii,j,k) &
@@ -255,7 +371,7 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
                     +2.*delt*skin_factor/rmass*( &
                     wrkqpresxy(i,j,k,m)*abz &
                     -wrkqpresxz(i,j,k,m)*aby )
-        
+        		!
                 qpresy(i,j,k,m)=qpresy(i,j,k,m) &
                     -2.*delt*wrkqpresxy(i,j,k,m) &
                     * (qvy(ii,j,k)-qvy(im,j,k))/dxt &
@@ -283,7 +399,7 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
                     -wrkqpresxy(i,jm,k,m)*qvy(i,jm,k))/dyt ) + &
                     ( (wrkqpresxy(i,j,kk,m)*qvz(i,j,kk) &
                     -wrkqpresxy(i,j,km,m)*qvz(i,j,km))/dzt ) )
-		!
+				!
                 qpresxy(i,j,k,m)=qpresxy(i,j,k,m) &
                     -delt*wrkqpresxy(i,j,k,m) &
                     *( (qvx(ii,j,k)-qvx(im,j,k))/dxt &
@@ -361,7 +477,7 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
                 do i=2,nx-1
                     !
                     apres=(qpresx(i,j,k,m)+qpresy(i,j,k,m)+qpresz(i,j,k,m))/3.0
-    
+    				!
                     qpresx(i,j,k,m)=ani*qpresx(i,j,k,m)+(1.-ani)*apres
                     qpresy(i,j,k,m)=ani*qpresy(i,j,k,m)+(1.-ani)*apres
                     qpresz(i,j,k,m)=ani*qpresz(i,j,k,m)+(1.-ani)*apres

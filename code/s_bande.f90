@@ -18,7 +18,6 @@ subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
     integer ijmid(mbndry,3,mmid),ijzero(mbndry,3,mzero)
     integer nummid(mbndry),numzero(mbndry)
     !
-    !
     !      ohm's law: ve = vi-j/ne
     !
     ! parallelizes loop. RW, oct. 23, 2002

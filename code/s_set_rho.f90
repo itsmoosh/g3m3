@@ -6,7 +6,7 @@ subroutine set_rho(qrho,qpresx,qpresy,qpresz, &
     opresxy,opresxz,opresyz,rmasso, &
     epres,nx,ny,nz,ngrd,m,o_conc)
     !
-    !    checks for minium rho and negative pressure
+    !    checks for minimum rho and negative pressure
     !     and resets value if necessary
     !
     dimension qrho(nx,ny,nz,ngrd),qpresx(nx,ny,nz,ngrd), &

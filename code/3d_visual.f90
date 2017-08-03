@@ -118,13 +118,13 @@ subroutine visual( &
                     p_para=sqrt((presx*abx)**2+(presxy*aby)**2+(presxz*abz)**2 + &
                         (presxy*abx)**2+(presy*aby)**2+(presyz*abz)**2 + &
                         (presxz*abx)**2+(presyz*aby)**2+(presz*abz)**2)/(bmag)
-
+					!
                     p_cross=sqrt((presx*vcrossb_x)**2+(presxy*vcrossb_y)**2+(presxz*vcrossb_z)**2+ &
                         (presxy*vcrossb_x)**2+(presy*vcrossb_y)**2+(presyz*vcrossb_z)**2+ &
                         (presxz*vcrossb_x)**2+(presyz*vcrossb_y)**2+(presz*vcrossb_z)**2)/(vcmag)
-
+					!
                     p_perp=sqrt(abs(presmag**2-(p_para**2+p_cross**2)))
-    
+    				!
                     tvx(i,j,k)=sqrt(apres)
                     !
                     !       efldx(i,j,k)=p_para/((presmag+1.e-13)/sqrt(3.))
@@ -207,7 +207,7 @@ subroutine visual( &
                     p_para=sqrt((presx*abx)**2+(presxy*aby)**2+(presxz*abz)**2 + &
                         (presxy*abx)**2+(presy*aby)**2+(presyz*abz)**2 + &
                         (presxz*abx)**2+(presyz*aby)**2+(presz*abz)**2)/(bmag)
-
+					!
                     p_cross=sqrt((presx*vcrossb_x)**2+(presxy*vcrossb_y)**2+(presxz*vcrossb_z)**2+ &
                         (presxy*vcrossb_x)**2+(presy*vcrossb_y)**2+(presyz*vcrossb_z)**2+ &
                         (presxz*vcrossb_x)**2+(presyz*vcrossb_y)**2+(presz*vcrossb_z)**2)/(vcmag)
@@ -293,13 +293,13 @@ subroutine visual( &
                     p_para=sqrt((presx*abx)**2+(presxy*aby)**2+(presxz*abz)**2 + &
                         (presxy*abx)**2+(presy*aby)**2+(presyz*abz)**2 + &
                         (presxz*abx)**2+(presyz*aby)**2+(presz*abz)**2)/(bmag)
-
+					!	
                     p_cross=sqrt((presx*vcrossb_x)**2+(presxy*vcrossb_y)**2+(presxz*vcrossb_z)**2+ &
                         (presxy*vcrossb_x)**2+(presy*vcrossb_y)**2+(presyz*vcrossb_z)**2+ &
                         (presxz*vcrossb_x)**2+(presyz*vcrossb_y)**2+(presz*vcrossb_z)**2)/(vcmag)
-
+					!
                     p_perp=sqrt(abs(presmag**2-(p_para**2+p_cross**2)))
-    
+    				!
                     tvx(i,j,k)=sqrt(apres)
                     !
                     !       efldx(i,j,k)=p_para/((presmag+1.e-13)/sqrt(3.))
@@ -378,7 +378,6 @@ subroutine visual( &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
-        !
         !      trace velocity streams
         !
         call fnd_vtot(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
@@ -391,7 +390,6 @@ subroutine visual( &
             ut,label,3,11,1,2.0, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-        !
         !
         !     find total magnetic field
         !
@@ -488,7 +486,6 @@ subroutine visual( &
                     !
                     !       calculate rotation velocity
                     !
-    
                     ay=grd_ymin(m)+dy*(j-1)-ydip
                     ax=grd_xmin(m)+dx*(i-1)-xdip
                     ar=sqrt(ax**2+ay**2)+1.e-8

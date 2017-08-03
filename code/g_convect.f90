@@ -6,6 +6,7 @@ subroutine convect(vx,vy,vz,nx,ny,nz,m,radstrt, &
     !         over auroral oval
     !      sdata tdata included to allow passing of data between
     !         successive calls of aurora
+	!
     common /space/sdata(61,61),tdata(61,61),work(31,31), &
     avx(31,31),avy(31,31)
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
@@ -40,9 +41,10 @@ subroutine convect(vx,vy,vz,nx,ny,nz,m,radstrt, &
     !      theta_range is the latitudes for the polar plot and is set
     !                    at 35 degrees
     !       theta_equiv converts latitude at the earth surface to
-    !                   latiude at radstrt
+    !                   latitude at radstrt
     !
     !       re_equiv=0.84
+	!
     theta_equiv=sqrt(re_equiv*radstrt)
     theta_range=0.6108652
     degrees=57.3*theta_range
@@ -92,7 +94,6 @@ subroutine convect(vx,vy,vz,nx,ny,nz,m,radstrt, &
                 ar=sqrt((ax-xdip)**2+(ay-ydip)**2+(az-zdip)**2)+0.0000001
                 !
                 !          interpolate data to grid point
-                !
                 !
                 ak=1.+(az-grd_zmin(m))/delz
                 k1=ak

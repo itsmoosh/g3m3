@@ -10,7 +10,6 @@ subroutine concross(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
     !        nlevs number of isossurfaces to be plotted - max 4
     !        ncon  number of contours to be plotted     - max 14
     !
-    !
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
     !
@@ -85,7 +84,6 @@ subroutine concross(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
     !         xmin-xmax,ymin-ymax,zmin-zmax
     !
     !      set up evenly spaced gridding for t to be plotted
-    !
     !
     axmax=amin1(xmax,grd_xmax(m)-.0001)
     aymax=amin1(ymax,grd_ymax(m)-.0001)

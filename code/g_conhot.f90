@@ -9,7 +9,6 @@ subroutine conhot(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     !        nlevs number of isossurfaces to be plotted - max 4
     !        ncon  number of contours to be plotted     - max 14
     !
-    !
     real stuff(nx,ny,nz,ngrd),vx(nx,ny,nz), &
     vy(nx,ny,nz),vz(nx,ny,nz)
     dimension t(mx,my,mz),tx(mx,my,mz),ty(mx,my,mz),tz(mx,my,mz), &
@@ -40,7 +39,7 @@ subroutine conhot(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     ty=0.
     tz=0.
     !
-    !      effective step size between points - slight less than
+    !      effective step size between points - slightly less than
     !         unity to ensure arrows do not go out of bounds
     !
     hi=.99
@@ -129,7 +128,6 @@ subroutine conhot(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     !
     !    set viewport size
     !
-    !
     vpl=3200
     vpr=32760
     vpb=3200
@@ -152,7 +150,6 @@ subroutine conhot(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     eye(3)=mz2*3.5
     !
     !     initialize viewport and frame headings
-    !
     !
     !     zero subset array tt
     !
@@ -242,7 +239,7 @@ subroutine conhot(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
             t2(i,j,k)=0.
         enddo
     enddo
-     !
+    !
     !         loading x-z plane
     !
     j=my
@@ -264,7 +261,7 @@ subroutine conhot(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
         vpl,vpr,vpb,vpt)
     enddo
     !
-    !     loading y-zplane
+    !     loading y-z plane
     !
     do k=1,mz
         do i=1,mx

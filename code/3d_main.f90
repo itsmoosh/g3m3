@@ -1,4 +1,9 @@
 !
+!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+!		MULTIFLUID SIM MAIN SEQUENCE
+!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+!
+!
 !     This is a 3-d modified three fluid simulation using
 !           electrons  : arrays starting with e
 !           solar wind : arrays starting with q (protons)

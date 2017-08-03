@@ -662,7 +662,6 @@ subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
     !
     !     modified magnetic field
     !
-    
     do k=2,nz-1
         do j=2,ny-1
             do i=2,nx-1

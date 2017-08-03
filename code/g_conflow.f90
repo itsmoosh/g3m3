@@ -63,7 +63,6 @@ subroutine conflow(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     !
     !      set up evenly spaced gridding for t to be plotted
     !
-    !
     axmax=amin1(xmax,grd_xmax(m)-.00001)
     aymax=amin1(ymax,grd_ymax(m)-.00001)
     azmax=amin1(zmax,grd_zmax(m)-.00001)
@@ -280,7 +279,6 @@ subroutine conflow(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     enddo
     !
     !    draw axes lines
-    !
     !
     x1=1
     x2=mx

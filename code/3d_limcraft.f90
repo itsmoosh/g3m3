@@ -2,7 +2,6 @@ subroutine limcraft(xcraft,ncraft,re_equiv,ngrd, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
     grd_zmin,grd_zmax)
     !
-    !
     !      tests to see whether spacecraft is in the system and
     !           resets their position if not
     !

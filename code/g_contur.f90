@@ -5,9 +5,8 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     !
     !      subroutine to plot nlevs isosurfaces and then plot contours along
     !        x-y and x-z planes
-    !        nlevs number of isossurfaces to be plotted - max 4
-    !        ncon  number of contours to be plotted     - max 14
-    !
+    !        nlevs number of isosurfaces to be plotted	- max 4
+    !        ncon number of contours to be plotted		- max 14
     !
     dimension t(mx,my,mz),tt(mx,my,mz2),t2(mx,my,mz2), &
     work(muvwp2,muvwp2)
@@ -30,7 +29,6 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     !         xmin-xmax,ymin-ymax,zmin-zmax
     !
     !      set up evenly spaced gridding for t to be plotted
-    !
     !
     axmax=amin1(xmax,grd_xmax(m)-.00001)
     aymax=amin1(ymax,grd_ymax(m)-.00001)
@@ -74,7 +72,6 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
                 i1=ai
                 i2=i1+1
                 dx=ai-i1
-                !
                 !
                 t(i,j,k)=stuff(i1,j1,k1,m)*(1.-dx)*(1.-dy)*(1.-dz) &
                 +stuff(i1,j1,k2,m)*(1.-dx)*(1.-dy)*(dz) &
@@ -198,7 +195,7 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     title=wd1//','//wd2//','//wd3
     call wtstr(.92,.82,title,1,0,0)
     !
-    !     draw desired isosurfaces -- i hope
+    !     draw desired isosurfaces
     !
     do n=1,nlevs
         call gselnt(0)
@@ -209,7 +206,6 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
         call isosrf(t,mx,mx,my,my,mz,eye,muvwp2,work,tisom,3, &
         vpl,vpr,vpb,vpt)
     enddo
-    !
     !
     !     plot earth and grid references
     !
@@ -226,9 +222,8 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     call pcsetr('cs',1.25)
     call lblbar(0,0.1,0.9,0.,.1,ncon,1.,.3,lind,0,llbs,ncon,1)
     !
-    !
-    !     a view from infront
-    !     -------------------
+    !     a view from in front
+    !     --------------------
     !
     !     initialize eye position
     !
@@ -276,7 +271,6 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     title=wd1//','//wd2//','//wd3
     call wtstr(.6,.85,title,1,0,0)
     !
-    !
     write(wd1,'(f4.0)')xmin
     write(wd2,'(f4.0)')ymin
     write(wd3,'(f4.0)')azmax
@@ -285,7 +279,7 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     title=wd1//','//wd2//','//wd3
     call wtstr(.92,.75,title,1,0,0)
     !
-    !     draw desired isosurfaces -- i hope
+    !     draw desired isosurfaces
     !
     do n=1,nlevs
         call gselnt(0)
@@ -311,7 +305,6 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     call lbseti('cbl',1)
     call pcsetr('cs',1.25)
     call lblbar(0,0.1,0.9,0.,.1,ncon,1.,.3,lind,0,llbs,ncon,1)
-    !
     !
     !     a view from the side and top
     !     ----------------------------
@@ -460,7 +453,6 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     title=wd1//','//wd2//','//wd3
     call wtstr(.9,.85,title,1,0,0)
     !
-    !
     write(wd1,'(f4.0)')axmax
     write(wd2,'(f4.0)')aymin
     write(wd3,'(f4.0)')zmin
@@ -468,7 +460,6 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     call wtstr(.18,.6,title,1,0,0)
     title=wd1//','//wd2//','//wd3
     call wtstr(.16,.55,title,1,0,0)
-    !
     !
     !          loading x-y plane - running from y = my/2 to  my
     !
@@ -526,7 +517,6 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     call lbseti('cbl',1)
     call pcsetr('cs',1.25)
     call lblbar(0,0.1,0.9,0.,.1,ncon,1.,.3,lind,0,llbs,ncon,1)
-    !
     !
     !     initialize eye position
     !

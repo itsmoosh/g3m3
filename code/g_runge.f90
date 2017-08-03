@@ -11,7 +11,7 @@ subroutine rungea(bx,by,bz,press,rho,nx,ny,nz, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !     this routine uses a fourth order runge-kutta method
-    !         to trace stream functions of current and magnetic fld
+    !         to trace stream functions of current and magnetic field
     !         xi,yi,zi, and find maximum temperature along them
     !
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
@@ -117,7 +117,6 @@ subroutine rungea(bx,by,bz,press,rho,nx,ny,nz, &
         +rho(i2,j1,k2)*(dx)*(1. - dy)*(dz) &
         +rho(i2,j2,k1)*(dx)*(dy)*(1. - dz) &
         +rho(i2,j2,k2)*(dx)*(dy)*(dz)
-    
         !
         aergd=aerg/arho
         arho=amax1(arho,0.0001)
@@ -151,7 +150,7 @@ subroutine rungeb(efldx,efldy,efldz,bx,by,bz,nx,ny,nz, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !     this routine uses a fourth order runge-kutta method
-    !         to trace  stream functions of current and magnetic fld
+    !         to trace stream functions of current and magnetic field
     !         xi,yi,zi, and integrates the field aligned potential drop
     !
     dimension bx(nx,ny,nz),by(nx,ny,nz),bz(nx,ny,nz), &
@@ -288,7 +287,7 @@ subroutine rungeb(efldx,efldy,efldz,bx,by,bz,nx,ny,nz, &
         !       test to see if ray is within selected region
         !
         ar=sqrt(xray(n)**2+yray(n)**2 +zray(n)**2)
-    
+    	!
         radius=sqrt((xray(n)-xray(1))**2+(yray(n)-yray(1))**2 &
         +(zray(n)-zray(1))**2)
         if((xray(n).lt.xmin).or.(xray(n).gt.xmax).or. &
@@ -312,9 +311,9 @@ subroutine rungem(bx,by,bz,nx,ny,nz,m,rx, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !     this routine uses a fourth order runge-kutta method
-    !         to trace to trace stream functions of current and magnetic fld
+    !         to trace stream functions of current and magnetic field
     !         xi,yi,zi, until it hits boundary or maximum number
-    !         points is reach
+    !         of points is reached
     !
     dimension bx(nx,ny,nz),by(nx,ny,nz),bz(nx,ny,nz)
     dimension  xray(maxpts),yray(maxpts),zray(maxpts)

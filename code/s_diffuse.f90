@@ -54,7 +54,7 @@ subroutine diffuse(qrho,qpres,qpx,qpy,qpz, &
                 +wrkqrho(i,jp,k,m)+wrkqrho(i,jm,k,m) &
                 +wrkqrho(i,j,kp,m)+wrkqrho(i,j,km,m) &
                 -6.*wrkqrho(i,j,k,m) )
-    		!
+    			!
                 qpx(i,j,k,m)=wrkqpx(i,j,k,m) +difp*( &
                 +wrkqpx(ip,j,k,m)+wrkqpx(im,j,k,m) &
                 +wrkqpx(i,jp,k,m)+wrkqpx(i,jm,k,m) &
@@ -86,7 +86,7 @@ subroutine diffuse(qrho,qpres,qpx,qpy,qpz, &
                 + wrkhrho(i,jp,k,m)+wrkhrho(i,jm,k,m) &
                 + wrkhrho(i,j,kp,m)+wrkhrho(i,j,km,m) &
                 -6.*wrkhrho(i,j,k,m) )
-    		!
+    			!
                 hpx(i,j,k,m)=wrkhpx(i,j,k,m) +difp*( &
                 +wrkhpx(ip,j,k,m)+wrkhpx(im,j,k,m) &
                 +wrkhpx(i,jp,k,m)+wrkhpx(i,jm,k,m) &
@@ -118,7 +118,7 @@ subroutine diffuse(qrho,qpres,qpx,qpy,qpz, &
                 + wrkorho(i,jp,k,m)+wrkorho(i,jm,k,m) &
                 + wrkorho(i,j,kp,m)+wrkorho(i,j,km,m) &
                 -6.*wrkorho(i,j,k,m) )
-    		!
+    			!
                 opx(i,j,k,m)=wrkopx(i,j,k,m) +difo*( &
                 +wrkopx(ip,j,k,m)+wrkopx(im,j,k,m) &
                 +wrkopx(i,jp,k,m)+wrkopx(i,jm,k,m) &

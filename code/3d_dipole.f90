@@ -17,7 +17,6 @@ subroutine dipole(abx,aby,abz,ax,ay,az)
     xr=x1*cos_rot+y1*sin_rot
     yr=-x1*sin_rot+y1*cos_rot
     !
-    !
     !       tilt space to dipole space
     !
     xp=xr*cos_tilt-z1*sin_tilt

@@ -10,11 +10,9 @@ subroutine space_charge(charge,efldx,efldy,efldz, &
     px(nx,ny,nz,ngrd),py(nx,ny,nz,ngrd),pz(nx,ny,nz,ngrd), &
     rho(nx,ny,nz,ngrd)
     !
-    !
     dimension grd_xmin(ngrd),grd_xmax(ngrd), &
     grd_ymin(ngrd),grd_ymax(ngrd), &
     grd_zmin(ngrd),grd_zmax(ngrd)
-    !
     !
     rx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
     ry=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
@@ -95,8 +93,6 @@ subroutine space_charge(charge,efldx,efldy,efldz, &
             charge(i,ny,k)=charge(i,ny1,k)
         enddo
     enddo
-    !
-    !
     !
     return
 end

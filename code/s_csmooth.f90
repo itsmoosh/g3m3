@@ -30,7 +30,7 @@ subroutine csmooth(curx,cury,curz,fldx,fldy,fldz, &
                 fldz(i,j,k)= &
                 ( curz(i+1,j,k)+curz(i-1,j,k) +curz(i,j+1,k)+curz(i,j-1,k) &
                 +curz(i,j,k+1)+curz(i,j,k-1) +6.*curz(i,j,k))/12.
-    		!
+    			!
             enddo
         enddo
     enddo

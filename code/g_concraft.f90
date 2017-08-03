@@ -55,7 +55,6 @@ subroutine concraft(stuff,cross,nx,ny,nz,m, &
     delx=(xmax-xmin)/(nx-1.)
     dely=(ymax-ymin)/(ny-1.)
     delz=(zmax-zmin)/(nz-1.)
-    
     !
     do n=ncraft,2,-1
         ax=xcraft(1,n)/re_equiv
@@ -168,7 +167,7 @@ subroutine concraft_fix(stuff,cross,nx,ny,nz,m, &
     dimension grd_xmin(ngrd),grd_xmax(ngrd), &
     grd_ymin(ngrd),grd_ymax(ngrd), &
     grd_zmin(ngrd),grd_zmax(ngrd)
-    
+    !
     character*4 wd1,wd2,wd3
     character*12 label
     character*20 title
@@ -195,7 +194,6 @@ subroutine concraft_fix(stuff,cross,nx,ny,nz,m, &
     delx=(xmax-xmin)/(nx-1.)
     dely=(ymax-ymin)/(ny-1.)
     delz=(zmax-zmin)/(nz-1.)
-    
     !
     do n=ncraft,2,-1
         ax=xcraft(1,n)/re_equiv

@@ -2,7 +2,7 @@ subroutine trace(bx,by,bz,n1,n2,n3,m,add_dip, &
     xi,yi,zi,dir,np,xf,yf,zf,xx,yy,zz, &
     xmin,xmax,ymin,ymax,zmin,zmax,l,rearth,ngrd, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-     !
+    !
     !    3 field line tracing subroutines originally by tsyganenko.
     !    modified to trace field lines of bx,by,bz (nx,ny,nz)
     !
@@ -21,7 +21,6 @@ subroutine trace(bx,by,bz,n1,n2,n3,m,add_dip, &
     !   l - actual number of field line points. if l exceeds np, tracing
     !     terminates, and a warning is displayed
     !
-    !
     !                   author: nikolai a. tsyganenko
     !                           institute of physics
     !                           st.-petersburg state university
@@ -36,7 +35,7 @@ subroutine trace(bx,by,bz,n1,n2,n3,m,add_dip, &
     dimension grd_xmin(ngrd),grd_xmax(ngrd), &
     grd_ymin(ngrd),grd_ymax(ngrd), &
     grd_zmin(ngrd),grd_zmax(ngrd)
-     logical roc,add_dip
+    logical roc,add_dip
     !
     err=0.05
     !     ds=0.5*dir
@@ -73,7 +72,7 @@ subroutine trace(bx,by,bz,n1,n2,n3,m,add_dip, &
             err=0.0005
             return
         endif
-    
+    	!
     enddo
     !
     !     not enough points

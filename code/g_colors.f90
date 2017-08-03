@@ -1,5 +1,11 @@
 !
-!    Includes all subroutines for assigning color lists
+!	This file includes six subroutines for assigning color lists:
+!	cpclrs
+!	isoclrs
+!	isoclrs_hot
+!	isorb
+!	dfclrs
+!	colram
 !
 subroutine cpclrs
     !
@@ -78,6 +84,9 @@ end
 !
 !
 subroutine isorb
+	!
+	!	creates a color map from the following RGB vectors:
+	!
     real,dimension(3,16) :: rgbv = &
     (/0.,0.,0., .7,.7,.7, .75,.5,1., &
     .5,0.,1., 0.,0.,1.,  0.,.5,1., &

@@ -1,3 +1,11 @@
+!
+!	This file contains five subroutines:
+!	aurora
+!	aurora_bfld
+!	auroras
+!	aurora_cur
+!	aurora_pot
+!
 subroutine aurora(stuff,nx,ny,nz,m,radstrt,re_equiv,iside, &
     time, save_dat,add_two,label,ncon,write_dat,ngrd, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
@@ -15,7 +23,6 @@ subroutine aurora(stuff,nx,ny,nz,m,radstrt,re_equiv,iside, &
     grd_zmin(ngrd),grd_zmax(ngrd)
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
-    
     !
     dimension stuff(nx,ny,nz)
     character*4 wd1,wd2,wd3
@@ -238,7 +245,6 @@ subroutine aurora(stuff,nx,ny,nz,m,radstrt,re_equiv,iside, &
         enddo
     endif
     !
-    !
     !     initialize viewport and frame headings
     !
     call frame
@@ -319,7 +325,6 @@ subroutine aurora_bfld(bx,by,bz,nx,ny,nz,m,rx, &
     character*12 label,magnif
     character*20 title
     logical add_dip,roc
-    !
     !
     !      dimension for plotted array
     !
@@ -449,13 +454,12 @@ subroutine auroras(press,rho,bsx,bsy,bsz, &
     time,save_dat,add_dip,label,ncon,write_dat, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
-    !      this subroutine will try to make  close up image
+    !      this subroutine will try to make a close up image
     !      of stuff near the auroral regions at a fixed distance radstrt
     !       re_equiv converts grid units to r_e
     !        add_two adds two current densities to produce
     !                 a total auroral map
-    !
-    
+    !    
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
     common /space/sdata(91,91),tdata(91,91), &
@@ -583,7 +587,7 @@ subroutine auroras(press,rho,bsx,bsy,bsz, &
                 add_dip,ergies,rhod,maxpts,dir, &
                 delx,dely,delz,rearth,ngrd, &
                 grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-    
+    			!
                 chot(i,j)=ergies
             endif
         enddo
@@ -679,7 +683,7 @@ subroutine aurora_cur(stuff,nx,ny,nz,m,radstrt,re_equiv, &
     !
     common /space/sdata(91,91),tdata(91,91), &
     work(91,91),clat(91,91)
-    
+    !
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
     !
@@ -687,7 +691,7 @@ subroutine aurora_cur(stuff,nx,ny,nz,m,radstrt,re_equiv, &
     dimension grd_xmin(ngrd),grd_xmax(ngrd), &
     grd_ymin(ngrd),grd_ymax(ngrd), &
     grd_zmin(ngrd),grd_zmax(ngrd)
-    
+    !
     character*4 wd1,wd2,wd3
     character*12 label,magnif
     character*20 title
@@ -721,7 +725,6 @@ subroutine aurora_cur(stuff,nx,ny,nz,m,radstrt,re_equiv, &
     amp_down=0.
     peak_cur_up=0.
     peak_cur_down=0.
-    
     !
     !      dimension for plotted array
     !
@@ -1017,7 +1020,7 @@ subroutine aurora_pot(efldx,efldy,efldz,bsx,bsy,bsz, &
     time,save_dat,add_dip,label,ncon,write_dat, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
-    !      this subroutine will try to make  close up image
+    !      this subroutine will try to make a close up image
     !      of stuff near the auroral regions at a fixed distance radstrt
     !       re_equiv converts grid units to r_e
     !        add_two adds two current densities to produce
@@ -1027,13 +1030,13 @@ subroutine aurora_pot(efldx,efldy,efldz,bsx,bsy,bsz, &
     work(91,91),clat(91,91),chot(91,91)
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
-    
+    !
     dimension efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz), &
     bsx(nx,ny,nz),bsy(nx,ny,nz),bsz(nx,ny,nz)
     dimension grd_xmin(ngrd),grd_xmax(ngrd), &
     grd_ymin(ngrd),grd_ymax(ngrd), &
     grd_zmin(ngrd),grd_zmax(ngrd)
-    
+    !
     character*4 wd1,wd2,wd3
     character*12 label,magnif
     character*20 title
@@ -1129,7 +1132,7 @@ subroutine aurora_pot(efldx,efldy,efldz,bsx,bsy,bsz, &
                 ngrd,m,delx,ax,ay,az,xmin,xmax,ymin,ymax, &
                 zmin,zmax,add_dip,pot2,maxpts,dir,rearth, &
                 grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-    
+    			!
                 chot(i,j)=iside*(pot1-pot2)
             endif
             !

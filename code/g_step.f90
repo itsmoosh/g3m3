@@ -9,7 +9,7 @@ subroutine step(bx,by,bz,n1,n2,n3,m,add_dip,x,y,z,ds,errin,ngrd, &
     dimension grd_xmin(ngrd),grd_xmax(ngrd), &
     grd_ymin(ngrd),grd_ymax(ngrd), &
     grd_zmin(ngrd),grd_zmax(ngrd)
-     logical roc,add_dip
+    logical roc,add_dip
     !
     do 
         ds3=-ds/3.

@@ -9,7 +9,6 @@ subroutine crafdatv(bx,by,bz, &
     !       this subroutine will cut up array into a regular space
     !       sub-grid and then write to binary file 13
     !
-    !
     dimension bx(nx,ny,nz),by(nx,ny,nz), &
     bz(nx,ny,nz),epres(nx,ny,nz,ngrd), &
     qpx(nx,ny,nz,ngrd),qpy(nx,ny,nz,ngrd),qpz(nx,ny,nz,ngrd), &
@@ -24,7 +23,7 @@ subroutine crafdatv(bx,by,bz, &
     dimension grd_xmin(ngrd),grd_xmax(ngrd), &
     grd_ymin(ngrd),grd_ymax(ngrd), &
     grd_zmin(ngrd),grd_zmax(ngrd)
-    
+    !
     dimension craft(4,ncraft)
     !
     !       set gridding

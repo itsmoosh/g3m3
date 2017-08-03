@@ -22,6 +22,7 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     character*15 title
     !
     !      dimension for plotted array
+	!
      my2=my/2+1
     !
     !      effective step size between points - slight less than
@@ -57,7 +58,6 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     vpt=32760
     !
     !      set up evenly spaced gridding for t to be plotted
-    !
     !
     axmax=amin1(xmax,grd_xmax(m)-.00001)
     aymax=amin1(ymax,grd_ymax(m)-.00001)
@@ -130,7 +130,6 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     title=wd1//','//wd2//','//wd3
     call wtstr(.6,.89,title,1,0,0)
     !
-    !
     write(wd1,'(f4.0)')xmin
     write(wd2,'(f4.0)')aymax
     write(wd3,'(f4.0)')zmin
@@ -173,7 +172,6 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     !
     !    draw axes lines
     !
-    !
     x1=1
     x2=mx
     y1=1
@@ -190,7 +188,6 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     call sflush
     !
     !     determine vector field
-    !
     !
     vm=0
     do k=1,mz
@@ -384,7 +381,6 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     !
     !    draw axes lines
     !
-    !
     x1=1
     x2=mx
     y1=1
@@ -399,7 +395,6 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     call line3(x1,y1,z1,x1,y2,z1)
     call line3(x1,y1,z1,x1,y1,z2)
     call sflush
-    !
     !
     !     draw points
     !
@@ -441,7 +436,6 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
                         !
                         !      draw arrows
                         !
-                        !
                         call sflush
                         if(iv.eq.1)then
                             if(dx.ge.0.0)call gsplci(ncol)
@@ -466,7 +460,6 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     enddo
     !
     !     top view
-    !
     !
     !     initialize eye position
     !
@@ -508,7 +501,6 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     title=wd1//','//wd2//','//wd3
     call wtstr(.92,.25,title,1,0,0)
     !
-    !
     write(wd1,'(f4.0)')xmin
     write(wd2,'(f4.0)')ymin
     write(wd3,'(f4.0)')azmax
@@ -529,7 +521,6 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     !
     !    draw axes lines
     !
-    !
     x1=1
     x2=mx
     y1=1
@@ -544,7 +535,6 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     call line3(x1,y1,z1,x1,y2,z1)
     call line3(x1,y1,z1,x1,y1,z2)
     call sflush
-    !
     !
     !     draw points
     !
@@ -610,8 +600,7 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
         enddo
     enddo
     !
-    !     top view -dusk side
-    !
+    !     top view -- dusk side
     !
     !     initialize eye position
     !
@@ -653,7 +642,6 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     title=wd1//','//wd2//','//wd3
     call wtstr(.92,.25,title,1,0,0)
     !
-    !
     write(wd1,'(f4.0)')axmax
     write(wd2,'(f4.0)')aymax
     write(wd3,'(f4.0)')azmax
@@ -674,7 +662,6 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     !
     !    draw axes lines
     !
-    !
     x1=1
     x2=mx
     y1=1
@@ -689,7 +676,6 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     call line3(x1,y1,z1,x1,y2,z1)
     call line3(x1,y1,z1,x1,y1,z2)
     call sflush
-    !
     !
     !     draw points
     !

@@ -7,8 +7,8 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
     !
     !      subroutine to plot nlevs isosurfaces and then plot contours along
     !        x-y and x-z planes
-    !        nlevs number of isossurfaces to be plotted - max 4
-    !        ncon  number of contours to be plotted     - max 14
+    !        nlevs number of isosurfaces to be plotted	- max 4
+    !        ncon  number of contours to be plotted		- max 14
     !
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
@@ -41,7 +41,6 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
     !         xmin-xmax,ymin-ymax,zmin-zmax
     !
     !      set up evenly spaced gridding for t to be plotted
-    !
     !
     axmax=amin1(xmax,grd_xmax(m)-xdip-.00001)
     aymax=amin1(ymax,grd_ymax(m)-ydip-.00001)
@@ -138,7 +137,6 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
     !
     !    set viewport size
     !
-    !
     vpl=3200
     vpr=32760
     vpb=3200
@@ -148,7 +146,6 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
     !
     !     ***************************************
     !       half plane only start at zdip
-    !
     !
     !     zero subset array tt
     !
@@ -166,7 +163,6 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
     eye(1)=mx/2.
     eye(2)=-iside*my2*5.
     eye(3)=mz2*3.5
-    
     !
     !     initialize viewport and frame headings
     !
@@ -221,7 +217,6 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
     title=wd1//','//wd2//','//wd3
     call wtstr(.16,.55,title,1,0,0)
     !
-    !
     !          loading x-y plane - running from y = my/2 to  my
     !
     k=1
@@ -257,7 +252,6 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
     vpl,vpr,vpb,vpt)
     !
     !    draw axes lines
-    !
     !
     x1=1
     x2=mx
@@ -360,7 +354,6 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
     call pcsetr('cs',1.25)
     call lblbar(0,0.1,0.9,0.,.1,ncon,1.,.3,lind,0,llbs,ncon,1)
     !
-    !
     !     initialize eye position
     !
     eye(1)=mx/2.
@@ -410,7 +403,6 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
     call wtstr(.93,.9,title,1,0,0)
     title=wd1//','//wd2//','//wd3
     call wtstr(.9,.85,title,1,0,0)
-    !
     !
     !     write(wd1,'(f4.0)')axmax
     !     write(wd2,'(f4.0)')aymin

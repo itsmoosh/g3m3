@@ -10,7 +10,7 @@ subroutine conalong(stuff,cross,nx,ny,nz,m, &
     !      subroutine to plot x-z quantities at the
     !       spacecraft position
     !       percent - percentage level of max value for isosurface
-    !        xcraft is the position of the spacecraft : assumed to
+    !        xcraft is the position of the spacecraft: assumed to
     !                  be in simulation units
     !        ncraft is the number of spacecraft to plot
     !

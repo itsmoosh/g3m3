@@ -10,7 +10,6 @@ subroutine conlog(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     !        nlevs number of isossurfaces to be plotted - max 4
     !        ncon  number of contours to be plotted     - max 14
     !
-    !
     real stuff(nx,ny,nz,ngrd),vx(nx,ny,nz), &
     vy(nx,ny,nz),vz(nx,ny,nz)
     dimension t(mx,my,mz),tx(mx,my,mz),ty(mx,my,mz),tz(mx,my,mz), &
@@ -68,7 +67,6 @@ subroutine conlog(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     !         xmin-xmax,ymin-ymax,zmin-zmax
     !
     !      set up evenly spaced gridding for t to be plotted
-    !
     !
     axmax=amin1(xmax,grd_xmax(m)-.0001)
     aymax=amin1(ymax,grd_ymax(m)-.0001)
@@ -152,7 +150,6 @@ subroutine conlog(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     !
     !     initialize viewport and frame headings
     !
-    !
     !     zero subset array tt
     !
     do k=1,mz
@@ -210,7 +207,6 @@ subroutine conlog(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     call wtstr(.18,.9,title,1,0,0)
     title=wd1//','//wd2//','//wd3
     call wtstr(.16,.85,title,1,0,0)
-    !
     !
     !          loading x-y plane - running from y = my/2 to  my
     !
@@ -287,7 +283,6 @@ subroutine conlog(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     enddo
     !
     !    draw axes lines
-    !
     !
     x1=1
     x2=mx

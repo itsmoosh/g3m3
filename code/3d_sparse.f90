@@ -28,7 +28,6 @@ recursive subroutine sparse(abd,nband,n,b,x,ipvt,rsq, &
     real g(n),h(n),xi(n),xj(n)
     logical,optional :: recurse
     integer, optional :: rirst
-    
     !
     !      criterion for sum-squared residuals
     !       and number of restarts attempted internally
@@ -40,7 +39,6 @@ recursive subroutine sparse(abd,nband,n,b,x,ipvt,rsq, &
     else
         irst=0
     endif
-    
     !
     irst=irst+1
     call asub(abd,nband,n,ipvt,x,xi)

@@ -7,24 +7,22 @@ subroutine calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
     dimension bx(nx,ny,nz,ngrd),by(nx,ny,nz,ngrd),bz(nx,ny,nz,ngrd), &
     curx(nx,ny,nz),cury(nx,ny,nz),curz(nx,ny,nz)
     !
-    !
     dxt=2.*rx
     dyt=2.*ry
     dzt=2.*rz
-    ! parallelizes loop rw, oct. 23, 2002
+    ! parallelizes loop. RW, oct. 23, 2002
     !$omp  parallel do
     do k=2,nz-1
         km=k-1
         kp=k+1
-    
+    	!
         do j=2,ny-1
             jm=j-1
             jp=j+1
-    
+    		!
             do i=2,nx-1
                 im=i-1
                 ip=i+1
-    
                 !
                 curx(i,j,k)=(bz(i,jp,k,m)-bz(i,jm,k,m))/dyt &
                 - (by(i,j,kp,m)-by(i,j,km,m))/dzt
@@ -38,16 +36,16 @@ subroutine calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
         enddo
     enddo
     !
-    !     following boundary conditions are set so that no forward
-    !      communication , i.e. same x required
+    !     following boundary conditions are set so there is no forward
+    !      communication, i.e. same x required
     !      and symmetry between k=1 and k=2
     !
-    !     set boundary regions - bottom and top panels
+    !     set boundary regions -- bottom and top panels
     !
     nx1=nx-1
     ny1=ny-1
     nz1=nz-1
-    ! parallelizes loop rw, oct. 23, 2002
+    ! parallelizes loop. RW, oct. 23, 2002
     !$omp  parallel do
     do j=2,ny1
         do i=2,nx1
@@ -65,9 +63,9 @@ subroutine calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
         enddo
     enddo
     !
-    !       set boundary regions - front and back
+    !       set boundary regions -- front and back
     !
-    ! parallelizes loop rw, oct. 23, 2002
+    ! parallelizes loop. RW, oct. 23, 2002
     !$omp  parallel do
     do k=2,nz1
         do j=2,ny1
@@ -83,9 +81,9 @@ subroutine calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
         enddo
     enddo
     !
-    !       set boundary regions - left and right
+    !       set boundary regions -- left and right
     !
-    ! parallelizes loop rw, oct. 23, 2002
+    ! parallelizes loop. RW, oct. 23, 2002
     !$omp  parallel do
     do j=2,nz1
         do i=2,nx1
@@ -102,7 +100,7 @@ subroutine calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
     !
     !     set corner lines
     !
-    ! parallelizes loop rw, oct. 23, 2002
+    ! parallelizes loop. RW, oct. 23, 2002
     !$omp  parallel do
     do i=2,nx1
         curx(i,1,1)=curx(i,1,2)
@@ -120,7 +118,7 @@ subroutine calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
         curz(i,ny,nz)=curz(i,ny1,nz)
     enddo
     !
-    ! parallelizes loop rw, oct. 23, 2002
+    ! parallelizes loop. RW, oct. 23, 2002
     !$omp  parallel do
     do j=2,ny1
         curx(1,j,1)=curx(1,j,2)
@@ -138,7 +136,7 @@ subroutine calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
         curz(nx,j,nz)=curz(nx,j,nz1)
     enddo
     !
-    ! parallelizes loop rw, oct. 23, 2002
+    ! parallelizes loop. RW, oct. 23, 2002
     !$omp  parallel do
     do k=2,nz1
         curx(1,1,k)=curx(1,2,k)

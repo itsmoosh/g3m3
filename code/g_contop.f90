@@ -7,9 +7,8 @@ subroutine contop(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
     !
     !      subroutine to plot nlevs isosurfaces and then plot contours along
     !        x-y and x-z planes
-    !        nlevs number of isossurfaces to be plotted - max 4
-    !        ncon  number of contours to be plotted     - max 14
-    !
+    !        nlevs number of isosurfaces to be plotted	- max 4
+    !        ncon number of contours to be plotted		- max 14
     !
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
@@ -55,7 +54,7 @@ subroutine contop(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
     maxpts=1000
     rx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
     !
-    !      effective step size between points - slight less than
+    !      effective step size between points - slightly less than
     !         unity to ensure arrows do not go out of bounds
     !
     hi=.99
@@ -63,7 +62,7 @@ subroutine contop(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
     hk=.99
     !
     !     al = length of arrow in xy-plane
-    !     stretch= enlargement of arrows
+    !     stretch = enlargement of arrows
     !
     al=0.6*hi
     al2=0.2
@@ -191,7 +190,6 @@ subroutine contop(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
     call isosrf(tt,mx,mx,my,my,mz,eye,muvwp2,work,tisom,-3, &
     vpl,vpr,vpb,vpt)
     !
-    !
     !     zero subset array tt
     !
     do k=1,mz
@@ -316,7 +314,7 @@ subroutine contop(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
                     isize=1
                     !
                     !       draw magnetic field line
-                       !
+                    !
                 endif
             endif
             l=0
@@ -391,6 +389,7 @@ subroutine contop(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
     !      draw spacecraft - x-r coords and 3-d coords
     !
     !       wspace set writing distance to mlt and lat
+	!
     wspace=0.015
     nspace=0
     size=0.5*delx

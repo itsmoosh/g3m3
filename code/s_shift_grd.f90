@@ -63,7 +63,6 @@ subroutine shift_grd(rho,nx,ny,nz,ngrd,main_grid, &
             !
             !       set boundary conditions
             !
-            !
             !    interpolate between main and sub grids
             !
             !$omp  parallel do
@@ -140,8 +139,7 @@ subroutine shift_grd(rho,nx,ny,nz,ngrd,main_grid, &
                 enddo
             enddo
             !
-            !       set boundary conditions off bigger grid
-            !
+            !       set boundary conditions of bigger grid
             !
             !$omp  parallel do
             do k_n=1,nz_n
@@ -228,7 +226,6 @@ subroutine shift_grd(rho,nx,ny,nz,ngrd,main_grid, &
             !
             !       set boundary conditions of main grid
             !
-            !
             !$omp  parallel do
             do k_n=1,nz_n
                 az_n=grd_zmin_n(m_n)+(k_n-1.)*sz
@@ -305,7 +302,6 @@ subroutine shift_grd(rho,nx,ny,nz,ngrd,main_grid, &
             !
             !       set boundary conditions of main grid
             !
-            !
             !$omp  parallel do
             do k_n=1,nz_n
                 az_n=grd_zmin_n(m_n)+(k_n-1.)*sz
@@ -343,7 +339,7 @@ subroutine shift_grd(rho,nx,ny,nz,ngrd,main_grid, &
                         rho(ii,j,kk,m)*dx*ddy*dz+ &
                         rho(ii,jj,k,m)*dx*dy*ddz+ &
                         rho(ii,jj,kk,m)*dx*dy*dz
-    
+    					!
                     enddo
                 enddo
             enddo

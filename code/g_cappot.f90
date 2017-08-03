@@ -5,8 +5,8 @@ subroutine cappot(chrg,pott,nx,ny,nz,ngrd,m,radstrt, &
     !      this subroutine will try to make potential drop
     !         over auroral oval, vx,vy,vz, assumed to
     !         be the inductive electric field
-    !      answer is in kv :does both hemispheres at once to save work
-    !      charge is the density over a smaple region around
+    !      answer is in kv: does both hemispheres at once to save work
+    !      charge is the density over a sample region around
     !       the earth
     !
     common /space/charge(31,31,31),poten(31,31,31), &
@@ -18,7 +18,7 @@ subroutine cappot(chrg,pott,nx,ny,nz,ngrd,m,radstrt, &
     dimension grd_xmin(ngrd),grd_xmax(ngrd), &
     grd_ymin(ngrd),grd_ymax(ngrd), &
     grd_zmin(ngrd),grd_zmax(ngrd)
-    
+    !
     character*4 wd1,wd2,wd3
     character*12 label,magnif
     character*20 title

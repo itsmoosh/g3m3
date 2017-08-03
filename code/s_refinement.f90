@@ -33,7 +33,6 @@ subroutine refinement(rho,nx,ny,nz,ngrd,main_grid, &
     !
     !    interpolate between main and sub grids
     !
-    !
     !$omp  parallel do
     do k_n=1,nz_n
         az_n=grd_zmin_n(m_n)+(k_n-1.)*sz
@@ -83,7 +82,6 @@ subroutine refinement(rho,nx,ny,nz,ngrd,main_grid, &
     !      write(6,*)'refine',rho_max,rho_n_max
     !
     !      interpolate onto subgrids
-    !
     !
     do m_n=ngrd_n-1,1,-1
         m=m_n+1

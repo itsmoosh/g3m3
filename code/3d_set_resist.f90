@@ -4,7 +4,7 @@ subroutine set_resist(rst,nx,ny,nz,mbndry,resist, &
     !
     !      set resistance around the earth :
     !        include dayside and auroral conductivities
-    !      magntiude set by resist
+    !      magnitude set by resist
     !      width is set by del_ang=3.3 degrees = 0.058 rads
     !      radial dropoff as alpha=-8
     !      shifted of dipole axis by 2.5 degress
