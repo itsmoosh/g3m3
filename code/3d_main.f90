@@ -1,7 +1,9 @@
 !
-!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-!		MULTIFLUID SIM MAIN SEQUENCE
-!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+!		@											@
+!		@		MULTIFLUID SIM MAIN SEQUENCE		@
+!		@											@
+!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 !
 !
 !     This is a 3-d modified three fluid simulation using
@@ -757,14 +759,14 @@ program multifluid
     !
     if(spacecraft) then
         open(51,file='wind.dat',status='unknown',form='formatted')
-        open(52,file='enceladus1.dat',status='unknown',form='formatted')
-        open(53,file='enceladus2.dat',status='unknown',form='formatted')
-        open(54,file='enceladus3.dat',status='unknown',form='formatted')
-        open(55,file='enceladus4.dat',status='unknown',form='formatted')
-        open(56,file='titan.dat',status='unknown',form='formatted')
-        open(57,file='titan2.dat',status='unknown',form='formatted')
-        open(58,file='titan3.dat',status='unknown',form='formatted')
-        open(59,file='titan4.dat',status='unknown',form='formatted')
+        !open(52,file='enceladus1.dat',status='unknown',form='formatted')	! Holdovers from MAT's Saturn simulations
+        !open(53,file='enceladus2.dat',status='unknown',form='formatted')
+        !open(54,file='enceladus3.dat',status='unknown',form='formatted')
+        !open(55,file='enceladus4.dat',status='unknown',form='formatted')
+        !open(56,file='titan.dat',status='unknown',form='formatted')
+        !open(57,file='titan2.dat',status='unknown',form='formatted')
+        !open(58,file='titan3.dat',status='unknown',form='formatted')
+        !open(59,file='titan4.dat',status='unknown',form='formatted')
         open(65,file='tail01.dat',status='unknown',form='formatted')
         open(66,file='tail02.dat',status='unknown',form='formatted')
         open(67,file='tail03.dat',status='unknown',form='formatted')
@@ -1390,7 +1392,6 @@ program multifluid
             enddo
         enddo
     endif ! if(.not.start) then
-    
     !
     !     initialized other important stuff
     !
@@ -1404,7 +1405,6 @@ program multifluid
     call set_resist(resistive,nx,ny,nz,mbndry,resist, &
         ijzero,numzero,ijmid,nummid,ijsrf,numsrf, &
         msrf,mmid,mzero,1.)
-    !
     !
     !     read down relevant data list to find correct pointer
     !
@@ -1436,9 +1436,8 @@ program multifluid
                 rcraft(3)=zcraft(3,1)
             endif
             !
-        end do
+        enddo
         !      end do
-        !
         !
         call limcraft(zcraft,ncraft,re_equiv,ngrd, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
@@ -1452,8 +1451,8 @@ program multifluid
         do n=1,ncraft
             do nn=1,4
                 xcraft(nn,n)=zcraft(nn,n)
-            end do
-        end do
+            enddo
+        enddo
         !
         do  k=1,nz
             do  j=1,ny
@@ -1462,9 +1461,9 @@ program multifluid
             enddo
         enddo
         !
-        !      read all the magnetic field data to minize data sorting
+        !      read all the magnetic field data to minimize data sorting
         !
-        do  m=1,ncts
+        do m=1,ncts
             read(29,*)bfld(m,4),bmag,bfld(m,1),bfld(m,2),bfld(m,3)
             read(27,*)rut,rplas(m),svel(m,1),svel(m,2),svel(m,3)
             !      read(27,*)rut,rplas(m)
