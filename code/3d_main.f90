@@ -31,12 +31,14 @@ program multifluid
     integer,parameter :: nx=121,ny=121,nz=61,ngrd=5, &
     mbndry=1,msrf=2000,mmid=1500,mzero=5000, &
     ncraft=30,ncts=281
-    !
-    !      graphics parameters: muvwp2=amax(mx,my,mz)+2,mz2=(mz-1)/2+1
+	!
+	!      graphics parameters: muvwp2=amax(mx,my,mz)+2,mz2=(mz-1)/2+1
     !
     integer,parameter :: mx=61,my=61,mz=31, &
                          muvwp2=63,mz2=16,ntinj=120
-    !
+	!
+	integer :: line_counter=0	! Dummy counter for debugging, MJS Aug 06, 2017    
+	!
     common /space/vvx(nx,ny,nz),vvy(nx,ny,nz),vvz(nx,ny,nz), &
     tvx(nx,ny,nz),tvy(nx,ny,nz),tvz(nx,ny,nz), &
     evx(nx,ny,nz),evy(nx,ny,nz),evz(nx,ny,nz)
@@ -146,6 +148,10 @@ program multifluid
     character*8 wd1,wd2,wd3,wd4
     character*8 label
     character*15 title
+	character*80 junkline
+	!	
+	!	Directories for spacecraft position/times and output data
+	character*32 craft_info,craft_dat
     !
     integer ijsrf(mbndry,3,msrf),ijmid(mbndry,3,mmid), &
     ijzero(mbndry,3,mzero)
@@ -280,7 +286,6 @@ program multifluid
     call gsplci(1)
     call wtstr(.4,.975,'3d mutant code',2,0,0)
     !
-    !
     !     read input parameters
     !
     read(5,option)
@@ -320,7 +325,6 @@ program multifluid
             stop
         endif
     enddo
-    !
     !
     !      check if subgrids mate properly to larger grid
     !
@@ -560,9 +564,16 @@ program multifluid
     !
     write(6,*)'moon orbit parms',ut_orbit,v_orbit
     !
-    !     spacecraft stuff
-    !
-    !     gravity in m/s**2 at earths surface !need t_equiv in normalization
+	!
+	!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    !		@	Spacecraft data recording	@
+    !		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	!
+	!
+	open(42,file=trim(craft_info)//'defaults.pos',status='unknown',form='formatted')
+	!
+    !   gravity in m/s**2 at earth's surface 
+	!	need t_equiv in normalization
     t=0.
     t_equiv=planet_rad*re_equiv/v_equiv
     grav=gravity*(planet_rad*re_equiv*1000.)/(1000.*v_equiv)**2
@@ -581,9 +592,9 @@ program multifluid
     cur_min=0.75
     cur_max=20.0
     !
-    !
     !     initial position of spacecraft in re but simulation directions
-    !        wind :
+    !        wind:
+	read(42,*) xcraft(1,1), xcraft(2,1), xcraft(3,1)
     xcraft(1,1)=-120.08
     xcraft(2,1)=-0.6
     xcraft(3,1)=-0.00
@@ -596,55 +607,55 @@ program multifluid
     !
     !      enceladus1
     !
-    xcraft(1,2)=-0.00
-    xcraft(2,2)=-3.948
-    xcraft(3,2)=0.0003
+    !xcraft(1,2)=-0.00
+    !xcraft(2,2)=-3.948
+    !xcraft(3,2)=0.0003
     !
     !      enceladus2
     !
-    xcraft(1,3)=-0.00
-    xcraft(2,3)=3.948
-    xcraft(3,3)=0.0003
+    !xcraft(1,3)=-0.00
+    !xcraft(2,3)=3.948
+    !xcraft(3,3)=0.0003
     !
     !      enceladus3
     !
-    xcraft(1,4)=3.948
-    xcraft(2,4)=0.0
-    xcraft(3,4)=0.0003
+    !xcraft(1,4)=3.948
+    !xcraft(2,4)=0.0
+    !xcraft(3,4)=0.0003
     !
     !      enceladus4
     !
-    xcraft(1,5)=-3.948
-    xcraft(2,5)=-0.00
-    xcraft(3,5)=0.0003
+    !xcraft(1,5)=-3.948
+    !xcraft(2,5)=-0.00
+    !xcraft(3,5)=0.0003
     !
     !      titan1
     !
-    xcraft(1,6)=0.05
-    xcraft(2,6)=20.27
-    xcraft(3,6)=-0.0
+    !xcraft(1,6)=0.05
+    !xcraft(2,6)=20.27
+    !xcraft(3,6)=-0.0
     !
     !      titan2
     !
-    xcraft(1,7)=0.0001
-    xcraft(2,7)=-20.27
-    xcraft(3,7)=0.0
+    !xcraft(1,7)=0.0001
+    !xcraft(2,7)=-20.27
+    !xcraft(3,7)=0.0
     !
     !      titan3
     !
-    xcraft(1,8)=20.27
-    xcraft(2,8)=0.0
-    xcraft(3,8)=-0.0
+    !xcraft(1,8)=20.27
+    !xcraft(2,8)=0.0
+    !xcraft(3,8)=-0.0
     !
     !      titan4
     !
-    xcraft(1,9)=-20.27
-    xcraft(2,9)=0.0
-    xcraft(3,9)=0.0
+    !xcraft(1,9)=-20.27
+    !xcraft(2,9)=0.0
+    !xcraft(3,9)=0.0
     !
     !      tail1
     !
-    xcraft(1,15)=20.
+	xcraft(1,15)=20.
     xcraft(2,15)=00.0
     xcraft(3,15)=0.
     !
@@ -758,7 +769,7 @@ program multifluid
     enddo
     !
     if(spacecraft) then
-        open(51,file='wind.dat',status='unknown',form='formatted')
+        open(51,file=trim(craft_data)//'wind.dat',status='unknown',form='formatted')
         !open(52,file='enceladus1.dat',status='unknown',form='formatted')	! Holdovers from MAT's Saturn simulations
         !open(53,file='enceladus2.dat',status='unknown',form='formatted')
         !open(54,file='enceladus3.dat',status='unknown',form='formatted')
@@ -767,25 +778,25 @@ program multifluid
         !open(57,file='titan2.dat',status='unknown',form='formatted')
         !open(58,file='titan3.dat',status='unknown',form='formatted')
         !open(59,file='titan4.dat',status='unknown',form='formatted')
-        open(65,file='tail01.dat',status='unknown',form='formatted')
-        open(66,file='tail02.dat',status='unknown',form='formatted')
-        open(67,file='tail03.dat',status='unknown',form='formatted')
-        open(68,file='tail04.dat',status='unknown',form='formatted')
-        open(69,file='tail05.dat',status='unknown',form='formatted')
-        open(70,file='tail06.dat',status='unknown',form='formatted')
-        open(71,file='tail07.dat',status='unknown',form='formatted')
-        open(72,file='tail08.dat',status='unknown',form='formatted')
-        open(73,file='tail09.dat',status='unknown',form='formatted')
-        open(74,file='tail10.dat',status='unknown',form='formatted')
-        open(75,file='tail11.dat',status='unknown',form='formatted')
-        open(76,file='tail12.dat',status='unknown',form='formatted')
-        open(77,file='tail13.dat',status='unknown',form='formatted')
-        open(78,file='tail14.dat',status='unknown',form='formatted')
-        open(79,file='tail15.dat',status='unknown',form='formatted')
-        open(80,file='tail16.dat',status='unknown',form='formatted')
-        open(41,file='wind.pos',status='unknown',form='formatted')
-        open(47,file='wind.plas',status='unknown',form='formatted')
-        open(49,file='wind.mag',status='unknown',form='formatted')
+        open(65,file=trim(craft_data)//'tail01.dat',status='unknown',form='formatted')
+        open(66,file=trim(craft_data)//'tail02.dat',status='unknown',form='formatted')
+        open(67,file=trim(craft_data)//'tail03.dat',status='unknown',form='formatted')
+        open(68,file=trim(craft_data)//'tail04.dat',status='unknown',form='formatted')
+        open(69,file=trim(craft_data)//'tail05.dat',status='unknown',form='formatted')
+        open(70,file=trim(craft_data)//'tail06.dat',status='unknown',form='formatted')
+        open(71,file=trim(craft_data)//'tail07.dat',status='unknown',form='formatted')
+        open(72,file=trim(craft_data)//'tail08.dat',status='unknown',form='formatted')
+        open(73,file=trim(craft_data)//'tail09.dat',status='unknown',form='formatted')
+        open(74,file=trim(craft_data)//'tail10.dat',status='unknown',form='formatted')
+        open(75,file=trim(craft_data)//'tail11.dat',status='unknown',form='formatted')
+        open(76,file=trim(craft_data)//'tail12.dat',status='unknown',form='formatted')
+        open(77,file=trim(craft_data)//'tail13.dat',status='unknown',form='formatted')
+        open(78,file=trim(craft_data)//'tail14.dat',status='unknown',form='formatted')
+        open(79,file=trim(craft_data)//'tail15.dat',status='unknown',form='formatted')
+        open(80,file=trim(craft_data)//'tail16.dat',status='unknown',form='formatted')
+        open(41,file=trim(craft_info)//'wind.pos',status='unknown',form='formatted')
+        open(47,file=trim(craft_info)//'wind.plas',status='unknown',form='formatted')
+        open(49,file=trim(craft_info)//'wind.mag',status='unknown',form='formatted')
     endif
     !
     !     the magnetic field in dimensionless units is actually in alfven speeds
@@ -845,7 +856,7 @@ program multifluid
     write_dat=.true.
     !
     !     ************************************************
-    !     check for restart
+    !     				check for restart
     !     ************************************************
     !
     nchf=11
@@ -1422,9 +1433,12 @@ program multifluid
         !      do  n=1,2
         n=1
         mout=40+n
+		!line_counter=0	! Debugging MJS Aug 06, 2017
         do while(ut.ge.zcraft(4,n))
             read(mout,*)zcraft(4,n),zcraft(1,n), &
                 zcraft(2,n),zcraft(3,n)
+			line_counter=0	! Debugging MJS Aug 06, 2017
+			write(*,*) 'Read line ',line_counter	! Debugging MJS Aug 06, 2017
             !
             !          change direction to get from gsm to simulation coords
             !
