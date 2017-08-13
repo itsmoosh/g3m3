@@ -129,7 +129,7 @@ program multifluid
     wrkopresxy,wrkopresxz,wrkopresyz, &
     wrkepres
     !
-    !     unperturbed quantities
+    !     Unperturbed quantities
     !
     real bx0(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids),bz0(nx,ny,nz,n_grids)
     !
@@ -140,11 +140,11 @@ program multifluid
     !
     real lunar_rad,lunar_dist
     !
-    !      variable time step arrays
+    !      Variable time step arrays
     !
     real t_old(n_grids),t_new(n_grids),t_step(n_grids),t_stepnew(n_grids)
     !
-    !     boundary condition arrays
+    !     Boundary condition arrays
     !
     dimension bxf(ny,nz),byf(ny,nz),bzf(ny,nz), &
     rhof(ny,nz),svxf(ny,nz),svyf(ny,nz),svzf(ny,nz)
@@ -158,7 +158,8 @@ program multifluid
     tg2(mx,my,mz2),tt(mx,my,mz),work(muvwp2,muvwp2), &
     cross(ny,nz),along(nx,nz),flat(nx,ny)
     !
-    !
+	!	Labels for graphics outputs
+	!
     character*8 wd1,wd2,wd3,wd4
     character*8 label
     character*15 title
@@ -168,7 +169,6 @@ program multifluid
     integer numsrf(mbndry),nummid(mbndry),numzero(mbndry)
     real parm_srf(mbndry,7,msrf),parm_mid(mbndry,7,mmid), &
     parm_zero(mbndry,7,mzero)
-    !
     !
     logical start,add_dip,ringo,update,save_dat,write_dat, &
     spacecraft,craft_input,tilting,warp,reload,divb_lores,divb_hires, &
@@ -204,7 +204,40 @@ program multifluid
     !     variable grid spacing enabled with rxyz >1
     !           rx,ry,rz should not be set identically to zero
     !
-    namelist/option/tmax,ntgraph,stepsz,start,tsave,isotropic
+	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	!	@		SPACECRAFT INITIALIZATION		@
+	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	!
+	!       xcraft is the actual position of the spacecraft in re
+    !       4th dimension is UT in hours
+    !       zcraft is the future position of the spacecraft in re
+    !       rcraft is the position of the spacecraft for which
+    !           IMF is reference. No alteration from boundary conditions applied,
+	!			and no data recorded. Not included in ncraft or ndef_craft.
+	!		craft_info is directory for spacecraft position/times (relative to multifluid directory)
+	!		craft_data is directory for output data (relative to multifluid directory)
+	!		craftpos contains all (x,y,z,t) for all aux craft 
+	!		craftstat holds IOSTAT for reading in .craft files. Goes negative if EOF is reached before read() is done reading values
+	!		ntimes holds the number of (x,y,z,t) points we have for each aux craft
+	!		fname is a path to file, relative to the multifluid directory
+	!		recording is a flag, true by default, which is set to false when a spacecraft has recorded data for its entire trajectory
+    !
+	integer ncraft,ndef_craft,naux_craft
+	character*32,parameter :: craft_info='spacecraft_info/', craft_data='data/spacecraft_data/'
+	character*8, allocatable :: craftnames(:)
+	character*8 numstring
+	character*120 junkline, fname
+    real, allocatable :: xcraft(:,:),zcraft(:,:)
+	real, allocatable :: craftpos(:,:,:)
+	integer :: craftstat=0
+	integer, allocatable :: ntimes(:)
+	real rcraft(3)
+	logical :: dat_exists = .false.
+	logical, allocatable :: recording(:)
+	!
+	!	namelist groups for input file I/O
+	!
+	namelist/option/tmax,ntgraph,stepsz,start,tsave,isotropic
     namelist/earth/xdip,ydip,zdip,rearth, &
     tilt1,tilt2,tilting,rmassq,rmassh,rmasso
     namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
@@ -228,9 +261,9 @@ program multifluid
     namelist/smooth/chirho,chipxyz,chierg, &
     difrho,difpxyz,diferg
     !
-    !     allocate arrays
+    !     Allocate arrays
     !
-    !     work arrays for runge-kutta and smoothing
+    !     Work arrays for runge-kutta and smoothing
     !
     allocate(oldbx(nx,ny,nz,n_grids),oldby(nx,ny,nz,n_grids), &
     oldbz(nx,ny,nz,n_grids), &
@@ -277,37 +310,6 @@ program multifluid
     wrkopresxz(nx,ny,nz,n_grids),wrkopresyz(nx,ny,nz,n_grids), &
     !
     wrkepres(nx,ny,nz,n_grids))
-	!
-	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-	!	@		SPACECRAFT INITIALIZATION		@
-	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-	!
-	!       xcraft is the actual position of the spacecraft in re
-    !       4th dimension is UT in hours
-    !       zcraft is the future position of the spacecraft in re
-    !       rcraft is the position of the spacecraft for which
-    !           IMF is reference. No alteration from boundary conditions applied,
-	!			and no data recorded. Not included in ncraft or ndef_craft.
-	!		craft_info is directory for spacecraft position/times (relative to multifluid directory)
-	!		craft_data is directory for output data (relative to multifluid directory)
-	!		craftpos contains all (x,y,z,t) for all aux craft 
-	!		craftstat holds IOSTAT for reading in .craft files. Goes negative if EOF is reached before read() is done reading values
-	!		ntimes holds the number of (x,y,z,t) points we have for each aux craft
-	!		fname is a path to file, relative to the multifluid directory
-	!		recording is a flag, true by default, which is set to false when a spacecraft has recorded data for its entire trajectory
-    !
-	integer ncraft,ndef_craft,naux_craft
-	character*32,parameter :: craft_info='spacecraft_info/', craft_data='data/spacecraft_data/'
-	character*8, allocatable :: craftnames(:)
-	character*8 numstring
-	character*120 junkline, fname
-    real, allocatable :: xcraft(:,:),zcraft(:,:)
-	real, allocatable :: craftpos(:,:,:)
-	integer :: craftstat=0
-	integer, allocatable :: ntimes(:)
-	real rcraft(3)
-	logical :: dat_exists = .false.
-	logical,allocatable :: recording(:)
 	!
 	!
 	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
