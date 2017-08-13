@@ -265,7 +265,7 @@ subroutine crafdatv(bx,by,bz, &
     rte=sqrt(epress/(qden+oden+hden))
     vte=42.8*rte*v_equiv
     !
-    !           put back in real units and gsm
+    !           put back in real units and GSM
     !
     ax=-ax*re_equiv
     ay=-ay*re_equiv

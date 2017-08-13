@@ -646,7 +646,7 @@ subroutine visual( &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
-        !       plot mass flows : ionospheric o
+        !       plot mass flows: ionospheric o
         !
         !       call fnd_vel(opx,opy,opz,orho,curx,cury,curz,nx,ny,nz,ngrd,m)
         !
@@ -666,7 +666,7 @@ subroutine visual( &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
-        !       plot mass flows : total
+        !       plot mass flows: total
         !
         !      call fnd_vtot(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho,
         !    +       opx,opy,opz,orho,curx,cury,curz,nx,ny,nz,ngrd,m,

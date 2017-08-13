@@ -8,7 +8,7 @@
 subroutine lap_bfld(bx,by,bz,wrkbx,wrkby,wrkbz,vx,vy,vz, &
     nx,ny,nz,ngrd,m,chirho,chipxyz,chierg,delt)
     !
-    !     apply the ladipus smoothing technique for particular ion component
+    !     apply the lapidus smoothing technique for particular ion component
     !
     dimension bx(nx,ny,nz,ngrd),by(nx,ny,nz,ngrd),bz(nx,ny,nz,ngrd), &
     wrkbx(nx,ny,nz,ngrd),wrkby(nx,ny,nz,ngrd), &
@@ -77,7 +77,7 @@ end
 subroutine lap_elec(ppres,wrkppres,vx,vy,vz, &
     nx,ny,nz,ngrd,m,chirho,chipxyz,chierg,delt)
     !
-    !     apply the ladipus smoothing technique for particular ion component
+    !     apply the lapidus smoothing technique for particular ion component
     !
     dimension ppres(nx,ny,nz,ngrd),wrkppres(nx,ny,nz,ngrd), &
     vx(nx,ny,nz),vy(nx,ny,nz),vz(nx,ny,nz)
@@ -135,7 +135,7 @@ subroutine lap_plasma(rho,px,py,pz, &
     vx,vy,vz, &
     nx,ny,nz,ngrd,m,chirho,chipxyz,chierg,delt,isotropic)
     !
-    !     apply the ladipus smoothing technique for particular ion component
+    !     apply the lapidus smoothing technique for particular ion component
     !
     dimension rho(nx,ny,nz,ngrd),presx(nx,ny,nz,ngrd), &
     presy(nx,ny,nz,ngrd),presz(nx,ny,nz,ngrd), &

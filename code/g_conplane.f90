@@ -10,7 +10,7 @@ subroutine conplane(stuff,cross,nx,ny,nz,m, &
     !      subroutine to plot x-y quantities at the
     !       spacecraft position
     !       percent - percentage level of max value for isosurface
-    !        xcraft is the position of the spacecraft : assumed to
+    !        xcraft is the position of the spacecraft: assumed to
     !                  be in simulation units
     !        ncraft is the number of spacecraft to plot
     !
@@ -20,7 +20,7 @@ subroutine conplane(stuff,cross,nx,ny,nz,m, &
     ncrt,ilab,nulbll,ioffd, & 
     ext,ioffm,isolid ,nla, &
     nlm,xlt,ybt,side 
-    common /recint/ irecmj     ,irecmn     ,irectx
+    common /recint/ irecmj,irecmn,irectx
     !
     real xrays(2),yrays(2)
     dimension xcraft(4,ncraft),stuff(nx,ny,nz),cross(nx,nz)
@@ -148,7 +148,7 @@ subroutine conplane_fix(stuff,cross,nx,ny,nz,m, &
     !      subroutine to plot x-y quantities at the
     !       spacecraft position
     !       percent - percentage level of max value for isosurface
-    !        xcraft is the position of the spacecraft : assumed to
+    !        xcraft is the position of the spacecraft: assumed to
     !                  be in simulation units
     !        ncraft is the number of spacecraft to plot
     !
@@ -158,7 +158,7 @@ subroutine conplane_fix(stuff,cross,nx,ny,nz,m, &
     ncrt,ilab,nulbll,ioffd, & 
     ext,ioffm,isolid ,nla, &
     nlm,xlt,ybt,side 
-    common /recint/ irecmj     ,irecmn     ,irectx
+    common /recint/ irecmj,irecmn,irectx
     !
     real xrays(2),yrays(2)
     dimension xcraft(4,ncraft),stuff(nx,ny,nz),cross(nx,nz)
