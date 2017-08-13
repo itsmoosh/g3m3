@@ -1590,11 +1590,11 @@ program multifluid
             if(box.eq.n_grids)then
                 smallest_step=t_step(box)
                 m_smallest=box
-                write(*,*)'Syncing box, t_step(box): ',box,t_step(box)
+                !write(*,*)'Syncing box, t_step(box): ',box,t_step(box)
             else
                 !
                 !          check to see if box grid doesnt outstep grid box+1
-                write(*,*)'Unsync box, t_step(box): ',box,t_step(box)
+                !write(*,*)'Unsync box, t_step(box): ',box,t_step(box)
                 if(t_step(box).gt.t_step(box+1))t_step(box)=t_step(box+1)
                 !
                 if (smallest_step.gt.t_step(box))then
@@ -1615,7 +1615,7 @@ program multifluid
         do box=1,n_grids
             if(box.le.m_smallest) then
                 t_step(box)=smallest_step
-                write(*,*)'Sync step: box, t_step(box): ',box,t_step(box)
+                !write(*,*)'Sync step: box, t_step(box): ',box,t_step(box)
             else
                 astep=(t_step(box)/t_step(box-1)+.50)  !round up as needed
                 nsteps=astep                          !nearest integer
@@ -1623,12 +1623,12 @@ program multifluid
                 if(nsteps.gt.2)nsteps=2
                 if(nsteps.lt.1)nsteps=1
                 t_step(box)=t_step(box-1)*nsteps
-                write(*,*)'Sync step: box, t_step(box): ',box,t_step(box)
+                !write(*,*)'Sync step: box, t_step(box): ',box,t_step(box)
             endif
         enddo
         !
         m_step=t_step(n_grids)/t_step(m_smallest)
-        write(*,*)'lores steps: ',m_smallest,m_step,t_step
+        !write(*,*)'lores steps: ',m_smallest,m_step,t_step
         !
         delt=t_step(n_grids)
         told=t
@@ -1640,9 +1640,9 @@ program multifluid
         tilt=tilt+dtilt*delt
         delay=t_equiv*distance/svelx/3600.
         !
-        write(*,201)t,delt,ut,bfld(nvx,4)
-        201 format(1x,'t=',1pe12.5,' dt=',1pe12.5,' ut=', &
-            1pe12.5,' wind time',1pe12.5)
+        !write(*,201)t,delt,ut,bfld(nvx,4)
+        !201 format(1x,'t=',1pe12.5,' dt=',1pe12.5,' ut=', &
+        !    1pe12.5,' wind time',1pe12.5)
         !
         nrot=ut/planet_per
         rot_hrs=ut-nrot*planet_per
