@@ -6,38 +6,57 @@
 !		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 !
 !
-!     This is a 3-d modified three fluid simulation using
-!           electrons  : arrays starting with e
-!           solar wind : arrays starting with q (protons)
-!           ionospheric: arrays starting with o oxygen,
-!                                             h hydrogen
+!   This is a 3-d modified three fluid simulation using
+!         electrons  : arrays starting with e
+!         solar wind : arrays starting with q (protons)
+!         ionospheric: arrays starting with o oxygen,
+!                                           h hydrogen
 !
-!     ?[ and change set33(0.1,1.,0.1,1.0  to
-!                 set3(0.,1.,0.,1.
-!     ]?
-!     Warnings: make sure space is compatible with graphics
-!                 routines
-!               the arrays ijzero,ijmid  and ijsrf have to
-!                 be modified in bsubs.f if modified in main
-!               add in mirror dipole so bx is zero at wind boundary
-!               graphics - contour and flows - have to be manually set
-!                 for right aspect ratios
-!               plasma and magnetic field data must be aligned in time
+!   ?[ and change set33(0.1,1.,0.1,1.0  to
+!               set3(0.,1.,0.,1.
+!   ]?
+!	Warnings: make sure space is compatible with graphics
+!               routines
+!             the arrays ijzero,ijmid  and ijsrf have to
+!               be modified in bsubs.f if modified in main
+!             add in mirror dipole so bx is zero at wind boundary
+!             graphics - contour and flows - have to be manually set
+!               for right aspect ratios
+!             plasma and magnetic field data must be aligned in time
 !
-!     grid within grid size nt = 2*ngrd
-!     ncts is the size of the data array for the imf data file
+!   grid within grid size nt = 2*n_grids
+!   ncts is the size of the data array for the IMF data file
+!
+!	File indexes:
+!		1-29	Top-level I/O, fluid files, primary output data, etc
+!		30-59	Spacecraft position/trajectory input files
+!		60-89	Spacecraft data recording
 !
 program multifluid
-    integer,parameter :: nx=121,ny=121,nz=61,ngrd=5, &
+    integer,parameter :: nx=121,ny=121,nz=61,n_grids=5, &
     mbndry=1,msrf=2000,mmid=1500,mzero=5000, &
-    ncraft=30,ncts=281
+    ncts=281
 	!
 	!      graphics parameters: muvwp2=amax(mx,my,mz)+2,mz2=(mz-1)/2+1
     !
     integer,parameter :: mx=61,my=61,mz=31, &
                          muvwp2=63,mz2=16,ntinj=120
 	!
-	integer :: line_counter=0	! Dummy counter for debugging, MJS Aug 06, 2017    
+	!	File indexes:
+	!		1-29	Top-level I/O, fluid files, primary output data, etc
+	!		30-59	Spacecraft position/trajectory input files
+	!		60-89	Spacecraft data recording
+	integer,parameter :: scin=30,scout=60
+	character,parameter :: tab=char(9)
+	!
+	character*120,parameter :: dat_header='time'//tab//'xpos'//tab//'ypos'// &
+		tab//'zpos'//tab//'Bxval'//tab//'Byval'//tab//'Bzval'//'temp'
+	!
+	character*80,parameter :: flux_header='main grid'//tab//'UT'//tab// &
+		'box'//tab//'qflux'//tab//'hflux'//tab//'oflux'
+	!
+	integer n, m, ms, nn, box	!	loop counters
+	integer m_smallest, m_step	!	placeholders
 	!
     common /space/vvx(nx,ny,nz),vvy(nx,ny,nz),vvz(nx,ny,nz), &
     tvx(nx,ny,nz),tvy(nx,ny,nz),tvz(nx,ny,nz), &
@@ -48,44 +67,39 @@ program multifluid
     common /moon/xmoon,ymoon,zmoon,rmoon,b0_moon, &
     xdip_moon,ydip_moon,zdip_moon,offset
     !
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd), &
-    xspac(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids), &
+    xspac(n_grids)
     !
     !
-    !      grid limits are set by grd_min grd_max arrays
-    !      xspac is the relative grid spacing, relative to inner grid system
-    !      xcraft is the actual position of the spacecraft in re
-    !      ?[  4th dimension of the actual time  ]?
-    !      zcraft is the future position of the spacecraft in re
-    !      rcraft is the position of the spacecraft for which
-    !           IMF is reference. No alteration from boundary conditions applied
+    !    grid limits are set by grd_min grd_max arrays
+    !    xspac is the relative grid spacing, relative to inner grid system
+	!
+	!	******************************************************************
+	!
+    !    physics plasma quantities: main grid
     !
-    real xcraft(4,ncraft),zcraft(4,ncraft),rcraft(3)
+    real bx(nx,ny,nz,n_grids),by(nx,ny,nz,n_grids),bz(nx,ny,nz,n_grids), &
+    qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids),qpz(nx,ny,nz,n_grids), &
+    qrho(nx,ny,nz,n_grids),qpresx(nx,ny,nz,n_grids), &
+    qpresy(nx,ny,nz,n_grids),qpresz(nx,ny,nz,n_grids), &
+    qpresxy(nx,ny,nz,n_grids),qpresxz(nx,ny,nz,n_grids), &
+    qpresyz(nx,ny,nz,n_grids), &
     !
-    !     physics plasma quantities: main grid
+    hpx(nx,ny,nz,n_grids),hpy(nx,ny,nz,n_grids),hpz(nx,ny,nz,n_grids), &
+    hrho(nx,ny,nz,n_grids),hpresx(nx,ny,nz,n_grids), &
+    hpresy(nx,ny,nz,n_grids),hpresz(nx,ny,nz,n_grids), &
+    hpresxy(nx,ny,nz,n_grids),hpresxz(nx,ny,nz,n_grids), &
+    hpresyz(nx,ny,nz,n_grids), &
     !
-    real bx(nx,ny,nz,ngrd),by(nx,ny,nz,ngrd),bz(nx,ny,nz,ngrd), &
-    qpx(nx,ny,nz,ngrd),qpy(nx,ny,nz,ngrd),qpz(nx,ny,nz,ngrd), &
-    qrho(nx,ny,nz,ngrd),qpresx(nx,ny,nz,ngrd), &
-    qpresy(nx,ny,nz,ngrd),qpresz(nx,ny,nz,ngrd), &
-    qpresxy(nx,ny,nz,ngrd),qpresxz(nx,ny,nz,ngrd), &
-    qpresyz(nx,ny,nz,ngrd), &
+    opx(nx,ny,nz,n_grids),opy(nx,ny,nz,n_grids),opz(nx,ny,nz,n_grids), &
+    orho(nx,ny,nz,n_grids),opresx(nx,ny,nz,n_grids), &
+    opresy(nx,ny,nz,n_grids),opresz(nx,ny,nz,n_grids), &
+    opresxy(nx,ny,nz,n_grids),opresxz(nx,ny,nz,n_grids), &
+    opresyz(nx,ny,nz,n_grids), &
     !
-    hpx(nx,ny,nz,ngrd),hpy(nx,ny,nz,ngrd),hpz(nx,ny,nz,ngrd), &
-    hrho(nx,ny,nz,ngrd),hpresx(nx,ny,nz,ngrd), &
-    hpresy(nx,ny,nz,ngrd),hpresz(nx,ny,nz,ngrd), &
-    hpresxy(nx,ny,nz,ngrd),hpresxz(nx,ny,nz,ngrd), &
-    hpresyz(nx,ny,nz,ngrd), &
-    !
-    opx(nx,ny,nz,ngrd),opy(nx,ny,nz,ngrd),opz(nx,ny,nz,ngrd), &
-    orho(nx,ny,nz,ngrd),opresx(nx,ny,nz,ngrd), &
-    opresy(nx,ny,nz,ngrd),opresz(nx,ny,nz,ngrd), &
-    opresxy(nx,ny,nz,ngrd),opresxz(nx,ny,nz,ngrd), &
-    opresyz(nx,ny,nz,ngrd), &
-    !
-    epres(nx,ny,nz,ngrd)
+    epres(nx,ny,nz,n_grids)
     !
     !     work arrays for runge-kutta and smoothing: main grid
     !
@@ -117,8 +131,8 @@ program multifluid
     !
     !     unperturbed quantities
     !
-    real bx0(nx,ny,nz,ngrd),by0(nx,ny,nz,ngrd),bz0(nx,ny,nz,ngrd)
-    
+    real bx0(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids),bz0(nx,ny,nz,n_grids)
+    !
     real efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz), &
     curx(nx,ny,nz),cury(nx,ny,nz),curz(nx,ny,nz), &
     bsx(nx,ny,nz),bsy(nx,ny,nz),bsz(nx,ny,nz),btot(nx,ny,nz), &
@@ -128,7 +142,7 @@ program multifluid
     !
     !      variable time step arrays
     !
-    real t_old(ngrd),t_new(ngrd),t_step(ngrd),t_stepnew(ngrd)
+    real t_old(n_grids),t_new(n_grids),t_step(n_grids),t_stepnew(n_grids)
     !
     !     boundary condition arrays
     !
@@ -148,21 +162,22 @@ program multifluid
     character*8 wd1,wd2,wd3,wd4
     character*8 label
     character*15 title
-	character*80 junkline
 	!	
-	!	Directories for spacecraft position/times and output data
-	character*32 craft_info,craft_dat
-    !
     integer ijsrf(mbndry,3,msrf),ijmid(mbndry,3,mmid), &
     ijzero(mbndry,3,mzero)
     integer numsrf(mbndry),nummid(mbndry),numzero(mbndry)
-    real    parm_srf(mbndry,7,msrf),parm_mid(mbndry,7,mmid), &
+    real parm_srf(mbndry,7,msrf),parm_mid(mbndry,7,mmid), &
     parm_zero(mbndry,7,mzero)
     !
     !
     logical start,add_dip,ringo,update,save_dat,write_dat, &
-    spacecraft,tilting,warp,reload,divb_lores,divb_hires, &
+    spacecraft,craft_input,tilting,warp,reload,divb_lores,divb_hires, &
     yes_step,yes_step_n,grid_reset,isotropic
+	!
+	!		spacecraft decides whether to include any spacecraft at all
+	!		craft_input must be true to use input data from spacecraft
+	!			(craft_input is not currently implemented)
+	!			(spacecraft must be set to true to use craft_input)
     !
     !      ringo decides if you you want to plot 1 set of diagnostics
     !              with no time stepping
@@ -189,7 +204,7 @@ program multifluid
     !     variable grid spacing enabled with rxyz >1
     !           rx,ry,rz should not be set identically to zero
     !
-    namelist/option/tmax,ntgraf,stepsz,start,tsave,isotropic
+    namelist/option/tmax,ntgraph,stepsz,start,tsave,isotropic
     namelist/earth/xdip,ydip,zdip,rearth, &
     tilt1,tilt2,tilting,rmassq,rmassh,rmasso
     namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
@@ -209,65 +224,102 @@ program multifluid
     alf_moon,ti_te_moon, &
     xdip_moon,ydip_moon,zdip_moon,offset
     namelist/physical/re_equiv,b_equiv,v_equiv,rho_equiv, &
-    spacecraft,warp,uday,utstart
+    spacecraft,craft_input,warp,uday,utstart
     namelist/smooth/chirho,chipxyz,chierg, &
     difrho,difpxyz,diferg
     !
     !     allocate arrays
     !
     !     work arrays for runge-kutta and smoothing
-    
-    allocate(oldbx(nx,ny,nz,ngrd),oldby(nx,ny,nz,ngrd), &
-    oldbz(nx,ny,nz,ngrd), &
     !
-    oldqpx(nx,ny,nz,ngrd),oldqpy(nx,ny,nz,ngrd), &
-    oldqpz(nx,ny,nz,ngrd),oldqrho(nx,ny,nz,ngrd), &
-    oldqpresx(nx,ny,nz,ngrd),oldqpresy(nx,ny,nz,ngrd), &
-    oldqpresz(nx,ny,nz,ngrd), oldqpresxy(nx,ny,nz,ngrd), &
-    oldqpresxz(nx,ny,nz,ngrd),oldqpresyz(nx,ny,nz,ngrd), &
+    allocate(oldbx(nx,ny,nz,n_grids),oldby(nx,ny,nz,n_grids), &
+    oldbz(nx,ny,nz,n_grids), &
     !
-    oldhpx(nx,ny,nz,ngrd),oldhpy(nx,ny,nz,ngrd), &
-    oldhpz(nx,ny,nz,ngrd),oldhrho(nx,ny,nz,ngrd), &
-    oldhpresx(nx,ny,nz,ngrd),oldhpresy(nx,ny,nz,ngrd), &
-    oldhpresz(nx,ny,nz,ngrd), oldhpresxy(nx,ny,nz,ngrd), &
-    oldhpresxz(nx,ny,nz,ngrd),oldhpresyz(nx,ny,nz,ngrd), &
+    oldqpx(nx,ny,nz,n_grids),oldqpy(nx,ny,nz,n_grids), &
+    oldqpz(nx,ny,nz,n_grids),oldqrho(nx,ny,nz,n_grids), &
+    oldqpresx(nx,ny,nz,n_grids),oldqpresy(nx,ny,nz,n_grids), &
+    oldqpresz(nx,ny,nz,n_grids),oldqpresxy(nx,ny,nz,n_grids), &
+    oldqpresxz(nx,ny,nz,n_grids),oldqpresyz(nx,ny,nz,n_grids), &
     !
-    oldopx(nx,ny,nz,ngrd),oldopy(nx,ny,nz,ngrd), &
-    oldopz(nx,ny,nz,ngrd),oldorho(nx,ny,nz,ngrd), &
-    oldopresx(nx,ny,nz,ngrd),oldopresy(nx,ny,nz,ngrd), &
-    oldopresz(nx,ny,nz,ngrd), oldopresxy(nx,ny,nz,ngrd), &
-    oldopresxz(nx,ny,nz,ngrd),oldopresyz(nx,ny,nz,ngrd), &
+    oldhpx(nx,ny,nz,n_grids),oldhpy(nx,ny,nz,n_grids), &
+    oldhpz(nx,ny,nz,n_grids),oldhrho(nx,ny,nz,n_grids), &
+    oldhpresx(nx,ny,nz,n_grids),oldhpresy(nx,ny,nz,n_grids), &
+    oldhpresz(nx,ny,nz,n_grids),oldhpresxy(nx,ny,nz,n_grids), &
+    oldhpresxz(nx,ny,nz,n_grids),oldhpresyz(nx,ny,nz,n_grids), &
     !
-    oldepres(nx,ny,nz,ngrd))
+    oldopx(nx,ny,nz,n_grids),oldopy(nx,ny,nz,n_grids), &
+    oldopz(nx,ny,nz,n_grids),oldorho(nx,ny,nz,n_grids), &
+    oldopresx(nx,ny,nz,n_grids),oldopresy(nx,ny,nz,n_grids), &
+    oldopresz(nx,ny,nz,n_grids),oldopresxy(nx,ny,nz,n_grids), &
+    oldopresxz(nx,ny,nz,n_grids),oldopresyz(nx,ny,nz,n_grids), &
     !
-    allocate(wrkbx(nx,ny,nz,ngrd),wrkby(nx,ny,nz,ngrd), &
-    wrkbz(nx,ny,nz,ngrd), &
+    oldepres(nx,ny,nz,n_grids))
     !
-    wrkqpx(nx,ny,nz,ngrd),wrkqpy(nx,ny,nz,ngrd), &
-    wrkqpz(nx,ny,nz,ngrd),wrkqrho(nx,ny,nz,ngrd), &
-    wrkqpresx(nx,ny,nz,ngrd),wrkqpresy(nx,ny,nz,ngrd), &
-    wrkqpresz(nx,ny,nz,ngrd), wrkqpresxy(nx,ny,nz,ngrd), &
-    wrkqpresxz(nx,ny,nz,ngrd),wrkqpresyz(nx,ny,nz,ngrd), &
+    allocate(wrkbx(nx,ny,nz,n_grids),wrkby(nx,ny,nz,n_grids), &
+    wrkbz(nx,ny,nz,n_grids), &
     !
-    wrkhpx(nx,ny,nz,ngrd),wrkhpy(nx,ny,nz,ngrd), &
-    wrkhpz(nx,ny,nz,ngrd),wrkhrho(nx,ny,nz,ngrd), &
-    wrkhpresx(nx,ny,nz,ngrd),wrkhpresy(nx,ny,nz,ngrd), &
-    wrkhpresz(nx,ny,nz,ngrd), wrkhpresxy(nx,ny,nz,ngrd), &
-    wrkhpresxz(nx,ny,nz,ngrd),wrkhpresyz(nx,ny,nz,ngrd), &
+    wrkqpx(nx,ny,nz,n_grids),wrkqpy(nx,ny,nz,n_grids), &
+    wrkqpz(nx,ny,nz,n_grids),wrkqrho(nx,ny,nz,n_grids), &
+    wrkqpresx(nx,ny,nz,n_grids),wrkqpresy(nx,ny,nz,n_grids), &
+    wrkqpresz(nx,ny,nz,n_grids),wrkqpresxy(nx,ny,nz,n_grids), &
+    wrkqpresxz(nx,ny,nz,n_grids),wrkqpresyz(nx,ny,nz,n_grids), &
     !
-    wrkopx(nx,ny,nz,ngrd),wrkopy(nx,ny,nz,ngrd), &
-    wrkopz(nx,ny,nz,ngrd),wrkorho(nx,ny,nz,ngrd), &
-    wrkopresx(nx,ny,nz,ngrd),wrkopresy(nx,ny,nz,ngrd), &
-    wrkopresz(nx,ny,nz,ngrd), wrkopresxy(nx,ny,nz,ngrd), &
-    wrkopresxz(nx,ny,nz,ngrd),wrkopresyz(nx,ny,nz,ngrd), &
+    wrkhpx(nx,ny,nz,n_grids),wrkhpy(nx,ny,nz,n_grids), &
+    wrkhpz(nx,ny,nz,n_grids),wrkhrho(nx,ny,nz,n_grids), &
+    wrkhpresx(nx,ny,nz,n_grids),wrkhpresy(nx,ny,nz,n_grids), &
+    wrkhpresz(nx,ny,nz,n_grids),wrkhpresxy(nx,ny,nz,n_grids), &
+    wrkhpresxz(nx,ny,nz,n_grids),wrkhpresyz(nx,ny,nz,n_grids), &
     !
-    wrkepres(nx,ny,nz,ngrd))
+    wrkopx(nx,ny,nz,n_grids),wrkopy(nx,ny,nz,n_grids), &
+    wrkopz(nx,ny,nz,n_grids),wrkorho(nx,ny,nz,n_grids), &
+    wrkopresx(nx,ny,nz,n_grids),wrkopresy(nx,ny,nz,n_grids), &
+    wrkopresz(nx,ny,nz,n_grids),wrkopresxy(nx,ny,nz,n_grids), &
+    wrkopresxz(nx,ny,nz,n_grids),wrkopresyz(nx,ny,nz,n_grids), &
     !
+    wrkepres(nx,ny,nz,n_grids))
+	!
+	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	!	@		SPACECRAFT INITIALIZATION		@
+	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	!
+	!       xcraft is the actual position of the spacecraft in re
+    !       4th dimension is UT in hours
+    !       zcraft is the future position of the spacecraft in re
+    !       rcraft is the position of the spacecraft for which
+    !           IMF is reference. No alteration from boundary conditions applied,
+	!			and no data recorded. Not included in ncraft or ndef_craft.
+	!		craft_info is directory for spacecraft position/times (relative to multifluid directory)
+	!		craft_data is directory for output data (relative to multifluid directory)
+	!		craftpos contains all (x,y,z,t) for all aux craft 
+	!		craftstat holds IOSTAT for reading in .craft files. Goes negative if EOF is reached before read() is done reading values
+	!		ntimes holds the number of (x,y,z,t) points we have for each aux craft
+	!		fname is a path to file, relative to the multifluid directory
+	!		recording is a flag, true by default, which is set to false when a spacecraft has recorded data for its entire trajectory
+    !
+	integer ncraft,ndef_craft,naux_craft
+	character*32,parameter :: craft_info='spacecraft_info/', craft_data='data/spacecraft_data/'
+	character*8, allocatable :: craftnames(:)
+	character*8 numstring
+	character*120 junkline, fname
+    real, allocatable :: xcraft(:,:),zcraft(:,:)
+	real, allocatable :: craftpos(:,:,:)
+	integer :: craftstat=0
+	integer, allocatable :: ntimes(:)
+	real rcraft(3)
+	logical :: dat_exists = .false.
+	logical,allocatable :: recording(:)
+	!
+	!
+	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	!	@		PARAMETER DECLARATIONS COMPLETE			@
+	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	!
+	!
     !      open input data file
     !
+    open(1,file='input',status='old',form='formatted')
     open(3,file='fluxes.dat',status='unknown',form='formatted')
-    open(5,file='input',status='old',form='formatted')
-    !     open(6,file='rmpd3dout',status='unknown',form='formatted')
+    !open(6,file='output.log',status='unknown',form='formatted')
     !open(7,file='grid.dat',status='unknown',form='formatted')
     !open(8,file='cur.dat',status='unknown',form='unformatted')
     !open(9,file='pot.dat',status='unknown',form='unformatted')
@@ -286,77 +338,77 @@ program multifluid
     call gsplci(1)
     call wtstr(.4,.975,'3d mutant code',2,0,0)
     !
-    !     read input parameters
+    !     read input parameters, copy to log file
     !
-    read(5,option)
-    write(6,option)
-    read(5,earth)
-    write(6,earth)
-    read(5,speeds)
-    write(6,speeds)
-    read(5,windy)
-    write(6,windy)
-    read(5,lunar)
-    write(6,lunar)
-    read(5,physical)
-    write(6,physical)
-    read(5,smooth)
-    write(6,smooth)
+    read(1,option)
+    write(*,option)
+    read(1,earth)
+    write(*,earth)
+    read(1,speeds)
+    write(*,speeds)
+    read(1,windy)
+    write(*,windy)
+    read(1,lunar)
+    write(*,lunar)
+    read(1,physical)
+    write(*,physical)
+    read(1,smooth)
+    write(*,smooth)
+	!
+    !     ?[output to test whether the parameters are the actual ones you want]?
     !
-    !     output to test whether the parameters are the actual ones you want
+    write(*,option)
+    write(*,earth)
+    write(*,speeds)
+    write(*,windy)
+    write(*,physical)
+    write(*,smooth)
     !
-    write(6,option)
-    write(6,earth)
-    write(6,speeds)
-    write(6,windy)
-    write(6,physical)
-    write(6,smooth)
-    !
-    do i=1,ngrd
-        read(5,*)grd_xmin(i),grd_xmax(i),grd_ymin(i),grd_ymax(i), &
+	write(*,*) 'grd_xmin: ','grd_xmax: ','grd_ymin: ','grd_ymax: ', &
+		'grd_zmin: ','grd_zmax: ','xspac: '
+    do i=1,n_grids
+        read(1,*)grd_xmin(i),grd_xmax(i),grd_ymin(i),grd_ymax(i), &
         grd_zmin(i),grd_zmax(i),xspac(i)
-        write(6,*)grd_xmin(i),grd_xmax(i),grd_ymin(i),grd_ymax(i), &
+        write(*,*)grd_xmin(i),grd_xmax(i),grd_ymin(i),grd_ymax(i), &
         grd_zmin(i),grd_zmax(i),xspac(i)
         ix=1+(grd_xmax(i)-grd_xmin(i))/xspac(i)
         iy=1+(grd_ymax(i)-grd_ymin(i))/xspac(i)
         iz=1+(grd_zmax(i)-grd_zmin(i))/xspac(i)
         if((ix.ne.nx).or.(iy.ne.ny).or.(iz.ne.nz))then
-            write(6,*)' warning: sizes',ix,iy,iz,nx,ny,nz
+            write(*,*)' warning: sizes ',ix,iy,iz,nx,ny,nz
             stop
         endif
     enddo
     !
     !      check if subgrids mate properly to larger grid
     !
-    do m=1,ngrd-1
-        mm=m+1
-        ai=1.+(grd_xmin(m)-grd_xmin(mm))/xspac(mm)
+    do box=1,n_grids-1
+        mm=box+1
+        ai=1.+(grd_xmin(box)-grd_xmin(mm))/xspac(mm)
         i=ai
         dx=ai-i
         if(abs(dx).gt.0.001)then
-            write(6,*)'main grd: xmin dont match',m,mm,i,ai
+            write(*,*)'main grid: xmin dont match',box,mm,i,ai
             stop
         endif
         !
-        aj=1.+(grd_ymin(m)-grd_ymin(mm))/xspac(mm)
+        aj=1.+(grd_ymin(box)-grd_ymin(mm))/xspac(mm)
         j=aj
         dy=aj-j
         if(abs(dy).gt.0.001)then
-            write(6,*)'main grd: ymin dont match',m,mm,j,aj
+            write(*,*)'main grid: ymin dont match',box,mm,j,aj
             stop
         endif
         !
-        ak=1.+(grd_zmin(m)-grd_zmin(mm))/xspac(mm)
+        ak=1.+(grd_zmin(box)-grd_zmin(mm))/xspac(mm)
         k=ak
         dz=ak-k
         if(abs(dz).gt.0.001)then
-            write(6,*)'main grd: zmin dont match',m,mm,k,ak
+            write(*,*)'main grid: zmin dont match',box,mm,k,ak
             stop
         endif
         !
     enddo
-    !
-    !
     !
     !     write important data to graphics file
     !
@@ -376,7 +428,6 @@ program multifluid
     title='zdip = '//wd3
     call wtstr(.55,.82,title,1,0,0)
     !
-    
     write(wd1,'(f5.1)')rearth
     !
     title='rearth = '//wd1
@@ -389,7 +440,7 @@ program multifluid
     b02=alf_inner2*sqrt(erho)*rearth**3
     alf_lim=6.00*alf_inner1
     b0=b01
-    write(6,*)'b0',b0
+    write(*,*)'b0: ',b0
     bmax=b02
     delb0=(b02-b01)/tmax
     !
@@ -407,7 +458,6 @@ program multifluid
     title='den_earth = '//wd4
     call wtstr(.75,.76,title,1,0,0)
     !
-    
     write(wd1,'(f6.3)')o_conc
     write(wd2,'(f6.3)')gravity
     write(wd3,'(f6.3)')rmasso
@@ -432,7 +482,6 @@ program multifluid
     call wtstr(.55,.7,title,1,0,0)
     title='vx_wind2 = '//wd4
     call wtstr(.75,.7,title,1,0,0)
-    
     !
     write(wd1,'(f6.3)')vy_wind1
     write(wd2,'(f6.3)')vy_wind2
@@ -452,7 +501,6 @@ program multifluid
     write(wd2,'(f6.3)')alfx_wind2
     write(wd3,'(f6.3)')alfy_wind1
     write(wd4,'(f6.3)')alfy_wind2
-    
     !
     title='alfx1 = '//wd1
     call wtstr(.15,.64,title,1,0,0)
@@ -469,15 +517,15 @@ program multifluid
     call wtstr(.55,.61,title,1,0,0)
     title='alfz2 = '//wd4
     call wtstr(.75,.61,title,1,0,0)
-    
+    !
     write(wd1,'(f5.1)')re_wind
     write(wd2,'(f5.0)')reynolds
     write(wd3,'(f5.0)')resist
-    !     re_wind sets raduius from earth where initial wind placed
+    !     re_wind sets radius from earth where initial wind placed
     !     reynolds coefficient for surface currents
     !     resist equivalent if you wish to run anomalous resistivity
     !     bfrac determines the percentage of the tangential magnetic
-    !     field allowed at earth's surface
+    !     	field allowed at earth's surface
     !
     title='re_wind = '//wd1
     call wtstr(.15,.58,title,1,0,0)
@@ -526,7 +574,7 @@ program multifluid
     cos_tilt=cos(tilt*.0174533)
     dtilt=(tilt2-tilt1)/tmax
     !
-    !     jupiter parameters
+    !	jupiter parameters
     !
     !planet_rad=71000.   !km
     !planet_per=9.7     !hr
@@ -535,14 +583,15 @@ program multifluid
     !v_rot=6.2832*planet_rad/(planet_per*3600.)/v_equiv  ! normalized units
     !r_rot=30.0   !re where corotation stops
     !
-    !     earth parameters
-    !     planet_rad=6371.   !km
-    !     planet_per=24.     !hr
-    !     lunar_rad=60.      !orbital radii
-    !     v_rot=6.2832*planet_rad/(planet_per*3600.)/v_equiv  ! normalized units
-    !     r_rot=10.0   !re where corotation stops
+    !	earth parameters
+	!
+    !planet_rad=6371.   !km
+    !planet_per=24.     !hr
+    !lunar_rad=60.      !orbital radii
+    !v_rot=6.2832*planet_rad/(planet_per*3600.)/v_equiv  ! normalized units
+    !r_rot=10.0   !re where corotation stops
     !
-    !     saturn parameters
+    !	saturn parameters
     !
     planet_rad=60268.   !km
     planet_per=10.7    !hr
@@ -551,33 +600,26 @@ program multifluid
     v_rot=6.2832*planet_rad/(planet_per*3600.)/v_equiv  ! normalized units
     r_rot=20.0   !re where corotation stops
     !
-    !     lunar stuff: moon radius 1738. titan radius 2575
-    !                  enceladus radius 252. 
+    !	lunar parameters:	moon radius 1738.
+	!						titan radius 2575.
+    !                 		enceladus radius 252. 
+	!						europa radius 1561.
     !
     lunar_rad=252.*1.25  !km start at exobase at 1.25 rt
     rmoon=(lunar_rad/planet_rad)/re_equiv   ! in grid points
     !
     r_orbit=orbit_moon/re_equiv ! grid pts
     ut_orbit=32.88       ! enceladus orbital period
-    v_orbit=(orbit_moon*planet_rad*2.*3.1414)/(ut_orbit*3600.) &
-    /v_equiv    !sim units
+    v_orbit=(orbit_moon*planet_rad*2.*3.1414)/(ut_orbit*3600.)/v_equiv    !sim units
     !
-    write(6,*)'moon orbit parms',ut_orbit,v_orbit
+    write(*,*)'Moon orbit params: ',ut_orbit,v_orbit
     !
-	!
-	!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    !		@	Spacecraft data recording	@
-    !		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-	!
-	!
-	open(42,file=trim(craft_info)//'defaults.pos',status='unknown',form='formatted')
-	!
     !   gravity in m/s**2 at earth's surface 
 	!	need t_equiv in normalization
     t=0.
     t_equiv=planet_rad*re_equiv/v_equiv
     grav=gravity*(planet_rad*re_equiv*1000.)/(1000.*v_equiv)**2
-    ut=utstart
+    ut=utstart	! utstart read from input file
     !
     nrot=ut/planet_per
     rot_hrs=ut-nrot*planet_per
@@ -592,213 +634,117 @@ program multifluid
     cur_min=0.75
     cur_max=20.0
     !
-    !     initial position of spacecraft in re but simulation directions
-    !        wind:
-	read(42,*) xcraft(1,1), xcraft(2,1), xcraft(3,1)
-    xcraft(1,1)=-120.08
-    xcraft(2,1)=-0.6
-    xcraft(3,1)=-0.00
-    !
-    !      reference craft
-    !
-    rcraft(1)=xcraft(1,1)
-    rcraft(2)=xcraft(2,1)
-    rcraft(3)=xcraft(3,1)
-    !
-    !      enceladus1
-    !
-    !xcraft(1,2)=-0.00
-    !xcraft(2,2)=-3.948
-    !xcraft(3,2)=0.0003
-    !
-    !      enceladus2
-    !
-    !xcraft(1,3)=-0.00
-    !xcraft(2,3)=3.948
-    !xcraft(3,3)=0.0003
-    !
-    !      enceladus3
-    !
-    !xcraft(1,4)=3.948
-    !xcraft(2,4)=0.0
-    !xcraft(3,4)=0.0003
-    !
-    !      enceladus4
-    !
-    !xcraft(1,5)=-3.948
-    !xcraft(2,5)=-0.00
-    !xcraft(3,5)=0.0003
-    !
-    !      titan1
-    !
-    !xcraft(1,6)=0.05
-    !xcraft(2,6)=20.27
-    !xcraft(3,6)=-0.0
-    !
-    !      titan2
-    !
-    !xcraft(1,7)=0.0001
-    !xcraft(2,7)=-20.27
-    !xcraft(3,7)=0.0
-    !
-    !      titan3
-    !
-    !xcraft(1,8)=20.27
-    !xcraft(2,8)=0.0
-    !xcraft(3,8)=-0.0
-    !
-    !      titan4
-    !
-    !xcraft(1,9)=-20.27
-    !xcraft(2,9)=0.0
-    !xcraft(3,9)=0.0
-    !
-    !      tail1
-    !
-	xcraft(1,15)=20.
-    xcraft(2,15)=00.0
-    xcraft(3,15)=0.
-    !
-    !      tail2
-    !
-    xcraft(1,16)=40.
-    xcraft(2,16)=0.0
-    xcraft(3,16)=0.
-    !
-    !      tail 3
-    !
-    xcraft(1,17)=80.
-    xcraft(2,17)=00.0
-    xcraft(3,17)=0.
-    !
-    !      tail 4
-    !
-    xcraft(1,18)=160.
-    xcraft(2,18)=00.0
-    xcraft(3,18)=0.
-    !
-    !
-    !      tail5
-    !
-    xcraft(1,19)=40.
-    xcraft(2,19)=10.0
-    xcraft(3,19)=0.
-    !
-    !      tail 6
-    !
-    xcraft(1,20)=40.
-    xcraft(2,20)=20.0
-    xcraft(3,20)=0.
-    !
-    !      tail 7
-    !
-    xcraft(1,21)=40.
-    xcraft(2,21)=15.0
-    xcraft(3,21)=10.
-    !
-    !      tail 8
-    !
-    xcraft(1,22)=40.
-    xcraft(2,22)=15.0
-    xcraft(3,22)=-10.
-    !
-    !
-    !      tail 9
-    !
-    xcraft(1,23)=80.
-    xcraft(2,23)=20.0
-    xcraft(3,23)=0.
-    !
-    !      tail 10
-    !
-    xcraft(1,24)=80.
-    xcraft(2,24)=40.0
-    xcraft(3,24)=0.
-    !
-    !      tail 11
-    !
-    xcraft(1,25)=80.
-    xcraft(2,25)=20.0
-    xcraft(3,25)=20.
-    !
-    !      tail 12
-    !
-    xcraft(1,26)=80.
-    xcraft(2,26)=20.0
-    xcraft(3,26)=-20.
-    !
-    !      tail 13
-    !
-    xcraft(1,27)=160.
-    xcraft(2,27)=40.0
-    xcraft(3,27)=0.
-    !
-    !      tail 14
-    !
-    xcraft(1,28)=160.
-    xcraft(2,28)=80.0
-    xcraft(3,28)=0.
-    !
-    !      tail 15
-    !
-    xcraft(1,29)=160.
-    xcraft(2,29)=80.0
-    xcraft(3,29)=40.
-    !
-    !      tail 16
-    !
-    xcraft(1,30)=160.
-    xcraft(2,30)=80.0
-    xcraft(3,30)=-40.
-    !
-    zut=ut-.01
+    zut=ut-.01	!	zut is future ut for spacecraft
     rut=zut
     vut=rut
-    do n=1,ncraft
-        xcraft(4,n)=zut
-    enddo
+	!
+	!
+	!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    !		@		SPACECRAFT DATA INITIALIZATION		@
+    !		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	!
+	!
     !
-    call limcraft(xcraft,ncraft,re_equiv,ngrd, &
-    grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-    grd_zmin,grd_zmax)
+	if(spacecraft) then
+		!
+		!	Count crafts named in craft_info directory.
+		call countcraft(craft_info,scin,ncraft,ndef_craft,naux_craft)
+		!
+		allocate (xcraft(4,ncraft),zcraft(4,ncraft))
+		allocate (craftnames(ncraft),ntimes(ncraft),recording(ncraft))
+		!
+		!	reference craft is a copy of wind default craft
+		rcraft(1)=xcraft(1,1)
+		rcraft(2)=xcraft(2,1)
+		rcraft(3)=xcraft(3,1)
+		!
+		!	read auxiliary spacecraft names into craftnames array
+		!	We do aux first so we can allocate craftpos array before reading default craft data.
+		!	step 1: ls .craft names into crafts.txt file. 
+		!		This file will contain only .craft names, not default craft.
+		!		We use wc -l *.craft so that we get numbers of lines as well as file names.
+		call system ('wc -l '//trim(craft_info)//'*.craft > '//trim(craft_info)//'crafts.txt')
+		!
+		open(scin,file=trim(craft_info)//'crafts.txt',status='unknown',form='formatted')
+			do n=ndef_craft+1,ncraft
+				!	step 2: read .craft filenames into placeholder string
+				read(scin,*) ntimes(n), junkline
+				ntimes(n) = ntimes(n) - 1	!	Excludes header line in craft file
+				!	step 3: print everything before the .craft extension into craftnames array
+				craftnames(n) = junkline(1:index(junkline,'.')-1)
+			enddo
+		close(scin)
+		write(*,*) 'Craftnames: ', craftnames	! Debugging/double-checking correct behavior, MJS 8/10/17
+		!
+		allocate(craftpos(4,maxval(ntimes),ncraft))	! Allocate array which stores all spacecraft position/time input values
+		!
+		!	Now we can read in default craft info
+		!
+		open(scin+1,file=trim(craft_info)//'defaults.pos',status='unknown',form='formatted')
+			read(scin+1,*) junkline		! skip header line
+			!
+			!     initial positions of default spacecraft in re but simulation directions
+			do n=1,ndef_craft
+				read(scin+1,*) craftnames(n), craftpos(1,1,n), &
+					craftpos(2,1,n), craftpos(3,1,n)
+				craftpos(4,1,n) = utstart
+				!
+				craftpos(1:3,2,n) = craftpos(1:3,1,n)	!	Set default craft to sit still
+				craftpos(4,2,n) = utstart+tmax
+				ntimes(n) = 2	!	Stationary spacecraft have only one position specified, but we give them a start and end time
+			enddo
+		close(scin+1)
+		!
+		do n=ndef_craft+1,ncraft
+			open(scin+n,file=trim(craft_info)//trim(craftnames(n))//'.craft', &
+				status='unknown',iostat=craftstat,form='formatted')
+				read(scin+n,*) junkline		!	Skip header line
+				!
+				do m=1,ntimes(n)
+					!	.craft files are formatted as t, x, y, z
+					read(scin+n,*) craftpos(4,m,n), craftpos(1,m,n), &
+						craftpos(2,m,n), craftpos(3,m,n)
+				enddo
+				!
+				if (craftstat .gt. 0) then
+					write(*,*) 'Error reading craft file: ', craftnames(n)
+					exit
+				endif
+				!
+			close(scin+n)
+			craftstat=0
+		enddo
+		!
+		!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		!	@		FINISHED READING IN SPACECRAFT INPUTS		@
+    	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		!
+		xcraft(:,:) = craftpos(:,1,:)	!	Set starting spacecraft position to first value in craftpos array
+	    !xcraft(4,n) = zut	!	I don't know why this is being done. Removed because it will interfere with read-in locations otherwise. MJS 08/11/17
+		!	This is what was being read in from spacecraft input files before my upgrade: MJS 08/12/17
+		!	do m=1,ncts
+        !	    read(29,*)bfld(m,4),bmag,bfld(m,1),bfld(m,2),bfld(m,3)
+        !	    read(27,*)rut,rplas(m),svel(m,1),svel(m,2),svel(m,3)
+		!	enddo
+		!	It doesn't seem like any of it was being used.
+		!
+		call limcraft(xcraft,ncraft,re_equiv,n_grids, &
+			grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
+			grd_zmin,grd_zmax)
+		!
+        zcraft(:,:)=xcraft(:,:)
+		!
+	else	!	If we are not using spacecraft, we can't use spacecraft-only functions.
+		craft_input = .false.
+		warp = .false.	
+    endif	! endif(spacecraft)
+	!
+	!
+	!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	!		@		RECONFIGURE INPUT DATA		@
+	!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     !
-    do n=1,ncraft
-        do i=1,4
-            zcraft(i,n)=xcraft(i,n)
-        enddo
-    enddo
-    !
-    if(spacecraft) then
-        open(51,file=trim(craft_data)//'wind.dat',status='unknown',form='formatted')
-        !open(52,file='enceladus1.dat',status='unknown',form='formatted')	! Holdovers from MAT's Saturn simulations
-        !open(53,file='enceladus2.dat',status='unknown',form='formatted')
-        !open(54,file='enceladus3.dat',status='unknown',form='formatted')
-        !open(55,file='enceladus4.dat',status='unknown',form='formatted')
-        !open(56,file='titan.dat',status='unknown',form='formatted')
-        !open(57,file='titan2.dat',status='unknown',form='formatted')
-        !open(58,file='titan3.dat',status='unknown',form='formatted')
-        !open(59,file='titan4.dat',status='unknown',form='formatted')
-        open(65,file=trim(craft_data)//'tail01.dat',status='unknown',form='formatted')
-        open(66,file=trim(craft_data)//'tail02.dat',status='unknown',form='formatted')
-        open(67,file=trim(craft_data)//'tail03.dat',status='unknown',form='formatted')
-        open(68,file=trim(craft_data)//'tail04.dat',status='unknown',form='formatted')
-        open(69,file=trim(craft_data)//'tail05.dat',status='unknown',form='formatted')
-        open(70,file=trim(craft_data)//'tail06.dat',status='unknown',form='formatted')
-        open(71,file=trim(craft_data)//'tail07.dat',status='unknown',form='formatted')
-        open(72,file=trim(craft_data)//'tail08.dat',status='unknown',form='formatted')
-        open(73,file=trim(craft_data)//'tail09.dat',status='unknown',form='formatted')
-        open(74,file=trim(craft_data)//'tail10.dat',status='unknown',form='formatted')
-        open(75,file=trim(craft_data)//'tail11.dat',status='unknown',form='formatted')
-        open(76,file=trim(craft_data)//'tail12.dat',status='unknown',form='formatted')
-        open(77,file=trim(craft_data)//'tail13.dat',status='unknown',form='formatted')
-        open(78,file=trim(craft_data)//'tail14.dat',status='unknown',form='formatted')
-        open(79,file=trim(craft_data)//'tail15.dat',status='unknown',form='formatted')
-        open(80,file=trim(craft_data)//'tail16.dat',status='unknown',form='formatted')
-        open(41,file=trim(craft_info)//'wind.pos',status='unknown',form='formatted')
-        open(47,file=trim(craft_info)//'wind.plas',status='unknown',form='formatted')
-        open(49,file=trim(craft_info)//'wind.mag',status='unknown',form='formatted')
-    endif
-    !
+	!
     !     the magnetic field in dimensionless units is actually in alfven speeds
     !             relative to the normalizing velocity
     !     the temperature is in sound speeds relative to the normalizing speed
@@ -845,10 +791,10 @@ program multifluid
     sby_wind=alfy_wind1*sqrt(rho_wind1)
     sbz_wind=alfz_wind1*sqrt(rho_wind1)
     !
-    deltg=tmax/float(ntgraf)
+    deltg=tmax/float(ntgraph)
     deltinj=tmax/float(ntinj)
     delt=stepsz
-    tgraf=0.
+    tgraph=0.
     tinj=0.
     ts1=tsave
     tdiv=10.
@@ -928,34 +874,33 @@ program multifluid
         ijzero,numzero,ijmid,nummid,ijsrf,numsrf
         close(nchf)
         !
-        !
-        !      check for div b errors
+        !      Check for div b errors
         !
         if(divb_lores)then
             range=1.33*lunar_dist/re_equiv
-            write(6,*)'range for divb taper',lunar_dist,range
-            do m=ngrd,1,-1
-                write(6,*)'divb on box',m
+            write(*,*)'Range for divb taper: ',lunar_dist,range
+            do box=n_grids,1,-1
+                write(*,*)'divb on box: ',box
                 call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
                     curx,cury,curz,efldx,efldy,efldz, &
-                    7,nx*ny*nz,nx,ny,nz,ngrd,m,xspac)
+                    7,nx*ny*nz,nx,ny,nz,n_grids,box,xspac)
                 call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
                     curx,cury,curz,efldx,efldy,efldz, &
-                    7,nx*ny*nz,nx,ny,nz,ngrd,m,xspac)
-                write(6,*)'completed divb on box',m
-            enddo !end m loop
+                    7,nx*ny*nz,nx,ny,nz,n_grids,box,xspac)
+                write(*,*)'Completed divb on box: ',box
+            enddo !end box loop
             !
-            !        apply bndry conditions
+            !        Apply boundary conditions
             !
-            do m=ngrd-1,1,-1
-                call flanks_synced(bx,nx,ny,nz,ngrd,m, &
+            do box=n_grids-1,1,-1
+                call flanks_synced(bx,nx,ny,nz,n_grids,box, &
                     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-                call flanks_synced(by,nx,ny,nz,ngrd,m, &
+                call flanks_synced(by,nx,ny,nz,n_grids,box, &
                     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-                call flanks_synced(bz,nx,ny,nz,ngrd,m, &
+                call flanks_synced(bz,nx,ny,nz,n_grids,box, &
                     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
             enddo
-            do m=1,ngrd-1
+            do box=1,n_grids-1
                 call bndry_corer( &
                     qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
                     hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -964,14 +909,14 @@ program multifluid
                     qpresxy,qpresxz,qpresyz, &
                     hpresxy,hpresxz,hpresyz, &
                     opresxy,opresxz,opresyz, &
-                    nx,ny,nz,ngrd,m, &
+                    nx,ny,nz,n_grids,box, &
                     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
             enddo  !end bndry_corer
         endif  ! end divb_lores
-
+		!
         !
         !     if(update)t=0.
-        write(6,*)'entering lores visual'
+        write(*,*)'Entering lores visual'
         ut=utstart+t*t_equiv/3600.
         call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
             qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
@@ -982,15 +927,15 @@ program multifluid
             epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
             curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
             tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
-            nx,ny,nz,ngrd,xspac, &
+            nx,ny,nz,n_grids,xspac, &
             cross,along,flat,xcraft,ncraft,re_equiv, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
             grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv)
-
+		!
         ts1=t+tsave
         tstep=tmax
         tmax=t+tmax
-        tgraf=t+deltg
+        tgraph=t+deltg
         tinj=t+deltinj
         tdiv=t
         nchf=11
@@ -1002,9 +947,7 @@ program multifluid
             ijzero,numzero,ijmid,nummid,ijsrf,numsrf, &
             msrf,mmid,mzero,1.)
         !
-    
-        write(6,*)'entering lores visual'
-        ut=utstart+t*t_equiv/3600.
+        write(*,*)'Entering lores visual'
         call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
             qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
             hrho,hpresx,hpresy,hpresz,hpresxy, &
@@ -1014,13 +957,13 @@ program multifluid
             epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
             curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
             tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
-            nx,ny,nz,ngrd,xspac, &
+            nx,ny,nz,n_grids,xspac, &
             cross,along,flat,xcraft,ncraft,re_equiv, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
             grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv)
         !
-        write(6,79) nchf
-        79 format('  restart from fluid_',i2)
+        write(*,79) nchf
+        79 format('  Restart from fluid_',i2)
         rewind nchf
         nchf=11
     else
@@ -1041,30 +984,30 @@ program multifluid
         !
         sin_rot=sin(rot_angle)
         cos_rot=cos(rot_angle)
-        write(6,*)'init',lunar_dist,rot_angle
+        write(*,*)'Init lunar_dist, rot_angle: ',lunar_dist,rot_angle
         !
         !      scale lengths for plasma sheet population
         !
         sheet_den=0.25
         alpha_s=4.
         !
-        do m=1,ngrd
-            dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-            dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-            dz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+        do box=1,n_grids
+            dx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+            dy=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+            dz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
             !
             !      create dipole magnetic field and load magnetospheric plasma
             !
             do k=1,nz
-                az=(grd_zmin(m)+dz*(k-1)-zdip)
+                az=(grd_zmin(box)+dz*(k-1)-zdip)
                 !
                 do j=1,ny
-                    ay=grd_ymin(m)+dy*(j-1)-ydip
+                    ay=grd_ymin(box)+dy*(j-1)-ydip
                     !
                     do i=1,nx
-                        ax=(grd_xmin(m)+dx*(i-1)-xdip)
+                        ax=(grd_xmin(box)+dx*(i-1)-xdip)
                         !
-                        !       rotate corrdinates for planet motion
+                        !       rotate coordinates for planet motion
                         !
                         xr=ax*cos_rot+ay*sin_rot
                         yr=-ax*sin_rot+ay*cos_rot
@@ -1076,19 +1019,18 @@ program multifluid
                         zp=xr*sin_tilt+az*cos_tilt
                         ar=sqrt(xp**2+yp**2+zp**2)
                         radius=ar*re_equiv
-    
                         !
                         !        determine magnetic dipole field
                         !
-                        call dipole(bx0(i,j,k,m),by0(i,j,k,m), &
-                            bz0(i,j,k,m),ax,ay,az)
+                        call dipole(bx0(i,j,k,box),by0(i,j,k,box), &
+                            bz0(i,j,k,box),ax,ay,az)
                         !
                         !         zero interior magnetic field so alfven speed small
                         !
                         if (ar.lt.rearth-1.5)then
-                            bx0(i,j,k,m)=0.
-                            by0(i,j,k,m)=0.
-                            bz0(i,j,k,m)=0.
+                            bx0(i,j,k,box)=0.
+                            by0(i,j,k,box)=0.
+                            bz0(i,j,k,box)=0.
                         endif
                         !
                         !        set up rotational properties
@@ -1107,7 +1049,7 @@ program multifluid
                         corotate=sqrt(rvx**2+rvy**2)
                         !
                         !        for jupiter top hat distribution
-    
+    					!
                         ar_iono=sqrt(xp**2+ay**2+1.25*zp**2)
                         !        isotropic
                         !        ar_iono=sqrt(xp**2+ay**2+zp**2)
@@ -1138,96 +1080,95 @@ program multifluid
                         !       and 
                         !       doi:10.1029/2008GL035433
                         !
-                        qrho(i,j,k,m)=arho*rmassq/zheight
-                        qpresx(i,j,k,m)=arho*vt
-                        qpresy(i,j,k,m)=qpresx(i,j,k,m)
-                        qpresz(i,j,k,m)=qpresx(i,j,k,m)
-                        qpresxy(i,j,k,m)=0.
-                        qpresxz(i,j,k,m)=0.
-                        qpresyz(i,j,k,m)=0.
-                        qpx(i,j,k,m)=qrho(i,j,k,m)*rvx
-                        qpy(i,j,k,m)=qrho(i,j,k,m)*rvy
-                        qpz(i,j,k,m)=0.
+                        qrho(i,j,k,box)=arho*rmassq/zheight
+                        qpresx(i,j,k,box)=arho*vt
+                        qpresy(i,j,k,box)=qpresx(i,j,k,box)
+                        qpresz(i,j,k,box)=qpresx(i,j,k,box)
+                        qpresxy(i,j,k,box)=0.
+                        qpresxz(i,j,k,box)=0.
+                        qpresyz(i,j,k,box)=0.
+                        qpx(i,j,k,box)=qrho(i,j,k,box)*rvx
+                        qpy(i,j,k,box)=qrho(i,j,k,box)*rvy
+                        qpz(i,j,k,box)=0.
                         !
                         ! add small amount of heavies everywhere
                         !
-    
-                        hrho(i,j,k,m)=0.05*qrho(i,j,k,m)*rmassh/rmassq
-                        hpresx(i,j,k,m)=0.05*qpresx(i,j,k,m)
-                        hpresy(i,j,k,m)=hpresx(i,j,k,m)
-                        hpresz(i,j,k,m)=hpresx(i,j,k,m)
-                        hpresxy(i,j,k,m)=0.
-                        hpresxz(i,j,k,m)=0.
-                        hpresyz(i,j,k,m)=0.
-                        hpx(i,j,k,m)=hrho(i,j,k,m)*rvx
-                        hpy(i,j,k,m)=hrho(i,j,k,m)*rvy
-                        hpz(i,j,k,m)=0.
+                        hrho(i,j,k,box)=0.05*qrho(i,j,k,box)*rmassh/rmassq
+                        hpresx(i,j,k,box)=0.05*qpresx(i,j,k,box)
+                        hpresy(i,j,k,box)=hpresx(i,j,k,box)
+                        hpresz(i,j,k,box)=hpresx(i,j,k,box)
+                        hpresxy(i,j,k,box)=0.
+                        hpresxz(i,j,k,box)=0.
+                        hpresyz(i,j,k,box)=0.
+                        hpx(i,j,k,box)=hrho(i,j,k,box)*rvx
+                        hpy(i,j,k,box)=hrho(i,j,k,box)*rvy
+                        hpz(i,j,k,box)=0.
                         !
-                        orho(i,j,k,m)=qrho(i,j,k,m)*rmasso/rmassq
-                        opresx(i,j,k,m)=qpresx(i,j,k,m)
-                        opresy(i,j,k,m)=opresx(i,j,k,m)
-                        opresz(i,j,k,m)=opresx(i,j,k,m)
-                        opresxy(i,j,k,m)=0.
-                        opresxz(i,j,k,m)=0.
-                        opresyz(i,j,k,m)=0.
-                        opx(i,j,k,m)=orho(i,j,k,m)*rvx
-                        opy(i,j,k,m)=orho(i,j,k,m)*rvy
-                        opz(i,j,k,m)=0.
+                        orho(i,j,k,box)=qrho(i,j,k,box)*rmasso/rmassq
+                        opresx(i,j,k,box)=qpresx(i,j,k,box)
+                        opresy(i,j,k,box)=opresx(i,j,k,box)
+                        opresz(i,j,k,box)=opresx(i,j,k,box)
+                        opresxy(i,j,k,box)=0.
+                        opresxz(i,j,k,box)=0.
+                        opresyz(i,j,k,box)=0.
+                        opx(i,j,k,box)=orho(i,j,k,box)*rvx
+                        opy(i,j,k,box)=orho(i,j,k,box)*rvy
+                        opz(i,j,k,box)=0.
                         !
-                        epres(i,j,k,m)=(qpresx(i,j,k,m)+hpresx(i,j,k,m)+ &
-                            opresx(i,j,k,m))/ti_te
+                        epres(i,j,k,box)=(qpresx(i,j,k,box)+hpresx(i,j,k,box)+ &
+                            opresx(i,j,k,box))/ti_te
                         !
-                        bx(i,j,k,m)=0.
-                        by(i,j,k,m)=0.
-                        bz(i,j,k,m)=0.
+                        bx(i,j,k,box)=0.
+                        by(i,j,k,box)=0.
+                        bz(i,j,k,box)=0.
                         !
                         !        test for boundary point of planets surface or
                         !        interior to planet
                         !
-                        if((ar.le.rearth+.6).and.(m.le.mbndry))then
+                        if((ar.le.rearth+.6).and.(box.le.mbndry))then
                             !
                             if(ar.lt.rearth-1.5) then
-                                numzero(m)=numzero(m)+1
-                                ijzero(m,1,numzero(m))=i
-                                ijzero(m,2,numzero(m))=j
-                                ijzero(m,3,numzero(m))=k
+                                numzero(box)=numzero(box)+1
+                                ijzero(box,1,numzero(box))=i
+                                ijzero(box,2,numzero(box))=j
+                                ijzero(box,3,numzero(box))=k
                                 !
                                 !
-                                parm_zero(m,1,numzero(m))=qrho(i,j,k,m)
-                                parm_zero(m,2,numzero(m))=hrho(i,j,k,m)
-                                parm_zero(m,3,numzero(m))=orho(i,j,k,m)
-                                parm_zero(m,4,numzero(m))=qpresx(i,j,k,m)
-                                parm_zero(m,5,numzero(m))=hpresx(i,j,k,m)
-                                parm_zero(m,6,numzero(m))=opresx(i,j,k,m)
-                                parm_zero(m,7,numzero(m))=epres(i,j,k,m)
+                                parm_zero(box,1,numzero(box))=qrho(i,j,k,box)
+                                parm_zero(box,2,numzero(box))=hrho(i,j,k,box)
+                                parm_zero(box,3,numzero(box))=orho(i,j,k,box)
+                                parm_zero(box,4,numzero(box))=qpresx(i,j,k,box)
+                                parm_zero(box,5,numzero(box))=hpresx(i,j,k,box)
+                                parm_zero(box,6,numzero(box))=opresx(i,j,k,box)
+                                parm_zero(box,7,numzero(box))=epres(i,j,k,box)
                                 !
                             else  if(ar.lt.rearth-.5) then
-                                nummid(m)=nummid(m)+1
-                                ijmid(m,1,nummid(m))=i
-                                ijmid(m,2,nummid(m))=j
-                                ijmid(m,3,nummid(m))=k
+                                nummid(box)=nummid(box)+1
+                                ijmid(box,1,nummid(box))=i
+                                ijmid(box,2,nummid(box))=j
+                                ijmid(box,3,nummid(box))=k
                                 ar2=sqrt(xp**2+ay**2)
-                                parm_mid(m,1,nummid(m))=qrho(i,j,k,m)
-                                parm_mid(m,2,nummid(m))=hrho(i,j,k,m)
-                                parm_mid(m,3,nummid(m))=orho(i,j,k,m)
-                                parm_mid(m,4,nummid(m))=qpresx(i,j,k,m)
-                                parm_mid(m,5,nummid(m))=hpresx(i,j,k,m)
-                                parm_mid(m,6,nummid(m))=opresx(i,j,k,m)
-                                parm_mid(m,7,nummid(m))=epres(i,j,k,m)
+                                parm_mid(box,1,nummid(box))=qrho(i,j,k,box)
+                                parm_mid(box,2,nummid(box))=hrho(i,j,k,box)
+                                parm_mid(box,3,nummid(box))=orho(i,j,k,box)
+                                parm_mid(box,4,nummid(box))=qpresx(i,j,k,box)
+                                parm_mid(box,5,nummid(box))=hpresx(i,j,k,box)
+                                parm_mid(box,6,nummid(box))=opresx(i,j,k,box)
+                                parm_mid(box,7,nummid(box))=epres(i,j,k,box)
                                 !
                             else
-                                numsrf(m)=numsrf(m)+1
-                                ijsrf(m,1,numsrf(m))=i
-                                ijsrf(m,2,numsrf(m))=j
-                                ijsrf(m,3,numsrf(m))=k
+                                numsrf(box)=numsrf(box)+1
+                                ijsrf(box,1,numsrf(box))=i
+                                ijsrf(box,2,numsrf(box))=j
+                                ijsrf(box,3,numsrf(box))=k
                                 ar2=sqrt(xp**2+ay**2)
-                                parm_srf(m,1,numsrf(m))=qrho(i,j,k,m)
-                                parm_srf(m,2,numsrf(m))=hrho(i,j,k,m)
-                                parm_srf(m,3,numsrf(m))=orho(i,j,k,m)
-                                parm_srf(m,4,numsrf(m))=qpresx(i,j,k,m)
-                                parm_srf(m,5,numsrf(m))=hpresx(i,j,k,m)
-                                parm_srf(m,6,numsrf(m))=opresx(i,j,k,m)
-                                parm_srf(m,7,numsrf(m))=epres(i,j,k,m)
+                                parm_srf(box,1,numsrf(box))=qrho(i,j,k,box)
+                                parm_srf(box,2,numsrf(box))=hrho(i,j,k,box)
+                                parm_srf(box,3,numsrf(box))=orho(i,j,k,box)
+                                parm_srf(box,4,numsrf(box))=qpresx(i,j,k,box)
+                                parm_srf(box,5,numsrf(box))=hpresx(i,j,k,box)
+                                parm_srf(box,6,numsrf(box))=opresx(i,j,k,box)
+                                parm_srf(box,7,numsrf(box))=epres(i,j,k,box)
                             endif
                         endif  ! end bndry condition test
                         !
@@ -1236,9 +1177,9 @@ program multifluid
             enddo
         enddo
         !
-        write(6,*)'interior and zero points'
-        do m=1,mbndry
-            write(6,*)m,numsrf(m),nummid(m),numzero(m)
+        write(*,*)'Interior and zero points:'
+        do box=1,mbndry
+            write(*,*)box,numsrf(box),nummid(box),numzero(box)
         enddo
         !
         !     initialize solar wind plasa can be placed beyond
@@ -1246,114 +1187,114 @@ program multifluid
         !
         wind_bnd=r_rot/re_equiv
         ofrac=rho_frac
-        do m=1,ngrd
+        do box=1,n_grids
             !
-            dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-            dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-            dz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+            dx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+            dy=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+            dz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
             !
             do k=1,nz
-                az=(grd_zmin(m)+dz*(k-1)-zdip)
+                az=(grd_zmin(box)+dz*(k-1)-zdip)
                 !
                 do j=1,ny
-                    ay=grd_ymin(m)+dy*(j-1)-ydip
+                    ay=grd_ymin(box)+dy*(j-1)-ydip
                     do i=1,nx
-                        ax=(grd_xmin(m)+dx*(i-1)-xdip)
-    
+                        ax=(grd_xmin(box)+dx*(i-1)-xdip)
+    					!
                         ar=sqrt(ax**2+ay**2+az**2)
                         if((ar.ge.1.5*wind_bnd).and.(ax.lt.0.))then
-                            qrho(i,j,k,m)=srho+qrho(i,j,k,m)
-                            qpx(i,j,k,m)=spx+qpx(i,j,k,m)
-                            qpy(i,j,k,m)=spy+qpy(i,j,k,m)
-                            qpz(i,j,k,m)=spz+qpz(i,j,k,m)
+                            qrho(i,j,k,box)=srho+qrho(i,j,k,box)
+                            qpx(i,j,k,box)=spx+qpx(i,j,k,box)
+                            qpy(i,j,k,box)=spy+qpy(i,j,k,box)
+                            qpz(i,j,k,box)=spz+qpz(i,j,k,box)
                             !
-                            avx=qpx(i,j,k,m)/qrho(i,j,k,m)
-                            avy=qpy(i,j,k,m)/qrho(i,j,k,m)
-                            avz=qpz(i,j,k,m)/qrho(i,j,k,m)
+                            avx=qpx(i,j,k,box)/qrho(i,j,k,box)
+                            avy=qpy(i,j,k,box)/qrho(i,j,k,box)
+                            avz=qpz(i,j,k,box)/qrho(i,j,k,box)
                             !
-                            apres=cs_wind**2*qrho(i,j,k,m)/gamma
-                            qpresx(i,j,k,m)=0.5*apres+qpresx(i,j,k,m)
-                            qpresy(i,j,k,m)=qpresx(i,j,k,m)
-                            qpresz(i,j,k,m)=qpresx(i,j,k,m)
-                            qpresxy(i,j,k,m)=0.
-                            qpresxz(i,j,k,m)=0.
-                            qpresyz(i,j,k,m)=0.
+                            apres=cs_wind**2*qrho(i,j,k,box)/gamma
+                            qpresx(i,j,k,box)=0.5*apres+qpresx(i,j,k,box)
+                            qpresy(i,j,k,box)=qpresx(i,j,k,box)
+                            qpresz(i,j,k,box)=qpresx(i,j,k,box)
+                            qpresxy(i,j,k,box)=0.
+                            qpresxz(i,j,k,box)=0.
+                            qpresyz(i,j,k,box)=0.
                             !
-                            epres(i,j,k,m)=0.5*apres/ti_te+epres(i,j,k,m)
+                            epres(i,j,k,box)=0.5*apres/ti_te+epres(i,j,k,box)
                             !
-                            hrho(i,j,k,m)=srho*rho_frac*rmassh/rmassq+ &
-                                hrho(i,j,k,m)
-                            hpx(i,j,k,m)=avx*hrho(i,j,k,m)
-                            hpy(i,j,k,m)=avy*hrho(i,j,k,m)
-                            hpz(i,j,k,m)=avz*hrho(i,j,k,m)
-                            hpresx(i,j,k,m)=0.5*spress*rho_frac &
-                                +hpresx(i,j,k,m)
-                            hpresy(i,j,k,m)=hpresx(i,j,k,m)
-                            hpresz(i,j,k,m)=hpresx(i,j,k,m)
-                            hpresxy(i,j,k,m)=0.
-                            hpresxz(i,j,k,m)=0.
-                            hpresyz(i,j,k,m)=0.
+                            hrho(i,j,k,box)=srho*rho_frac*rmassh/rmassq+ &
+                                hrho(i,j,k,box)
+                            hpx(i,j,k,box)=avx*hrho(i,j,k,box)
+                            hpy(i,j,k,box)=avy*hrho(i,j,k,box)
+                            hpz(i,j,k,box)=avz*hrho(i,j,k,box)
+                            hpresx(i,j,k,box)=0.5*spress*rho_frac &
+                                +hpresx(i,j,k,box)
+                            hpresy(i,j,k,box)=hpresx(i,j,k,box)
+                            hpresz(i,j,k,box)=hpresx(i,j,k,box)
+                            hpresxy(i,j,k,box)=0.
+                            hpresxz(i,j,k,box)=0.
+                            hpresyz(i,j,k,box)=0.
                             !
-                            orho(i,j,k,m)=srho*ofrac*rmasso/rmassq+ &
-                                orho(i,j,k,m)
-                            opx(i,j,k,m)=avx*orho(i,j,k,m)
-                            opy(i,j,k,m)=avy*orho(i,j,k,m)
-                            opz(i,j,k,m)=avz*orho(i,j,k,m)
-                            opresx(i,j,k,m)=0.5*spress*ofrac &
-                                +opresx(i,j,k,m)
-                            opresy(i,j,k,m)=opresx(i,j,k,m)
-                            opresz(i,j,k,m)=opresx(i,j,k,m)
-                            opresxy(i,j,k,m)=0.
-                            opresxz(i,j,k,m)=0.
-                            opresyz(i,j,k,m)=0.
+                            orho(i,j,k,box)=srho*ofrac*rmasso/rmassq+ &
+                                orho(i,j,k,box)
+                            opx(i,j,k,box)=avx*orho(i,j,k,box)
+                            opy(i,j,k,box)=avy*orho(i,j,k,box)
+                            opz(i,j,k,box)=avz*orho(i,j,k,box)
+                            opresx(i,j,k,box)=0.5*spress*ofrac &
+                                +opresx(i,j,k,box)
+                            opresy(i,j,k,box)=opresx(i,j,k,box)
+                            opresz(i,j,k,box)=opresx(i,j,k,box)
+                            opresxy(i,j,k,box)=0.
+                            opresxz(i,j,k,box)=0.
+                            opresyz(i,j,k,box)=0.
                         endif
-
+						!
                         if((ar.gt.wind_bnd).and.(ar.lt.1.5*wind_bnd) &
                             .and.(ax.lt.0.0))then
                             dfrac=(ar-wind_bnd)/(0.5*wind_bnd)
-                            qrho(i,j,k,m)=srho*dfrac+qrho(i,j,k,m)
-                            qpx(i,j,k,m)=spx*dfrac+qpx(i,j,k,m)
-                            qpy(i,j,k,m)=spy*dfrac+qpy(i,j,k,m)
-                            qpz(i,j,k,m)=spz*dfrac+qpz(i,j,k,m)
-                            avx=qpx(i,j,k,m)/qrho(i,j,k,m)
-                            avy=qpy(i,j,k,m)/qrho(i,j,k,m)
-                            avz=qpz(i,j,k,m)/qrho(i,j,k,m)
+                            qrho(i,j,k,box)=srho*dfrac+qrho(i,j,k,box)
+                            qpx(i,j,k,box)=spx*dfrac+qpx(i,j,k,box)
+                            qpy(i,j,k,box)=spy*dfrac+qpy(i,j,k,box)
+                            qpz(i,j,k,box)=spz*dfrac+qpz(i,j,k,box)
+                            avx=qpx(i,j,k,box)/qrho(i,j,k,box)
+                            avy=qpy(i,j,k,box)/qrho(i,j,k,box)
+                            avz=qpz(i,j,k,box)/qrho(i,j,k,box)
                             !
-                            apres=cs_wind**2*qrho(i,j,k,m)/gamma
-                            qpresx(i,j,k,m)=0.5*apres*dfrac+qpresx(i,j,k,m)
-                            qpresy(i,j,k,m)=qpresx(i,j,k,m)
-                            qpresz(i,j,k,m)=qpresx(i,j,k,m)
-                            qpresxy(i,j,k,m)=0.
-                            qpresxz(i,j,k,m)=0.
-                            qpresyz(i,j,k,m)=0.
-!
-                            epres(i,j,k,m)=0.5*apres/ti_te*dfrac+epres(i,j,k,m)
-!
-                            hrho(i,j,k,m)=srho*rho_frac*rmassh/rmassq*dfrac+ &
-                                hrho(i,j,k,m)
-                            hpx(i,j,k,m)=avx*hrho(i,j,k,m)
-                            hpy(i,j,k,m)=avy*hrho(i,j,k,m)
-                            hpz(i,j,k,m)=avz*hrho(i,j,k,m)
-                            hpresx(i,j,k,m)=0.5*spress*rho_frac*dfrac &
-                                +hpresx(i,j,k,m)
-                            hpresy(i,j,k,m)=hpresx(i,j,k,m)
-                            hpresz(i,j,k,m)=hpresx(i,j,k,m)
-                            hpresxy(i,j,k,m)=0.
-                            hpresxz(i,j,k,m)=0.
-                            hpresyz(i,j,k,m)=0.
-!
-                            orho(i,j,k,m)=srho*ofrac*rmasso/rmassq*dfrac+ &
-                                orho(i,j,k,m)
-                            opx(i,j,k,m)=avx*orho(i,j,k,m)
-                            opy(i,j,k,m)=avy*orho(i,j,k,m)
-                            opz(i,j,k,m)=avz*orho(i,j,k,m)
-                            opresx(i,j,k,m)=0.5*spress*ofrac*dfrac &
-                                +opresx(i,j,k,m)
-                            opresy(i,j,k,m)=opresx(i,j,k,m)
-                            opresz(i,j,k,m)=opresx(i,j,k,m)
-                            opresxy(i,j,k,m)=0.
-                            opresxz(i,j,k,m)=0.
-                            opresyz(i,j,k,m)=0.
+                            apres=cs_wind**2*qrho(i,j,k,box)/gamma
+                            qpresx(i,j,k,box)=0.5*apres*dfrac+qpresx(i,j,k,box)
+                            qpresy(i,j,k,box)=qpresx(i,j,k,box)
+                            qpresz(i,j,k,box)=qpresx(i,j,k,box)
+                            qpresxy(i,j,k,box)=0.
+                            qpresxz(i,j,k,box)=0.
+                            qpresyz(i,j,k,box)=0.
+							!
+                            epres(i,j,k,box)=0.5*apres/ti_te*dfrac+epres(i,j,k,box)
+							!
+                            hrho(i,j,k,box)=srho*rho_frac*rmassh/rmassq*dfrac+ &
+                                hrho(i,j,k,box)
+                            hpx(i,j,k,box)=avx*hrho(i,j,k,box)
+                            hpy(i,j,k,box)=avy*hrho(i,j,k,box)
+                            hpz(i,j,k,box)=avz*hrho(i,j,k,box)
+                            hpresx(i,j,k,box)=0.5*spress*rho_frac*dfrac &
+                                +hpresx(i,j,k,box)
+                            hpresy(i,j,k,box)=hpresx(i,j,k,box)
+                            hpresz(i,j,k,box)=hpresx(i,j,k,box)
+                            hpresxy(i,j,k,box)=0.
+                            hpresxz(i,j,k,box)=0.
+                            hpresyz(i,j,k,box)=0.
+							!
+                            orho(i,j,k,box)=srho*ofrac*rmasso/rmassq*dfrac+ &
+                                orho(i,j,k,box)
+                            opx(i,j,k,box)=avx*orho(i,j,k,box)
+                            opy(i,j,k,box)=avy*orho(i,j,k,box)
+                            opz(i,j,k,box)=avz*orho(i,j,k,box)
+                            opresx(i,j,k,box)=0.5*spress*ofrac*dfrac &
+                                +opresx(i,j,k,box)
+                            opresy(i,j,k,box)=opresx(i,j,k,box)
+                            opresz(i,j,k,box)=opresx(i,j,k,box)
+                            opresxy(i,j,k,box)=0.
+                            opresxz(i,j,k,box)=0.
+                            opresyz(i,j,k,box)=0.
                         endif
                         !
                     enddo
@@ -1361,41 +1302,40 @@ program multifluid
             enddo
         enddo
         !
-        !
         !     check speeds
         !
-        do  m=ngrd,1,-1
+        do  box=n_grids,1,-1
             do  k=1,nz
                 do  j=1,ny
                     do  i=1,nx
-                        avx=qpx(i,j,k,m)/qrho(i,j,k,m)
-                        avy=qpy(i,j,k,m)/qrho(i,j,k,m)
-                        avz=qpz(i,j,k,m)/qrho(i,j,k,m)
+                        avx=qpx(i,j,k,box)/qrho(i,j,k,box)
+                        avy=qpy(i,j,k,box)/qrho(i,j,k,box)
+                        avz=qpz(i,j,k,box)/qrho(i,j,k,box)
                         spd=sqrt(avx**2+avy**2+avz**2)
                         if(spd.gt.1.)then
-                            qpx(i,j,k,m)=0.
-                            qpy(i,j,k,m)=0.
-                            qpz(i,j,k,m)=0.
+                            qpx(i,j,k,box)=0.
+                            qpy(i,j,k,box)=0.
+                            qpz(i,j,k,box)=0.
                         endif
                         !
-                        avx=hpx(i,j,k,m)/hrho(i,j,k,m)
-                        avy=hpy(i,j,k,m)/hrho(i,j,k,m)
-                        avz=hpz(i,j,k,m)/hrho(i,j,k,m)
+                        avx=hpx(i,j,k,box)/hrho(i,j,k,box)
+                        avy=hpy(i,j,k,box)/hrho(i,j,k,box)
+                        avz=hpz(i,j,k,box)/hrho(i,j,k,box)
                         spd=sqrt(avx**2+avy**2+avz**2)
                         if(spd.gt.1.)then
-                            hpx(i,j,k,m)=0.
-                            hpy(i,j,k,m)=0.
-                            hpz(i,j,k,m)=0.
+                            hpx(i,j,k,box)=0.
+                            hpy(i,j,k,box)=0.
+                            hpz(i,j,k,box)=0.
                         endif
                         !
-                        avx=opx(i,j,k,m)/orho(i,j,k,m)
-                        avy=opy(i,j,k,m)/orho(i,j,k,m)
-                        avz=opz(i,j,k,m)/orho(i,j,k,m)
+                        avx=opx(i,j,k,box)/orho(i,j,k,box)
+                        avy=opy(i,j,k,box)/orho(i,j,k,box)
+                        avz=opz(i,j,k,box)/orho(i,j,k,box)
                         spd=sqrt(avx**2+avy**2+avz**2)
                         if(spd.gt.1.)then
-                            opx(i,j,k,m)=0.
-                            opy(i,j,k,m)=0.
-                            opz(i,j,k,m)=0.
+                            opx(i,j,k,box)=0.
+                            opy(i,j,k,box)=0.
+                            opz(i,j,k,box)=0.
                         endif
                         !
                     enddo
@@ -1419,54 +1359,65 @@ program multifluid
     !
     !     read down relevant data list to find correct pointer
     !
+	!
+	!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	!		@		INITIALIZE SPACECRAFT FILES		@
+	!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	!
+	!
     if(spacecraft)then
-        !
-        !      calculate the distance between the reference spacecraft and
-        !          solar wind boundary
-        !
-        m=ngrd
-        distance=grd_xmin(m)-rcraft(1)/re_equiv
         !
         !      read down data file until correct time in data file
         !
-        !      do  n=1,ncraft
-        !      do  n=1,2
-        n=1
-        mout=40+n
-		!line_counter=0	! Debugging MJS Aug 06, 2017
-        do while(ut.ge.zcraft(4,n))
-            read(mout,*)zcraft(4,n),zcraft(1,n), &
-                zcraft(2,n),zcraft(3,n)
-			line_counter=0	! Debugging MJS Aug 06, 2017
-			write(*,*) 'Read line ',line_counter	! Debugging MJS Aug 06, 2017
-            !
-            !          change direction to get from gsm to simulation coords
-            !
-            zcraft(1,n)=-zcraft(1,n)
-            zcraft(2,n)=-zcraft(2,n)
-            if(n.eq.1)then
-                rcraft(1)=zcraft(1,1)
-                rcraft(2)=zcraft(2,1)
-                rcraft(3)=zcraft(3,1)
-            endif
-            !
-        enddo
-        !      end do
+        do n=1,ncraft
+			recording(n)=.true.
+			fname=trim(craft_data)//trim(craftnames(n))//'.dat'
+			inquire(file=fname, exist=dat_exists)
+			craftstat=0
+			!	open .dat files for each craft. Files will be closed automatically when process completes or dies.
+		    open(scout+n,file=fname,iostat=craftstat,status='unknown',form='formatted')
+				!
+				if(.not.dat_exists)then
+					write(scout+n,*) dat_header
+					zcraft(:,n) = craftpos(:,1,n)	!	If we haven't created a .dat file for this spacecraft yet, 
+													!		its next recording should be at the first position in its xyz sequence 
+				else
+					read(scout+n,*) junkline	! Skip header line
+					m=0
+					do while(craftstat.eq.0)	!	UT should start ahead of any craft measurements we already saved.
+						!						!	Step through the file until the end, so we are ready to write new measurements.
+						m=m+1
+						read(scout+n,*) zcraft(4,n), zcraft(1,n), &
+						    zcraft(2,n), zcraft(3,n)
+						!
+					enddo
+					if(craftstat.lt.0)then	!	The last recording is before current UT, so we hit EOF in the .dat file
+						if(ntimes(n).le.m .and. n.gt.ndef_craft)then	!	If true, this is an aux. craft which has finished recording its data
+							close(scout+n)
+							recording(n) = .false.
+						endif
+					endif
+				endif
+			!end file open block, but we don't close here so we can save our place in the file for writing measurements later
+			!
+			!		Change direction to get from GSM to simulation coords
+		    zcraft(1,n)=-zcraft(1,n)
+		    zcraft(2,n)=-zcraft(2,n)
+		enddo
         !
-        call limcraft(zcraft,ncraft,re_equiv,ngrd, &
+        !	keep spacecraft within grid boundaries
+        call limcraft(zcraft,ncraft,re_equiv,n_grids, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
             grd_zmin,grd_zmax)
         !
         !      calculate the distance between the reference spacecraft and
         !          solar wind boundary
         !
-        distance=grd_xmin(ngrd)-rcraft(1)/re_equiv
-        write(6,*)'wind displaced by',distance
-        do n=1,ncraft
-            do nn=1,4
-                xcraft(nn,n)=zcraft(nn,n)
-            enddo
-        enddo
+        distance=grd_xmin(n_grids)-rcraft(1)/re_equiv
+        write(*,*)'Wind displaced by: ',distance
+		!
+		!	Set current spacecraft location to init or last read in from .dat
+        xcraft(:,:)=zcraft(:,:)
         !
         do  k=1,nz
             do  j=1,ny
@@ -1475,17 +1426,17 @@ program multifluid
             enddo
         enddo
         !
-        !      read all the magnetic field data to minimize data sorting
-        !
-        do m=1,ncts
-            read(29,*)bfld(m,4),bmag,bfld(m,1),bfld(m,2),bfld(m,3)
-            read(27,*)rut,rplas(m),svel(m,1),svel(m,2),svel(m,3)
-            !      read(27,*)rut,rplas(m)
-            !      read(28,*)vut,svel(m,1),svel(m,2),svel(m,3)
-            !      warning recalibration
-            !         keep bx in solar wind constant
-            !      bfld(m,1)=-sbx_wind*b_equiv
-        enddo
+        !       read all the magnetic field data to minimize data sorting
+        !		Untraceable file units, unknown previous use, obsolete. MJS 08/10/17
+        !do m=1,ncts
+        !    read(29,*)bfld(m,4),bmag,bfld(m,1),bfld(m,2),bfld(m,3)
+        !    read(27,*)rut,rplas(m),svel(m,1),svel(m,2),svel(m,3)
+        !    !      read(27,*)rut,rplas(m)
+        !    !      read(28,*)vut,svel(m,1),svel(m,2),svel(m,3)
+        !    !      warning recalibration
+        !          !   keep bx in solar wind constant
+        !    !      bfld(m,1)=-sbx_wind*b_equiv
+        !enddo
         !
         !      set timing
         !
@@ -1495,16 +1446,15 @@ program multifluid
             svelx=zvelx
             nvx=nvx+1
             zvelx=-svel(nvx,1)/v_equiv
-            vut=bfld(nvx,4)+t_equiv*distance/zvelx/3600.
-        end do
+            vut=bfld(nvx,4)+t_equiv*distance/zvelx/3600.	!	REQUIRES SPACECRAFT INPUT DATA FOR bfld!!!	MJS 08/12/17
+        enddo
         !
-        write(6,*)'ut=',ut,'wind time',bfld(nvx,4)
+        write(*,*)'UT=',ut,' Wind time: ',bfld(nvx,4)
         !
         displace=0.
-        m=ngrd
-        dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-        dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-        dz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+        dx=(grd_xmax(n_grids)-grd_xmin(n_grids))/(nx-1.)
+        dy=(grd_ymax(n_grids)-grd_ymin(n_grids))/(ny-1.)
+        dz=(grd_zmax(n_grids)-grd_zmin(n_grids))/(nz-1.)
         !
         do k=1,nz
             do j=1,ny
@@ -1539,8 +1489,9 @@ program multifluid
                         ay=grd_ymin(m)+dy*(j-1)-rcraft(2)/re_equiv
                         az=grd_zmin(m)+dz*(k-1)-rcraft(3)/re_equiv
                         !
-                        !       going to assume bz imf on average pos and ignore transients
-                        !               and by imf is negative
+                        !       Assuming Bz IMF is positive on average 
+						!			and that we can ignore transients
+                        !       Also assuming By IMF is negative
                         displace=-bxf(j,k)* &
                             (ay*byf(j,k)+az*bzf(j,k))/b_perp**2
                     endif
@@ -1559,18 +1510,18 @@ program multifluid
             hpresxy,hpresxz,hpresyz, &
             opresxy,opresxz,opresyz, &
             rhop,svxp,svyp,svzp,svelx,spress, &
-            ti_te,rho_frac,nx,ny,nz,ngrd)
+            ti_te,rho_frac,nx,ny,nz,n_grids)
     endif   ! end spacecraft if
     !
     !     check initial conditions
     !
-    !      write(6,*) 'checking set speed'
-    do m=ngrd,1,-1
+    !      write(*,*) 'checking set speed'
+    do box=n_grids,1,-1
         !
         !       sync time steps
         !
-        t_old(m)=0.
-        t_new(m)=0.
+        t_old(box)=0.
+        t_new(box)=0.
         !
         !       check density
         !
@@ -1580,11 +1531,12 @@ program multifluid
             hpresxy,hpresxz,hpresyz,rmassh, &
             orho,opresx,opresy,opresz, &
             opresxy,opresxz,opresyz,rmasso, &
-            epres,nx,ny,nz,ngrd,m,o_conc)
+            epres,nx,ny,nz,n_grids,box,o_conc)
         !
-        !       check speeds of individual grids
+        !	Check speeds of individual grids
         !
-        vlim=0.6*m
+        vlim=0.6*box
+        !	Find maximum velocity to determine time step
         call set_speed_agrd( &
             qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
             hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -1593,59 +1545,59 @@ program multifluid
             hpresxy,hpresxz,hpresyz,opresxy,opresxz,opresyz, &
             bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz,btot, &
             vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
-            rmassq,rmassh,rmasso,nx,ny,nz,ngrd,m, &
+            rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
             pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
             vlim,alf_lim,o_conc,fastest,isotropic)
-        write(6,195)m,csmax,alfmax,pxmax,pymax,pzmax
+        write(*,195)m,csmax,alfmax,pxmax,pymax,pzmax
         195   format(1x,i2,5(1x,1pe12.5))
         !
         t_stepnew(m)=stepsz*xspac(m)/fastest
     enddo
-    write(6,*)'speeds checked'
+    write(*,*)'Speeds checked.'
     !
     delt_old=delt
     delt=stepsz/fastest
     delt=amin1(delt,1.25*delt_old)
     delt=amax1(3.e-3,delt)
-    write(6,163)t,delt,ut,bfld(nvx,4)
+    write(*,163)t,delt,ut,bfld(nvx,4)
     163 format(1x,'t=',1pe12.5,' dt=',1pe12.5,' ut=', &
         1pe12.5,' wind time',1pe12.5)
     !
-    write(6,161)
-    161 format(' initialization completed')
+    write(*,*) ' INITIALIZATION COMPLETED!'
     !
-    !     ********************************************
-    !     start time sequence
-    !     ********************************************
+	!
+	!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    !		@		********************************		@
+    !		@			START MAIN TIME SEQUENCE			@
+    !     	@		********************************		@
+	!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     !
+	!
     do while(t.lt.tmax)
         !
+        write(*,*)'Start main loop, t=',t
         !
-        !     find maximum velocity to determine time step
-        !
-        write(6,*)'start main loop'
-        !
-        do m=ngrd,1,-1
-            t_step(m)=t_stepnew(m)
+        do box=n_grids,1,-1
+            t_step(box)=t_stepnew(box)
             !
             !       sync time steps
             !
-            t_old(m)=0.
-            t_new(m)=0.
-  
-            if(m.eq.ngrd)then
-                smallest_step=t_step(m)
-                mallest_step=m
-                write(6,*)'syncing',m,t_step(m)
+            t_old(box)=0.
+            t_new(box)=0.
+			!
+            if(box.eq.n_grids)then
+                smallest_step=t_step(box)
+                m_smallest=box
+                write(*,*)'Syncing box, t_step(box): ',box,t_step(box)
             else
                 !
-                !          check to see if m grid doesnt outstep grid m+1
-                write(6,*)'unsync',m,t_step(m)
-                if(t_step(m).gt.t_step(m+1))t_step(m)=t_step(m+1)
+                !          check to see if box grid doesnt outstep grid box+1
+                write(*,*)'Unsync box, t_step(box): ',box,t_step(box)
+                if(t_step(box).gt.t_step(box+1))t_step(box)=t_step(box+1)
                 !
-                if (smallest_step.gt.t_step(m))then
-                    smallest_step=t_step(m)
-                    mallest_step=m
+                if (smallest_step.gt.t_step(box))then
+                    smallest_step=t_step(box)
+                    m_smallest=box
                 endif
             endif
         enddo
@@ -1656,29 +1608,27 @@ program multifluid
         !       i_step=smallest_step*10000
         !       smallest_step=i_step/10000.
         !
-        !     write(6,*)'unsync steps',t_step,mallest_step,smalslest_step
+        !     write(*,*)'unsync steps',t_step,mallest_step,smalslest_step
         !
-        do m=1,ngrd
-            if(m.le.mallest_step) then
-                t_step(m)=smallest_step
-                write(6,*)'sync step',m,t_step(m)
+        do box=1,n_grids
+            if(box.le.m_smallest) then
+                t_step(box)=smallest_step
+                write(*,*)'Sync step: box, t_step(box): ',box,t_step(box)
             else
-                astep=(t_step(m)/t_step(m-1)+.50)  !round up as needed
+                astep=(t_step(box)/t_step(box-1)+.50)  !round up as needed
                 nsteps=astep                          !nearest integer
-                !           write(6,*)astep,nsteps
+                !           write(*,*)astep,nsteps
                 if(nsteps.gt.2)nsteps=2
                 if(nsteps.lt.1)nsteps=1
-                t_step(m)=t_step(m-1)*nsteps
-                write(6,*)'sync step',m,t_step(m)
+                t_step(box)=t_step(box-1)*nsteps
+                write(*,*)'Sync step: box, t_step(box): ',box,t_step(box)
             endif
         enddo
         !
-        m_step=t_step(ngrd)/t_step(mallest_step)
-        write(6,*)'lores steps ',mallest_step,m_step,t_step
+        m_step=t_step(n_grids)/t_step(m_smallest)
+        write(*,*)'lores steps: ',m_smallest,m_step,t_step
         !
-        !
-        !
-        delt=t_step(ngrd)
+        delt=t_step(n_grids)
         told=t
         utold=ut
         old_tilt=tilt
@@ -1688,112 +1638,116 @@ program multifluid
         tilt=tilt+dtilt*delt
         delay=t_equiv*distance/svelx/3600.
         !
-        write(6,201)t,delt,ut,bfld(nvx,4)
+        write(*,201)t,delt,ut,bfld(nvx,4)
         201 format(1x,'t=',1pe12.5,' dt=',1pe12.5,' ut=', &
             1pe12.5,' wind time',1pe12.5)
         !
         nrot=ut/planet_per
         rot_hrs=ut-nrot*planet_per
         rot_angle=6.2832*rot_hrs/planet_per
+		xmoon=cos(rot_angle)	!	This is a wild guess, xmoon,ymoon,zmoon were never declared before now. MJS 08/11/17
+		ymoon=sin(rot_angle)
+		zmoon=0
         !
-        !     write out data if necessary - only using course gridding
-        !        the momemt
-        !
-        !     if(spacecraft) then
-        !
-        !         update position of moon diagnostics
-        !
-        xcraft(1,2)=xmoon*re_equiv*1.05
-        xcraft(2,2)=ymoon*re_equiv*1.05
-        xcraft(3,2)=zmoon*re_equiv*1.05
-        !
-        do n=1,ncraft
-            call qvset(0.,bsx,nx*ny*nz)
-            call qvset(0.,bsy,nx*ny*nz)
-            call qvset(0.,bsz,nx*ny*nz)
-            !
-            !
-            m=1
-            do while ((xcraft(1,n).gt.grd_xmax(m)*re_equiv).or. &
-                (xcraft(1,n).lt.grd_xmin(m)*re_equiv).or. &
-                (xcraft(2,n).gt.grd_ymax(m)*re_equiv).or. &
-                (xcraft(2,n).lt.grd_ymin(m)*re_equiv).or. &
-                (xcraft(3,n).gt.grd_zmax(m)*re_equiv).or. &
-                (xcraft(3,n).lt.grd_zmin(m)*re_equiv).and. &
-                (m+1.le.ngrd))
-                m=m+1
-            enddo
-            rx=xspac(m)
-            ry=rx
-            rz=rz
-            !
-            call totfld(bx,bx0,bsx,nx,ny,nz,ngrd,m)
-            call totfld(by,by0,bsy,nx,ny,nz,ngrd,m)
-            call totfld(bz,bz0,bsz,nx,ny,nz,ngrd,m)
-            !
-            add_dip=.false.
-            !call crafdatv(bsx,bsy,bsz, &
-            !    qpx,qpy,qpz,qrho,qpresx,qpresy,qpresz,rmassq, &
-            !    hpx,hpy,hpz,hrho,hpresx,hpresy,hpresz,rmassh, &
-            !    opx,opy,opz,orho,opresx,opresy,opresz,rmasso, &
-            !    epres,nx,ny,nz,ngrd,m,xcraft,ncraft,n,ut, &
-            !    re_equiv,b_equiv,v_equiv,rho_equiv,gamma, &
-            !    grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-            !    grd_zmin,grd_zmax)
-        enddo
-        !
-        !      calculate flux from torus
-        !
-        write(3,*)'main grid'
-        do m=ngrd,1,-1
+		!	Write to fluxes.dat file
+        write(3,*) flux_header
+        do box=n_grids,1,-1
             scale=rho_equiv*v_equiv*1.e5* &
             (xspac(m)*planet_rad*re_equiv*1.e5)**2
+	        !	calculate flux from torus
             call flux_counter(qpx,qpy,qpz,hpx,hpy,hpz, &
-                opx,opy,opz,nx,ny,nz,ngrd,m, &
+                opx,opy,opz,nx,ny,nz,n_grids,box, &
                 rmassq,rmassh,rmasso, &
                 scale,qflux_in,qflux_out,hflux_in,hflux_out, &
                 oflux_in,oflux_out)
-            write(3,*)ut,m,qflux_in,hflux_in,oflux_in,'grd_in'
-            write(3,*)ut,m,qflux_out,hflux_out,oflux_out,'grd_out'
+            write(3,*)ut,box,qflux_in,hflux_in,oflux_in,'grd_in'
+            write(3,*)ut,box,qflux_out,hflux_out,oflux_out,'grd_out'
         enddo
         !
-        !     test to see whether scraft positions need to be updated
+        !     ?[write out data if necessary - only using coarse gridding
+        !        the moment]?
         !
-        if(spacecraft)then
-            !      do 210 n=1,ncraft
-            !      do 210 n=1,2
-            n=1
-            if(ut.ge.zcraft(4,n))then
-                mout=40+n
-                read(mout,*)zcraft(4,n),zcraft(1,n), &
-                    zcraft(2,n),zcraft(3,n)
-                !          if(n.eq.1)zcraft(4,n)=zcraft(4,n)/3600.
-                !
-                !          change direction to get from gsm to simulation coords
-                !
-                zcraft(1,n)=-zcraft(1,n)
-                zcraft(2,n)=-zcraft(2,n)
-                if(n.eq.1)then
-                    rcraft(1)=zcraft(1,1)
-                    rcraft(2)=zcraft(2,1)
-                    rcraft(3)=zcraft(3,1)
-                endif
-                !
-            endif
-            !
-            zcraft(4,3)=zcraft(4,2)
-            zcraft(4,4)=zcraft(4,2)
-            !
-            !         set refernce spacecraft position
-            !                   and spacecraft limits
-            !
-            call limcraft(zcraft,ncraft,re_equiv,ngrd, &
-                grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-                grd_zmin,grd_zmax)
-            !
-            !         set density and velocity
-            !
-            distance=grd_xmin(ngrd)-rcraft(1)/re_equiv
+		if(spacecraft) then
+			!
+		    !	update position of moon diagnostics
+		    if(trim(craftnames(2)) == 'moondgn') then
+		    	xcraft(1,2)=xmoon*re_equiv*1.05
+		    	xcraft(2,2)=ymoon*re_equiv*1.05
+		    	xcraft(3,2)=zmoon*re_equiv*1.05
+			endif
+		    !
+		    do n=1,ncraft
+		        call qvset(0.,bsx,nx*ny*nz)	! Sets spacecraft B components (bsx,bsy,bsz) to be zero initially
+		        call qvset(0.,bsy,nx*ny*nz)
+		        call qvset(0.,bsz,nx*ny*nz)
+		        !
+		        !
+		        box=1
+		        do while ( ((xcraft(1,n).gt.grd_xmax(box)*re_equiv).or. &
+		            (xcraft(1,n).lt.grd_xmin(box)*re_equiv).or. &
+		            (xcraft(2,n).gt.grd_ymax(box)*re_equiv).or. &
+		            (xcraft(2,n).lt.grd_ymin(box)*re_equiv).or. &
+		            (xcraft(3,n).gt.grd_zmax(box)*re_equiv).or. &
+		            (xcraft(3,n).lt.grd_zmin(box)*re_equiv)) &
+					.and. (box+1.le.n_grids) )
+		            box=box+1	!	Finds the smallest box size the spacecraft location is inside of
+		        enddo
+		        rx=xspac(box)	!	Sets ?[rx]? to be spacing between grid points of smallest matching grid
+		        ry=rx
+		        rz=rz
+		        !
+		        call totfld(bx,bx0,bsx,nx,ny,nz,n_grids,box)
+		        call totfld(by,by0,bsy,nx,ny,nz,n_grids,box)
+		        call totfld(bz,bz0,bsz,nx,ny,nz,n_grids,box)
+		        !
+		        add_dip=.false.
+		        !call crafdatv(bsx,bsy,bsz, &
+		        !    qpx,qpy,qpz,qrho,qpresx,qpresy,qpresz,rmassq, &
+		        !    hpx,hpy,hpz,hrho,hpresx,hpresy,hpresz,rmassh, &
+		        !    opx,opy,opz,orho,opresx,opresy,opresz,rmasso, &
+		        !    epres,nx,ny,nz,n_grids,box,xcraft,ncraft,n,ut, &
+		        !    re_equiv,b_equiv,v_equiv,rho_equiv,gamma, &
+		        !    grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
+		        !    grd_zmin,grd_zmax)
+		    enddo
+			!
+! This entire block seems redundant and unnecessary. MJS 08/13/17
+!	If data is read in from .craft files this step will break or do nothing.
+			!
+		    !     test to see whether spacecraft positions need to be updated
+		    !
+		    !    n=1	
+		    !    if(ut.ge.zcraft(4,n))then
+		    !        read(scin+n,*)zcraft(4,n),zcraft(1,n), &
+		    !            zcraft(2,n),zcraft(3,n)
+		    !        !
+		    !        !          Change direction to get from GSM to simulation coords
+		    !        !
+		    !        zcraft(1,n)=-zcraft(1,n)
+		    !        zcraft(2,n)=-zcraft(2,n)
+		    !        !
+		    !        endif
+		    !        !
+		    !    endif
+			!	rcraft(1)=zcraft(1,1)
+		    !    rcraft(2)=zcraft(2,1)
+		    !    rcraft(3)=zcraft(3,1)
+		    !    !
+		    !    !zcraft(4,3)=zcraft(4,2)	!	These 2 lines don't seem necessary. MJS 08/11/17
+		    !    !zcraft(4,4)=zcraft(4,2)
+		    !    !
+		    !    !         set reference spacecraft position
+		    !    !                   and spacecraft limits
+		    !    !
+		    !    call limcraft(zcraft,ncraft,re_equiv,n_grids, &
+		    !        grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
+		    !        grd_zmin,grd_zmax)
+		    !    !
+		    !    !         set density and velocity
+		    !    !
+		    !    distance=grd_xmin(n_grids)-rcraft(1)/re_equiv
+! End redundant block
+			!
             do while (ut.ge.vut)
                 nvx=nvx+1
                 zvelx=-svel(nvx,1)/v_equiv
@@ -1803,7 +1757,7 @@ program multifluid
                 vut=bfld(nvx,4)+t_equiv*distance/zvelx/3600.
             end do
             !
-            !        fix up magnetic field
+            !	?[Fix up]? magnetic field
             !
             displace=0.
             do k=1,nz
@@ -1825,17 +1779,17 @@ program multifluid
                         avx=svxf(j,k)
                         ncount(j,k)=nc
                         !
-                        !      calculate delay
+                        !      Calculate delay
                         !
                         if(warp)then
                             !           b_perp=sqrt(bzf(j,k)**2+byf(j,k)**2)
                             !           b_perp=amax1(b_perp,0.1*abs(bxf(j,k)))
-                            ay=(j-1.)*xspac(ngrd)+grd_ymin(ngrd)-rcraft(2)/re_equiv
-                            az=(k-1.)*xspac(ngrd)+grd_zmin(ngrd)-rcraft(3)/re_equiv
+                            ay=(j-1.)*xspac(n_grids)+grd_ymin(n_grids)-rcraft(2)/re_equiv
+                            az=(k-1.)*xspac(n_grids)+grd_zmin(n_grids)-rcraft(3)/re_equiv
                             !
-                            !       going to assume bz imf on average pos and ignore transients
-                            !               and by imf is negative
-                            !
+                            !       Assuming Bz IMF is positive on average 
+							!			and that we can ignore transients
+		                    !       Also assuming By IMF is negative
                             b_perp=sqrt(bzf(j,k)**2+byf(j,k)**2)
                             b_perp=amax1(b_perp,0.33*abs(bxf(j,k)))
                             displace=-bxf(j,k)* &
@@ -1847,12 +1801,9 @@ program multifluid
                 enddo
             enddo
             !
-        endif
-        !
-        if(spacecraft)then
-            !
-            !     update spacecraft position and magnetic field
-            !
+            !	Update spacecraft position and magnetic field
+            !	This is where we need to interpolate between 
+			!		grid points to set craft to new values MJS 08/13/17
             do n=1,ncraft
                 dut=(ut-xcraft(4,n))/(zcraft(4,n)-utold)
                 xcraft(1,n)=xcraft(1,n)+dut*(zcraft(1,n)-xcraft(1,n))
@@ -1860,8 +1811,12 @@ program multifluid
                 xcraft(3,n)=xcraft(3,n)+dut*(zcraft(3,n)-xcraft(3,n))
                 xcraft(4,n)=ut
             enddo
-            distance=grd_xmin(ngrd)-rcraft(1)/re_equiv
-            call limcraft(xcraft,ncraft,re_equiv,ngrd, &
+            distance=grd_xmin(n_grids)-rcraft(1)/re_equiv
+			!
+			!	Grid limits won't change. Do we really need to do this here?
+			!		Perhaps we should call limcraft on the craftpos values when we read them in.
+			!		Then, we won't need to call limcraft repeatedly during time stepping.	MJS 08/13/17
+            call limcraft(xcraft,ncraft,re_equiv,n_grids, &
                 grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                 grd_zmin,grd_zmax)
             !
@@ -1877,182 +1832,171 @@ program multifluid
                     svyp(j,k)=svyp(j,k)+dut*(svyf(j,k)-svyp(j,k))
                     svzp(j,k)=svzp(j,k)+dut*(svzf(j,k)-svzp(j,k))
                     srho=srho+rhop(j,k)
-                end do
-            end do
+                enddo
+            enddo
             !
             dut=(ut-utold)/(vut-utold)
             svelx=svelx+dut*(zvelx-svelx)
             svely=0.
-            svelz=svelz+delvz_wind*delt
             srho=srho/float(nz*ny)
             !
-            sbx_wind=sbx_wind+delbx_wind*delt
-            sby_wind=sby_wind+delby_wind*delt
-            sbz_wind=sbz_wind+delbz_wind*delt
-            spx=srho*svelx
-            spy=srho*svely
-            spz=srho*svelz
-            spress=(cs_wind**2*srho/gamma)/gamma1
-            serg=0.5*(svelx**2+svely**2+svelz**2)*srho+spress
         else
-            sbx_wind=sbx_wind+delbx_wind*delt
-            sby_wind=sby_wind+delby_wind*delt
-            sbz_wind=sbz_wind+delbz_wind*delt
-            !
             svelx=svelx+delvx_wind*delt
             svely=svely+delvy_wind*delt
-            svelz=svelz+delvz_wind*delt
             srho=srho+delrho*delt
-            spx=srho*svelx
-            spy=srho*svely
-            spz=srho*svelz
-            spress=(cs_wind**2*srho/gamma)/gamma1
-            serg=0.5*(svelx**2+svely**2+svelz**2)*srho+spress
-        endif
-
+        endif	!end if(spacecraft)
+		!
+        svelz=svelz+delvz_wind*delt
+		!
+		sbx_wind=sbx_wind+delbx_wind*delt
+		sby_wind=sby_wind+delby_wind*delt
+		sbz_wind=sbz_wind+delbz_wind*delt
+		!
+		spx=srho*svelx
+		spy=srho*svely
+		spz=srho*svelz
+		!
+		spress=(cs_wind**2*srho/gamma)/gamma1
+		serg=0.5*(svelx**2+svely**2+svelz**2)*srho+spress
+		!
         delay=t_equiv*distance/svelx/3600.
         !
-        !     ***********************************************
-        !     main grid loop over delt/m_step
-        !     **********************************************
+        !     *******************************
+        !     Main grid loop over delt/m_step
+        !     *******************************
         !
         do ms=1,m_step
-            do m=ngrd,1,-1
+            do box=n_grids,1,-1
                 !
-                !     test if grid sector needs to be moved in time
+                !	Test if grid sector needs to be moved in time
                 !
                 yes_step=.false.
                 !
-                if(m.eq.1)then
+                if(box.eq.1)then
                     yes_step=.true.
                 else
-                    if ((t_old(m).eq.t_new(m)).and.(t_new(m).lt.t_step(ngrd)) &
-                        .and.(abs(t_new(m)-t_new(1)).le.0.005*t_step(1)) )then
+                    if ((t_old(box).eq.t_new(box)).and.(t_new(box).lt.t_step(n_grids)) &
+                        .and.(abs(t_new(box)-t_new(1)).le.0.005*t_step(1)) )then
                         yes_step=.true.
                     endif
                 endif
                 !
-                !      time step grid
+                !	Time step grid
                 !
                 if(yes_step) then
-                    t_old(m)=t_new(m)
-                    t_new(m)=t_old(m)+t_step(m)
+                    t_old(box)=t_new(box)
+                    t_new(box)=t_old(box)+t_step(box)
                     !
-                    write(6,*)'lores time stepping',m, t_old(m),t_new(m)
+                    write(*,*)'lores time stepping: box, t_old, t_new: ',box, t_old(box),t_new(box)
                     !
-                    delt= t_step(m)
+                    delt = t_step(box)
                     delt2=delt/2.
                     !
                     if(tilting)then
-                        atilt=old_tilt+(t_old(m)+delt2)*dtilt
+                        atilt=old_tilt+(t_old(box)+delt2)*dtilt
                         sin_tilt=sin(atilt*.0174533)
                         cos_tilt=cos(atilt*.0174533)
-                        ut2=utold+(t_old(m)+delt2)*t_equiv/3600.
+                        ut2=utold+(t_old(box)+delt2)*t_equiv/3600.
                         nrot2=ut2/planet_per
                         rot_hr2=ut2-nrot2*planet_per
                         rot_angle=6.2832*rot_hr2/planet_per
-                        !        write(6,*)'mak_dip half with', t_old(m),delt2
+                        !        write(*,*)'mak_dip half with', t_old(box),delt2
                         call mak_dip_grd(bx0,by0,bz0,nx,ny,nz, &
-                            ngrd,mbndry,m,ijzero,numzero,mzero,rearth, &
+                            n_grids,mbndry,box,ijzero,numzero,mzero,rearth, &
                             grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                             grd_zmin,grd_zmax)
                     endif
                     !
-                    !     *******************************************************
-                    !     store initial plasma parameters
-                    !     ******************************************************
-                    !c
-                    !     store initial plasma parameters
+                    !    *******************************
+                    !    Store initial plasma parameters
+                    !    *******************************
+					!
+					call store_array(oldqrho,qrho,nx,ny,nz,n_grids,box)
+                    call store_array(oldqpresx,qpresx,nx,ny,nz,n_grids,box)
+                    call store_array(oldqpresy,qpresy,nx,ny,nz,n_grids,box)
+                    call store_array(oldqpresz,qpresz,nx,ny,nz,n_grids,box)
+                    call store_array(oldqpresxy,qpresxy,nx,ny,nz,n_grids,box)
+                    call store_array(oldqpresxz,qpresxz,nx,ny,nz,n_grids,box)
+                    call store_array(oldqpresyz,qpresyz,nx,ny,nz,n_grids,box)
+                    call store_array(oldqpx,qpx,nx,ny,nz,n_grids,box)
+                    call store_array(oldqpy,qpy,nx,ny,nz,n_grids,box)
+                    call store_array(oldqpz,qpz,nx,ny,nz,n_grids,box)
                     !
-                    call store_array(oldqrho,qrho,nx,ny,nz,ngrd,m)
-                    call store_array(oldqpresx,qpresx,nx,ny,nz,ngrd,m)
-                    call store_array(oldqpresy,qpresy,nx,ny,nz,ngrd,m)
-                    call store_array(oldqpresz,qpresz,nx,ny,nz,ngrd,m)
-                    call store_array(oldqpresxy,qpresxy,nx,ny,nz,ngrd,m)
-                    call store_array(oldqpresxz,qpresxz,nx,ny,nz,ngrd,m)
-                    call store_array(oldqpresyz,qpresyz,nx,ny,nz,ngrd,m)
-                    call store_array(oldqpx,qpx,nx,ny,nz,ngrd,m)
-                    call store_array(oldqpy,qpy,nx,ny,nz,ngrd,m)
-                    call store_array(oldqpz,qpz,nx,ny,nz,ngrd,m)
+                    call store_array(oldhrho,hrho,nx,ny,nz,n_grids,box)
+                    call store_array(oldhpresx,hpresx,nx,ny,nz,n_grids,box)
+                    call store_array(oldhpresy,hpresy,nx,ny,nz,n_grids,box)
+                    call store_array(oldhpresz,hpresz,nx,ny,nz,n_grids,box)
+                    call store_array(oldhpresxy,hpresxy,nx,ny,nz,n_grids,box)
+                    call store_array(oldhpresxz,hpresxz,nx,ny,nz,n_grids,box)
+                    call store_array(oldhpresyz,hpresyz,nx,ny,nz,n_grids,box)
+                    call store_array(oldhpx,hpx,nx,ny,nz,n_grids,box)
+                    call store_array(oldhpy,hpy,nx,ny,nz,n_grids,box)
+                    call store_array(oldhpz,hpz,nx,ny,nz,n_grids,box)
                     !
-                    call store_array(oldhrho,hrho,nx,ny,nz,ngrd,m)
-                    call store_array(oldhpresx,hpresx,nx,ny,nz,ngrd,m)
-                    call store_array(oldhpresy,hpresy,nx,ny,nz,ngrd,m)
-                    call store_array(oldhpresz,hpresz,nx,ny,nz,ngrd,m)
-                    call store_array(oldhpresxy,hpresxy,nx,ny,nz,ngrd,m)
-                    call store_array(oldhpresxz,hpresxz,nx,ny,nz,ngrd,m)
-                    call store_array(oldhpresyz,hpresyz,nx,ny,nz,ngrd,m)
-                    call store_array(oldhpx,hpx,nx,ny,nz,ngrd,m)
-                    call store_array(oldhpy,hpy,nx,ny,nz,ngrd,m)
-                    call store_array(oldhpz,hpz,nx,ny,nz,ngrd,m)
+                    call store_array(oldorho,orho,nx,ny,nz,n_grids,box)
+                    call store_array(oldopresx,opresx,nx,ny,nz,n_grids,box)
+                    call store_array(oldopresy,opresy,nx,ny,nz,n_grids,box)
+                    call store_array(oldopresz,opresz,nx,ny,nz,n_grids,box)
+                    call store_array(oldopresxy,opresxy,nx,ny,nz,n_grids,box)
+                    call store_array(oldopresxz,opresxz,nx,ny,nz,n_grids,box)
+                    call store_array(oldopresyz,opresyz,nx,ny,nz,n_grids,box)
+                    call store_array(oldopx,opx,nx,ny,nz,n_grids,box)
+                    call store_array(oldopy,opy,nx,ny,nz,n_grids,box)
+                    call store_array(oldopz,opz,nx,ny,nz,n_grids,box)
                     !
-                    call store_array(oldorho,orho,nx,ny,nz,ngrd,m)
-                    call store_array(oldopresx,opresx,nx,ny,nz,ngrd,m)
-                    call store_array(oldopresy,opresy,nx,ny,nz,ngrd,m)
-                    call store_array(oldopresz,opresz,nx,ny,nz,ngrd,m)
-                    call store_array(oldopresxy,opresxy,nx,ny,nz,ngrd,m)
-                    call store_array(oldopresxz,opresxz,nx,ny,nz,ngrd,m)
-                    call store_array(oldopresyz,opresyz,nx,ny,nz,ngrd,m)
-                    call store_array(oldopx,opx,nx,ny,nz,ngrd,m)
-                    call store_array(oldopy,opy,nx,ny,nz,ngrd,m)
-                    call store_array(oldopz,opz,nx,ny,nz,ngrd,m)
-                    !
-                    call store_array(oldepres,epres,nx,ny,nz,ngrd,m)
-                    call store_array(oldbx,bx,nx,ny,nz,ngrd,m)
-                    call store_array(oldby,by,nx,ny,nz,ngrd,m)
-                    call store_array(oldbz,bz,nx,ny,nz,ngrd,m)
+                    call store_array(oldepres,epres,nx,ny,nz,n_grids,box)
+                    call store_array(oldbx,bx,nx,ny,nz,n_grids,box)
+                    call store_array(oldby,by,nx,ny,nz,n_grids,box)
+                    call store_array(oldbz,bz,nx,ny,nz,n_grids,box)
                     !
                     !
-                    !     **********************************************************
-                    !     two step lax-wendroff : step 1
-                    !          estimate of the fluid quantites at n+1/2
-                    !     **********************************************************
+                    !	**************************************
+                    !	2-step Lax-Wendroff: Step 1
+                    !		Estimate fluid quantites at n+1/2
+                    !	**************************************
                     !
-                    !     store initial plasma parameters
+                    !	Calculate standard MHD current: j = curl B
                     !
-                    !     calculate standard mhd current j = curl b
+                    rx=xspac(box)
+                    ry=xspac(box)
+                    rz=xspac(box)
                     !
-                    !
-                    rx=xspac(m)
-                    ry=xspac(m)
-                    rz=xspac(m)
-                    !
-                    !      write(6,*)' calcur ing now'
-                    call calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
+                    write(*,*)'Entering subroutine: calcur'
+                    call calcur(bx,by,bz,nx,ny,nz,n_grids,box,curx,cury,curz, &
                         rx,ry,rz)
                     !
-                    !     find total magnetic field
+                    !     Find total magnetic field
                     !
-                    !     write(6,*)' totbfld ing now'
-                    call totfld(bx,bx0,bsx,nx,ny,nz,ngrd,m)
-                    call totfld(by,by0,bsy,nx,ny,nz,ngrd,m)
-                    call totfld(bz,bz0,bsz,nx,ny,nz,ngrd,m)
+                    write(*,*)'Entering subroutine: totbfld'
+                    call totfld(bx,bx0,bsx,nx,ny,nz,n_grids,box)
+                    call totfld(by,by0,bsy,nx,ny,nz,n_grids,box)
+                    call totfld(bz,bz0,bsz,nx,ny,nz,n_grids,box)
                     !
-                    !     find magnitude of b
+                    !     Find magnitude of B
                     !
                     call tot_b(btot,bsx,bsy,bsz,nx,ny,nz)
                     !
                     !
-                    !      write(6,*)' fnd_evel ing now'
+                    write(*,*)'Entering subroutine: fnd_evel'
                     call fnd_evel(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
                         opx,opy,opz,orho,curx,cury,curz,evx,evy,evz, &
-                        tvx,tvy,tvz,nx,ny,nz,ngrd,m, &
+                        tvx,tvy,tvz,nx,ny,nz,n_grids,box, &
                         rmassq,rmassh,rmasso,reynolds)
                     !
-                    !     write(6,*)' bande ing now'
+                    write(*,*)'Entering subroutine: bande'
                     call bande(efldx,efldy,efldz,bsx,bsy,bsz, &
                         curx,cury,curz,evx,evy,evz,btot, &
                         epres,qrho,hrho,orho,resistive,resist,reynolds, &
-                        nx,ny,nz,ngrd,m,rmassq,rmassh,rmasso, &
+                        nx,ny,nz,n_grids,box,rmassq,rmassh,rmasso, &
                         ijmid,nummid,ijzero,mbndry,numzero,mmid,mzero, &
                         rx,ry,rz)
                     !
-                    !      write(6,*)' push elec ing now'
+                    write(*,*)'Entering subroutine: push_elec, first pass'
                     call push_elec(wrkepres,oldepres,epres,evx,evy,evz, &
-                        gamma,gamma1,nx,ny,nz,ngrd,m,0.5*delt, &
+                        gamma,gamma1,nx,ny,nz,n_grids,box,0.5*delt, &
                         rx,ry,rz)
                     !
-                    !      write(6,*)' push ion 1 ing now'
+                    write(*,*)'Entering subroutine: push_ion (q), first pass'
                     call push_ion(wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                         wrkqpx,wrkqpy,wrkqpz, &
                         oldqrho,oldqpresx,oldqpresy,oldqpresz, &
@@ -2063,11 +2007,11 @@ program multifluid
                         qpresxy,qpresxz,qpresyz, &
                         bsx,bsy,bsz,btot,efldx,efldy,efldz,rmassq, &
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
-                        nx,ny,nz,ngrd,m,0.5*delt,grav,re_equiv,reynolds, &
+                        nx,ny,nz,n_grids,box,0.5*delt,grav,re_equiv,reynolds, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                         grd_zmin,grd_zmax,ani_q,isotropic)
            
-                    !      write(6,*)' push ion 2 ing now'
+                    write(*,*)'Entering subrout: push_ion (h), first pass'
                     call push_ion(wrkhrho,wrkhpresx,wrkhpresy,wrkhpresz, &
                         wrkhpx,wrkhpy,wrkhpz, &
                         oldhrho,oldhpresx,oldhpresy,oldhpresz, &
@@ -2078,11 +2022,11 @@ program multifluid
                         hpresxy,hpresxz,hpresyz, &
                         bsx,bsy,bsz,btot,efldx,efldy,efldz,rmassh, &
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
-                        nx,ny,nz,ngrd,m,0.5*delt,grav,re_equiv,reynolds, &
+                        nx,ny,nz,n_grids,box,0.5*delt,grav,re_equiv,reynolds, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                         grd_zmin,grd_zmax,ani_h,isotropic)
                     !
-                    !      write(6,*)' push ion 3 ing now'
+                    write(*,*)'Entering subroutine: push_ion (o), first pass'
                     call push_ion(wrkorho,wrkopresx,wrkopresy,wrkopresz, &
                         wrkopx,wrkopy,wrkopz, &
                         oldorho,oldopresx,oldopresy,oldopresz, &
@@ -2093,25 +2037,23 @@ program multifluid
                         opresxy,opresxz,opresyz, &
                         bsx,bsy,bsz,btot,efldx,efldy,efldz,rmasso, &
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
-                        nx,ny,nz,ngrd,m,0.5*delt,grav,re_equiv,reynolds, &
+                        nx,ny,nz,n_grids,box,0.5*delt,grav,re_equiv,reynolds, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                         grd_zmin,grd_zmax,ani_o,isotropic)
                     !
+                    write(*,*)'Entering subroutine: push_bfld'
                     call push_bfld(wrkbx,wrkby,wrkbz,oldbx,oldby,oldbz, &
-                        efldx,efldy,efldz,nx,ny,nz,ngrd,m,0.5*delt, &
+                        efldx,efldy,efldz,nx,ny,nz,n_grids,box,0.5*delt, &
                         rx,ry,rz)
                     !
-                    !     write(6,988)
-                    ! 988 format(' main lax loop now')
+                    !    *****************************************
+                    !		     Apply boundary conditions
+                    !    *****************************************
+					!
+					write(*,*)'Entering first main Lax-Wendroff loop.'
                     !
-                    !     *************************************************************
-                    !     apply boundary conditions
-                    !     *************************************************************
-                    !
-                    !     write(6,989)
-                    ! 989 format(' doing bndry conditions')
-                    !
-                    if(m.eq.ngrd) then
+                    if(box.eq.n_grids) then
+	                    write(*,*)'Applying boundary conditions.'
                         call bndry_outer( &
                             wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                             wrkqpx,wrkqpy,wrkqpz, &
@@ -2123,18 +2065,19 @@ program multifluid
                             wrkhpresxy,wrkhpresxz,wrkhpresyz, &
                             wrkopresxy,wrkopresxz,wrkopresyz, &
                             rmassq,rmassh,rmasso,wrkbx,wrkby,wrkbz, &
-                            bx0,by0,bz0,nx,ny,nz,ngrd, &
+                            bx0,by0,bz0,nx,ny,nz,n_grids, &
                             srho,rho_frac,o_conc,spress,spx,spy,spz, &
                             sbx_wind,sby_wind,sbz_wind,ti_te,isotropic)
                     else
-                        t_grd=t_old(m)+delt2
-                        if(t_grd.gt.t_new(m+1))then
-                            t_grd=t_new(m+1)
+                        t_grd=t_old(box)+delt2
+                        if(t_grd.gt.t_new(box+1))then
+                            t_grd=t_new(box+1)
                         endif
-                        if (t_grd.lt.t_old(m+1))then
-                            t_grd=t_old(m+1)
+                        if (t_grd.lt.t_old(box+1))then
+                            t_grd=t_old(box+1)
                         endif
-                        !      write(6,*) 'flanks1', m,t_grd, t_old(m+1),t_new(m+1)
+						!
+                        write(*,*) 'Entering subroutine: bndry_flanks'
                         call bndry_flanks( &
                             wrkqrho,wrkqpx,wrkqpy,wrkqpz, &
                             wrkqpresx,wrkqpresy,wrkqpresz, &
@@ -2163,12 +2106,12 @@ program multifluid
                             oldopresx,oldopresy,oldopresz, &
                             oldopresxy,oldopresxz,oldopresyz, &
                             oldepres,oldbx,oldby,oldbz,vvx, &
-                            nx,ny,nz,ngrd,m,t_old,t_new,t_grd, &
+                            nx,ny,nz,n_grids,box,t_old,t_new,t_grd, &
                             grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                             grd_zmin,grd_zmax)
                     endif
-                    if(m.le.mbndry)then
-                        !      write(6,*)'calling bndry inner'
+                    if(box.le.mbndry)then
+                        write(*,*)'Entering subroutine: bndry_inner'
                         call bndry_inner( &
                             wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                             wrkqpx,wrkqpy,wrkqpz,rmassq, &
@@ -2180,7 +2123,7 @@ program multifluid
                             wrkqpresxy,wrkqpresxz,wrkqpresyz, &
                             wrkhpresxy,wrkhpresxz,wrkhpresyz, &
                             wrkopresxy,wrkopresxz,wrkopresyz, &
-                            nx,ny,nz,ngrd,parm_srf,parm_mid,parm_zero, &
+                            nx,ny,nz,n_grids,parm_srf,parm_mid,parm_zero, &
                             ijsrf,numsrf,ijmid,nummid,ijzero,numzero, &
                             mbndry,msrf,mmid,mzero, &
                             erho,epress,alpha_e,ti_te,o_conc, &
@@ -2189,11 +2132,11 @@ program multifluid
                             grd_zmin,grd_zmax)
                     endif
                     !
-                    !      write(6,*)'lax 1 speeds'
+                    !      write(*,*)'lax 1 speeds'
                     !
-                    !     check fluid parameters
+                    !	Check fluid parameters
                     !
-                    if(spacecraft)then
+                    if(craft_input)then
                         call set_imf(wrkbx,wrkby,wrkbz,bx0,by0,bz0,bxp,byp,bzp, &
                             wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                             wrkqpx,wrkqpy,wrkqpz, &
@@ -2206,7 +2149,7 @@ program multifluid
                             wrkhpresxy,wrkhpresxz,wrkhpresyz, &
                             wrkopresxy,wrkopresxz,wrkopresyz, &
                             rhop,svxp,svyp,svzp,svelx,spress, &
-                            ti_te,rho_frac,nx,ny,nz,ngrd)
+                            ti_te,rho_frac,nx,ny,nz,n_grids)
                     endif
                     call set_rho(wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                         wrkqpresxy,wrkqpresxz,wrkqpresyz,rmassq, &
@@ -2214,9 +2157,9 @@ program multifluid
                         wrkhpresxy,wrkhpresxz,wrkhpresyz,rmassh, &
                         wrkorho,wrkopresx,wrkopresy,wrkopresz, &
                         wrkopresxy,wrkopresxz,wrkopresyz,rmasso, &
-                        wrkepres,nx,ny,nz,ngrd,m,o_conc)
+                        wrkepres,nx,ny,nz,n_grids,box,o_conc)
                     !
-                    vlim=0.6*m
+                    vlim=0.6*box
                     call set_speed_agrd( &
                         wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                         wrkqpx,wrkqpy,wrkqpz, &
@@ -2230,73 +2173,73 @@ program multifluid
                         wrkbx,wrkby,wrkbz,bx0,by0,bz0, &
                         bsx,bsy,bsz,btot, &
                         vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
-                        rmassq,rmassh,rmasso,nx,ny,nz,ngrd,m, &
+                        rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
                         pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
                         vlim,alf_lim,o_conc,fastest,isotropic)
                     !
                     !
-                    !      ***********************************************************
-                    !      lax-wendroff: step 2
-                    !            use the predicted value to find corrected value for n+1
-                    !      ***********************************************************
+                    !	***********************************************************
+                    !	Lax-Wendroff: Step 2
+                    !		Use the predicted value to find corrected value for n+1
+                    !	***********************************************************
                     !
                     if(tilting)then
-                        atilt=old_tilt+(t_old(m)+delt)*dtilt
+                        atilt=old_tilt+(t_old(box)+delt)*dtilt
                         sin_tilt=sin(atilt*.0174533)
                         cos_tilt=cos(atilt*.0174533)
-                        ut2=utold+(t_old(m)+delt)*t_equiv/3600.
+                        ut2=utold+(t_old(box)+delt)*t_equiv/3600.
                         nrot2=ut2/planet_per
                         rot_hr2=ut2-nrot2*planet_per
                         rot_angle=6.2832*rot_hr2/planet_per
-                        !         write(6,*)'mak_dip full with',t_old(m),delt
-                        call mak_dip_grd(bx0,by0,bz0,nx,ny,nz,ngrd, &
-                            mbndry,m,ijzero,numzero,mzero,rearth, &
+                        !         write(*,*)'mak_dip full with',t_old(box),delt
+                        call mak_dip_grd(bx0,by0,bz0,nx,ny,nz,n_grids, &
+                            mbndry,box,ijzero,numzero,mzero,rearth, &
                             grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                             grd_zmin,grd_zmax)
            
                     endif
-                    rx=xspac(m)
-                    ry=xspac(m)
-                    rz=xspac(m)
+                    rx=xspac(box)
+                    ry=xspac(box)
+                    rz=xspac(box)
                     !
-                    !     calculate standard mhd current j = curl b
+                    !     Calculate standard MHD current: j = curl B
                     !
-                    call calcur(wrkbx,wrkby,wrkbz,nx,ny,nz,ngrd,m,curx,cury,curz, &
+                    call calcur(wrkbx,wrkby,wrkbz,nx,ny,nz,n_grids,box,curx,cury,curz, &
                         rx,ry,rz)
                     !
-                    !     find total magnetic field
+                    !     Find total magnetic field
                     !
-                    call totfld(wrkbx,bx0,bsx,nx,ny,nz,ngrd,m)
-                    call totfld(wrkby,by0,bsy,nx,ny,nz,ngrd,m)
-                    call totfld(wrkbz,bz0,bsz,nx,ny,nz,ngrd,m)
+                    call totfld(wrkbx,bx0,bsx,nx,ny,nz,n_grids,box)
+                    call totfld(wrkby,by0,bsy,nx,ny,nz,n_grids,box)
+                    call totfld(wrkbz,bz0,bsz,nx,ny,nz,n_grids,box)
                     !
-                    !     find magnitude of b
+                    !     Find magnitude of B
                     !
                     call tot_b(btot,bsx,bsy,bsz,nx,ny,nz)
                     !
                     !
-                    !     find the  electric field from electron momentum eqn
+                    !     Find the electric field from electron momentum eqn
                     !
                     call fnd_evel(wrkqpx,wrkqpy,wrkqpz,wrkqrho, &
                         wrkhpx,wrkhpy,wrkhpz,wrkhrho, &
                         wrkopx,wrkopy,wrkopz,wrkorho, &
                         curx,cury,curz,evx,evy,evz, &
-                        tvx,tvy,tvz,nx,ny,nz,ngrd,m, &
+                        tvx,tvy,tvz,nx,ny,nz,n_grids,box, &
                         rmassq,rmassh,rmasso,reynolds)
-                    !c
+                    !
                     call bande(efldx,efldy,efldz,bsx,bsy,bsz, &
                         curx,cury,curz,evx,evy,evz,btot, &
                         wrkepres,wrkqrho,wrkhrho,wrkorho, &
                         resistive,resist,reynolds, &
-                        nx,ny,nz,ngrd,m,rmassq,rmassh,rmasso, &
+                        nx,ny,nz,n_grids,box,rmassq,rmassh,rmasso, &
                         ijmid,nummid,ijzero,mbndry,numzero,mmid,mzero, &
                         rx,ry,rz)
                     !
+                    write(*,*)'Entering subroutine: push_*, second pass'
                     call push_elec(epres,oldepres,wrkepres,evx,evy,evz, &
-                        gamma,gamma1,nx,ny,nz,ngrd,m,delt, &
+                        gamma,gamma1,nx,ny,nz,n_grids,box,delt, &
                         rx,ry,rz)
                     !
-                    !       write(6,*)' push ion 1 ing now'
                     call push_ion(qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
                         oldqrho,oldqpresx,oldqpresy,oldqpresz, &
                         oldqpx,oldqpy,oldqpz, &
@@ -2307,12 +2250,11 @@ program multifluid
                         wrkqpresxy,wrkqpresxz,wrkqpresyz, &
                         bsx,bsy,bsz,btot,efldx,efldy,efldz,rmassq, &
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
-                        nx,ny,nz,ngrd,m,delt,grav,re_equiv,reynolds, &
+                        nx,ny,nz,n_grids,box,delt,grav,re_equiv,reynolds, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                         grd_zmin,grd_zmax,ani_q,isotropic)
                     !
-                    !      write(6,*)' push ion 2 ing now'
-                    call push_ion(hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
+					call push_ion(hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
                         oldhrho,oldhpresx,oldhpresy,oldhpresz, &
                         oldhpx,oldhpy,oldhpz, &
                         wrkhrho,wrkhpresx,wrkhpresy,wrkhpresz, &
@@ -2322,11 +2264,10 @@ program multifluid
                         wrkhpresxy,wrkhpresxz,wrkhpresyz, &
                         bsx,bsy,bsz,btot,efldx,efldy,efldz,rmassh, &
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
-                        nx,ny,nz,ngrd,m,delt,grav,re_equiv,reynolds, &
+                        nx,ny,nz,n_grids,box,delt,grav,re_equiv,reynolds, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                         grd_zmin,grd_zmax,ani_h,isotropic)
                     !
-                    !       write(6,*)' push ion 3 ing now'
                     call push_ion(orho,opresx,opresy,opresz,opx,opy,opz, &
                         oldorho,oldopresx,oldopresy,oldopresz, &
                         oldopx,oldopy,oldopz, &
@@ -2337,24 +2278,21 @@ program multifluid
                         wrkopresxy,wrkopresxz,wrkopresyz, &
                         bsx,bsy,bsz,btot,efldx,efldy,efldz,rmasso, &
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
-                        nx,ny,nz,ngrd,m,delt,grav,re_equiv,reynolds, &
+                        nx,ny,nz,n_grids,box,delt,grav,re_equiv,reynolds, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                         grd_zmin,grd_zmax,ani_o,isotropic)
                     !
                     call push_bfld(bx,by,bz,oldbx,oldby,oldbz, &
-                        efldx,efldy,efldz,nx,ny,nz,ngrd,m,delt, &
+                        efldx,efldy,efldz,nx,ny,nz,n_grids,box,delt, &
                         rx,ry,rz)
                     !
+                    !    *****************************************
+                    !		     Apply boundary conditions
+                    !    *****************************************
                     !
-                    !     write(6,992)
-                    ! 992 format(' main 2nd lax loop now')
+                    write(*,*)'Entering second main Lax-Wendroff loop.'
                     !
-                    !     *************************************************************
-                    !     apply boundary conditions
-                    !     *************************************************************
-                    !
-                    !
-                    if(m.eq.ngrd) then
+                    if(box.eq.n_grids) then
                         call bndry_outer( &
                             qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
                             hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -2364,20 +2302,20 @@ program multifluid
                             hpresxy,hpresxz,hpresyz, &
                             opresxy,opresxz,opresyz, &
                             rmassq,rmassh,rmasso,bx,by,bz, &
-                            bx0,by0,bz0,nx,ny,nz,ngrd, &
+                            bx0,by0,bz0,nx,ny,nz,n_grids, &
                             srho,rho_frac,o_conc,spress,spx,spy,spz, &
                             sbx_wind,sby_wind,sbz_wind,ti_te,isotropic)
                     else
-                        t_grd=t_old(m)+delt
-                        if(t_grd.gt.t_new(m+1))then
-                            !        write(6,*)'warning on lax2 max',m,t_grd,t_new(m+1),
-                            !    +                         t_grd-t_new(m+1)
-                            t_grd=t_new(m+1)
+                        t_grd=t_old(box)+delt
+                        if(t_grd.gt.t_new(box+1))then
+                            !        write(*,*)'warning on lax2 max',box,t_grd,t_new(box+1),
+                            !    +                         t_grd-t_new(box+1)
+                            t_grd=t_new(box+1)
                         endif
-                        if (t_grd.lt.t_old(m+1))then
-                            t_grd=t_old(m+1)
+                        if (t_grd.lt.t_old(box+1))then
+                            t_grd=t_old(box+1)
                         endif
-                        !       write(6,*)'flanks2', m,t_grd, t_old(m+1),t_new(m+1)
+						!
                         call bndry_flanks( &
                             qrho,qpx,qpy,qpz, &
                             qpresx,qpresy,qpresz,qpresxy,qpresxz,qpresyz, &
@@ -2403,13 +2341,12 @@ program multifluid
                             oldopresx,oldopresy,oldopresz, &
                             oldopresxy,oldopresxz,oldopresyz, &
                             oldepres,oldbx,oldby,oldbz,vvx, &
-                            nx,ny,nz,ngrd,m,t_old,t_new,t_grd, &
+                            nx,ny,nz,n_grids,box,t_old,t_new,t_grd, &
                             grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                             grd_zmin,grd_zmax)
                     endif
                     !
-                    if(m.le.mbndry)then
-                        !       write(6,*)'calling bndry inner step 2'
+                    if(box.le.mbndry)then
                         call bndry_inner( &
                             qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz,rmassq, &
                             hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz,rmassh, &
@@ -2418,7 +2355,7 @@ program multifluid
                             qpresxy,qpresxz,qpresyz, &
                             hpresxy,hpresxz,hpresyz, &
                             opresxy,opresxz,opresyz, &
-                            nx,ny,nz,ngrd,parm_srf,parm_mid,parm_zero, &
+                            nx,ny,nz,n_grids,parm_srf,parm_mid,parm_zero, &
                             ijsrf,numsrf,ijmid,nummid,ijzero,numzero, &
                             mbndry,msrf,mmid,mzero, &
                             erho,epress,alpha_e,ti_te,o_conc, &
@@ -2427,7 +2364,7 @@ program multifluid
                             grd_zmin,grd_zmax)
                     endif
                     !
-                    if(spacecraft)then
+                    if(craft_input)then
                         call set_imf(bx,by,bz,bx0,by0,bz0,bxp,byp,bzp, &
                             qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
                             hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -2437,10 +2374,10 @@ program multifluid
                             hpresxy,hpresxz,hpresyz, &
                             opresxy,opresxz,opresyz, &
                             rhop,svxp,svyp,svzp,svelx,spress, &
-                            ti_te,rho_frac,nx,ny,nz,ngrd)
+                            ti_te,rho_frac,nx,ny,nz,n_grids)
                     endif
                     !
-                    !      write(6,*)'lax 2 speeds'
+                    !      write(*,*)'lax 2 speeds'
                     !
                     call set_rho(qrho,qpresx,qpresy,qpresz, &
                         qpresxy,qpresxz,qpresyz,rmassq, &
@@ -2448,9 +2385,9 @@ program multifluid
                         hpresxy,hpresxz,hpresyz,rmassh, &
                         orho,opresx,opresy,opresz, &
                         opresxy,opresxz,opresyz,rmasso, &
-                        epres,nx,ny,nz,ngrd,m,o_conc)
+                        epres,nx,ny,nz,n_grids,box,o_conc)
                     !
-                    vlim=0.6*m
+                    vlim=0.6*box
                     call set_speed_agrd( &
                         qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
                         hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -2459,28 +2396,28 @@ program multifluid
                         hpresxy,hpresxz,hpresyz,opresxy,opresxz,opresyz, &
                         bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz,btot, &
                         vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
-                        rmassq,rmassh,rmasso,nx,ny,nz,ngrd,m, &
+                        rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
                         pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
                         vlim,alf_lim,o_conc,fastest,isotropic)
-                    !     .......................................................
-                    !     try lapdius smoothing - smoothed results will appear in nt2
-                    !     .......................................................
+					!
+                    !     ...........................................................
+                    !     Try Lapidus smoothing - smoothed results will appear in nt2
+                    !     ...........................................................
                     !
-                    !     write(6,*)' doing smoothing okay'
-                    rx=xspac(m)
-                    ry=xspac(m)
-                    rz=xspac(m)
-                    !      write(6,*)'calling lapidus'
+                    !     write(*,*)' doing smoothing okay'
+                    rx=xspac(box)
+                    ry=xspac(box)
+                    rz=xspac(box)
+                    !      write(*,*)'calling lapidus'
                     !
+                    !     Lapidus smoothing
                     !
-                    !     lapidus smoothing
-                    !
-                    !      species 1
+                    !      species q
                     !
                     !     write(*,*)'lap ion1'
                     call fnd_vel(qpx,qpy,qpz,qrho, &
                         curx,cury,curz, &
-                        nx,ny,nz,ngrd,m)
+                        nx,ny,nz,n_grids,box)
                     call lap_plasma(qrho,qpx,qpy,qpz, &
                         qpresx,qpresy,qpresz, &
                         qpresxy,qpresxz,qpresyz, &
@@ -2488,15 +2425,15 @@ program multifluid
                         wrkqpresx,wrkqpresy,wrkqpresz, &
                         wrkqpresxy,wrkqpresxz,wrkqpresyz, &
                         curx,cury,curz, &
-                        nx,ny,nz,ngrd,m, &
+                        nx,ny,nz,n_grids,box, &
                         chirho,chipxyz,chierg,delt,isotropic)
                     !
-                    !     species 2
+                    !     species h
                     !
                     !     write(*,*)'lap ion2'
                     call fnd_vel(hpx,hpy,hpz,hrho, &
                         curx,cury,curz, &
-                        nx,ny,nz,ngrd,m)
+                        nx,ny,nz,n_grids,box)
                     call lap_plasma(hrho,hpx,hpy,hpz, &
                         hpresx,hpresy,hpresz, &
                         hpresxy,hpresxz,hpresyz, &
@@ -2504,15 +2441,15 @@ program multifluid
                         wrkhpresx,wrkhpresy,wrkhpresz, &
                         wrkhpresxy,wrkhpresxz,wrkhpresyz, &
                         curx,cury,curz, &
-                        nx,ny,nz,ngrd,m, &
+                        nx,ny,nz,n_grids,box, &
                         chirho,chipxyz,chierg,delt,isotropic)
                     !
-                    !     species 3
+                    !     species o
                     !
                     !     write(*,*)'lap ion3'
                     call fnd_vel(opx,opy,opz,orho, &
                         curx,cury,curz, &
-                        nx,ny,nz,ngrd,m)
+                        nx,ny,nz,n_grids,box)
                     call lap_plasma(orho,opx,opy,opz, &
                         opresx,opresy,opresz, &
                         opresxy,opresxz,opresyz, &
@@ -2520,7 +2457,7 @@ program multifluid
                         wrkopresx,wrkopresy,wrkopresz, &
                         wrkopresxy,wrkopresxz,wrkopresyz, &
                         curx,cury,curz, &
-                        nx,ny,nz,ngrd,m, &
+                        nx,ny,nz,n_grids,box, &
                         chirho,chipxyz,chierg,delt,isotropic)
                     !
                     !     electrons
@@ -2530,27 +2467,25 @@ program multifluid
                         hpx,hpy,hpz,hrho, &
                         opx,opy,opz,orho, &
                         curx,cury,curz, &
-                        nx,ny,nz,ngrd,m, &
+                        nx,ny,nz,n_grids,box, &
                         rmassq,rmassh,rmasso)
                     call lap_elec(epres,wrkepres, &
                         curx,cury,curz, &
-                        nx,ny,nz,ngrd,m, &
+                        nx,ny,nz,n_grids,box, &
                         chirho,chipxyz,chierg,delt)
                     !
-                    !     amgnetic field fields
+                    !     magnetic fields
                     !
                     !     write(*,*)'lap bfld'
                     call lap_bfld(bx,by,bz, &
                     wrkbx,wrkby,wrkbz, &
                         curx,cury,curz, &
-                        nx,ny,nz,ngrd,m, &
+                        nx,ny,nz,n_grids,box, &
                         chirho,chipxyz,chierg,delt)
-                        !
-                    !
                     !
                     !     reset boundary conditions
                     !
-                    if(m.eq.ngrd) then
+                    if(box.eq.n_grids) then
                         call bndry_outer( &
                             wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                             wrkqpx,wrkqpy,wrkqpz, &
@@ -2563,7 +2498,7 @@ program multifluid
                             wrkhpresxy,wrkhpresxz,wrkhpresyz, &
                             wrkopresxy,wrkopresxz,wrkopresyz, &
                             rmassq,rmassh,rmasso,wrkbx,wrkby,wrkbz, &
-                            bx0,by0,bz0,nx,ny,nz,ngrd, &
+                            bx0,by0,bz0,nx,ny,nz,n_grids, &
                             srho,rho_frac,o_conc,spress,spx,spy,spz, &
                             sbx_wind,sby_wind,sbz_wind,ti_te,isotropic)
                     else
@@ -2595,12 +2530,12 @@ program multifluid
                             oldopresx,oldopresy,oldopresz, &
                             oldopresxy,oldopresxz,oldopresyz, &
                             oldepres,oldbx,oldby,oldbz, vvx, &
-                            nx,ny,nz,ngrd,m,t_old,t_new,t_grd, &
+                            nx,ny,nz,n_grids,box,t_old,t_new,t_grd, &
                             grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                             grd_zmin,grd_zmax)
                     endif
-                    if(m.le.mbndry)then
-                        !       write(6,*)'calling bndry inner lap'
+                    if(box.le.mbndry)then
+                        !       write(*,*)'calling bndry inner lap'
                         call bndry_inner( &
                             wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                             wrkqpx,wrkqpy,wrkqpz,rmassq, &
@@ -2612,7 +2547,7 @@ program multifluid
                             wrkqpresxy,wrkqpresxz,wrkqpresyz, &
                             wrkhpresxy,wrkhpresxz,wrkhpresyz, &
                             wrkopresxy,wrkopresxz,wrkopresyz, &
-                            nx,ny,nz,ngrd,parm_srf,parm_mid,parm_zero, &
+                            nx,ny,nz,n_grids,parm_srf,parm_mid,parm_zero, &
                             ijsrf,numsrf,ijmid,nummid,ijzero,numzero, &
                             mbndry,msrf,mmid,mzero, &
                             erho,epress,alpha_e,ti_te,o_conc, &
@@ -2621,7 +2556,7 @@ program multifluid
                             grd_zmin,grd_zmax)
                     endif
                     !
-                    if(spacecraft)then
+                    if(craft_input)then
                         call set_imf(wrkbx,wrkby,wrkbz,bx0,by0,bz0,bxp,byp,bzp, &
                             wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                             wrkqpx,wrkqpy,wrkqpz, &
@@ -2634,7 +2569,7 @@ program multifluid
                             wrkhpresxy,wrkhpresxz,wrkhpresyz, &
                             wrkopresxy,wrkopresxz,wrkopresyz, &
                             rhop,svxp,svyp,svzp,svelx,spress, &
-                            ti_te,rho_frac,nx,ny,nz,ngrd)
+                            ti_te,rho_frac,nx,ny,nz,n_grids)
                     endif
                     call set_rho(wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                         wrkqpresxy,wrkqpresxz,wrkqpresyz,rmassq, &
@@ -2642,11 +2577,11 @@ program multifluid
                         wrkhpresxy,wrkhpresxz,wrkhpresyz,rmassh, &
                         wrkorho,wrkopresx,wrkopresy,wrkopresz, &
                         wrkopresxy,wrkopresxz,wrkopresyz,rmasso, &
-                        wrkepres,nx,ny,nz,ngrd,m,o_conc)
+                        wrkepres,nx,ny,nz,n_grids,box,o_conc)
                     !
-                    !      write(6,*)'lapidus speeds'
+                    !      write(*,*)'lapidus speeds'
                     !
-                    vlim=0.6*m
+                    vlim=0.6*box
                     call set_speed_agrd( &
                         wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                         wrkqpx,wrkqpy,wrkqpz, &
@@ -2660,20 +2595,17 @@ program multifluid
                         wrkbx,wrkby,wrkbz,bx0,by0,bz0, &
                         bsx,bsy,bsz,btot, &
                         vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
-                        rmassq,rmassh,rmasso,nx,ny,nz,ngrd,m, &
+                        rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
                         pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
                         vlim,alf_lim,o_conc,fastest,isotropic)
                     !
-                    !     write(6,994)
-                    ! 994 format(' lapidus done')
+                    write(*,*) 'Lapidus smoothing complete.'
                     !
+                    !     ....................................
+                    !     Add a little bit of flux correction:
+                    !     ....................................
                     !
-                    !     .......................................................
-                    !     add a little bit of flux correction  :
-                    !     ........................................................
-                    !
-                    !
-                    !       write(6,*)'flux correct starting'
+                    write(*,*)'Entering subroutine: flux_correct'
                     call flux_correct(qrho,qpresx,qpresy,qpresz, &
                     qpresxy,qpresxz,qpresyz,qpx,qpy,qpz, &
                         wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
@@ -2704,12 +2636,12 @@ program multifluid
                         epres,wrkepres,oldepres, &
                         bx,by,bz,wrkbx,wrkby,wrkbz, &
                         oldbx,oldby,oldbz,vvx,vvy,vvz, &
-                        nx,ny,nz,ngrd,m,difrho,diferg,xspac, &
+                        nx,ny,nz,n_grids,box,difrho,diferg,xspac, &
                         isotropic)
                     !
-                    !      set bndry conditions
+                    !      Set boundary conditions
                     !
-                    if(m.eq.ngrd) then
+                    if(box.eq.n_grids) then
                         call bndry_outer( &
                             qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
                             hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -2719,7 +2651,7 @@ program multifluid
                             hpresxy,hpresxz,hpresyz, &
                             opresxy,opresxz,opresyz, &
                             rmassq,rmassh,rmasso,bx,by,bz, &
-                            bx0,by0,bz0,nx,ny,nz,ngrd, &
+                            bx0,by0,bz0,nx,ny,nz,n_grids, &
                             srho,rho_frac,o_conc,spress,spx,spy,spz, &
                             sbx_wind,sby_wind,sbz_wind,ti_te,isotropic)
                     else
@@ -2751,14 +2683,13 @@ program multifluid
                             oldopresxy,oldopresxz,oldopresyz, &
                             oldepres, &
                             oldbx,oldby,oldbz, vvx, &
-                            nx,ny,nz,ngrd,m,t_old,t_new,t_grd, &
+                            nx,ny,nz,n_grids,box,t_old,t_new,t_grd, &
                             grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                             grd_zmin,grd_zmax)
                     endif
-           
                     !
-                    if(m.le.mbndry)then
-                        !       write(6,*)'calling bndry inner'
+                    if(box.le.mbndry)then
+                        !       write(*,*)'calling bndry inner'
                         call bndry_inner( &
                             qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz,rmassq, &
                             hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz,rmassh, &
@@ -2767,7 +2698,7 @@ program multifluid
                             qpresxy,qpresxz,qpresyz, &
                             hpresxy,hpresxz,hpresyz, &
                             opresxy,opresxz,opresyz, &
-                            nx,ny,nz,ngrd,parm_srf,parm_mid,parm_zero, &
+                            nx,ny,nz,n_grids,parm_srf,parm_mid,parm_zero, &
                             ijsrf,numsrf,ijmid,nummid,ijzero,numzero, &
                             mbndry,msrf,mmid,mzero, &
                             erho,epress,alpha_e,ti_te,o_conc, &
@@ -2776,10 +2707,10 @@ program multifluid
                             grd_zmin,grd_zmax)
                         !
                     endif   ! end mbndry
-           
-                    if(spacecraft)then
+           			!
+                    if(craft_input)then
                         call set_imf(bx,by,bz,bx0,by0,bz0,bxp,byp,bzp, &
-                        qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
+                        	qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
                             hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
                             orho,opresx,opresy,opresz,opx,opy,opz, &
                             rmassq,rmassh,rmasso,epres, &
@@ -2787,10 +2718,10 @@ program multifluid
                             hpresxy,hpresxz,hpresyz, &
                             opresxy,opresxz,opresyz, &
                             rhop,svxp,svyp,svzp,svelx,spress, &
-                            ti_te,rho_frac,nx,ny,nz,ngrd)
+                            ti_te,rho_frac,nx,ny,nz,n_grids)
                     endif
                     !
-                    !      write(6,*)'fcsmooth speeds'
+                    !      write(*,*)'fcsmooth speeds'
                     !
                     call set_rho(qrho,qpresx,qpresy,qpresz, &
                         qpresxy,qpresxz,qpresyz,rmassq, &
@@ -2798,9 +2729,9 @@ program multifluid
                         hpresxy,hpresxz,hpresyz,rmassh, &
                         orho,opresx,opresy,opresz, &
                         opresxy,opresxz,opresyz,rmasso, &
-                        epres,nx,ny,nz,ngrd,m,o_conc)
+                        epres,nx,ny,nz,n_grids,box,o_conc)
                     !
-                    vlim=0.6*m
+                    vlim=0.6*box
                     call set_speed_agrd( &
                         qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
                         hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -2809,18 +2740,17 @@ program multifluid
                         hpresxy,hpresxz,hpresyz,opresxy,opresxz,opresyz, &
                         bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz,btot, &
                         vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
-                        rmassq,rmassh,rmasso,nx,ny,nz,ngrd,m, &
+                        rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
                         pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
                         vlim,alf_lim,o_conc,fastest,isotropic)
-
-                        t_stepnew(m)=stepsz*xspac(m)/fastest
-                    !     write(6,*)'needed step of',t_step(m),t_stepnew(m)
-                    !
+					!
+                    t_stepnew(box)=stepsz*xspac(box)/fastest
+                    !     write(*,*)'needed step of',t_step(box),t_stepnew(box)
                     !
                     !     sync time steps if needed and apply core conditions
                     !
-                    if(m.lt.ngrd)then
-                        if(abs(t_new(m)-t_new(m+1)).le.0.005*t_step(m))then
+                    if(box.lt.n_grids)then
+                        if(abs(t_new(box)-t_new(box+1)).le.0.005*t_step(box))then
                             call bndry_corer( &
                                 qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
                                 hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -2829,27 +2759,24 @@ program multifluid
                                 qpresxy,qpresxz,qpresyz, &
                                 hpresxy,hpresxz,hpresyz, &
                                 opresxy,opresxz,opresyz, &
-                                nx,ny,nz,ngrd,m, &
+                                nx,ny,nz,n_grids,box, &
                                 grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                                 grd_zmin,grd_zmax)
-                            !         write(6,*)'corer',m,t_new(m),m+1,t_new(m+1)
-                            t_old(m+1)=t_new(m+1)
+                            !         write(*,*)'corer',box,t_new(box),box+1,t_new(box+1)
+                            t_old(box+1)=t_new(box+1)
                         endif
                     endif
                     !
                     !
                     !
-                endif   !yes_step of main gri
-            enddo   ! lores box increment
-        enddo    ! box sweep of lores grid            
+                endif	!	yes_step of main grid
+            enddo	!	lores box increment
+        enddo	!	box sweep of lores grid            
         !
-        !
-        !    final sync on boundary conditions
-        !
+        write(*,*) 'Final sync on boundary conditions.'
         t_old(1)=t_new(1)
         !
-        !     write(6,*)'final bndry__core'
-        do m=1,ngrd-1
+        do box=1,n_grids-1
             call bndry_corer( &
                 qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
                 hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -2858,7 +2785,7 @@ program multifluid
                 qpresxy,qpresxz,qpresyz, &
                 hpresxy,hpresxz,hpresyz, &
                 opresxy,opresxz,opresyz, &
-                nx,ny,nz,ngrd,m, &
+                nx,ny,nz,n_grids,box, &
                 grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                 grd_zmin,grd_zmax)
             !
@@ -2868,25 +2795,25 @@ program multifluid
                 hpresxy,hpresxz,hpresyz,rmassh, &
                 orho,opresx,opresy,opresz, &
                 opresxy,opresxz,opresyz,rmasso, &
-                epres,nx,ny,nz,ngrd,m,o_conc)
-                t_old(m)=t_old(m-1)
-                t_new(m)=t_new(m-1)
+                epres,nx,ny,nz,n_grids,box,o_conc)
+                t_old(box)=t_old(box-1)
+                t_new(box)=t_new(box-1)
             !
         enddo
-      
-        !     write(6,*)'end loop 999'
+		!
+        !     write(*,*)'end loop 999'
         !
-        !     write(6,999)t
+        !     write(*,999)t
         ! 999 format(' step 2 complete at t= ',1pe12.5)
         !
-        if(t.ge.tgraf) then
+        if(t.ge.tgraph) then
             !
             !     plot plasma propeties
             !
             !      calculate size of plotting stuff and ensure no distortions
             !         over desired scales
             !
-            519  write(6,*)'graphics plotted'
+            519  write(*,*)'graphics plotted'
             call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
                 qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
                 hrho,hpresx,hpresy,hpresz,hpresxy, &
@@ -2896,14 +2823,14 @@ program multifluid
                 epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
                 curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
                 tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
-                nx,ny,nz,ngrd,xspac, &
+                nx,ny,nz,n_grids,xspac, &
                 cross,along,flat,xcraft,ncraft,re_equiv, &
                 grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
                 grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv)
             !
-            tgraf=tgraf+deltg
-        endif !if(t.ge.tgraf)
-
+            tgraph=tgraph+deltg
+        endif !if(t.ge.tgraph)
+		!
         if(t.ge.tinj.and.ringo) then
             !
             !     inject torus plasma
@@ -2911,30 +2838,30 @@ program multifluid
             !      calculate size of plotting stuff and ensure no distortions
             !         over desired scales
             !
-            write(6,*) 'injecting plasma torus ...'
-
+            write(*,*) 'injecting plasma torus ...'
+			!
             !
             ! check for enceladus plasma torus additions
             !
-            m=1
-            dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-            dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-            dz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+            box=1
+            dx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+            dy=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+            dz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
             !
             tot_o=0.
             tot_h=0.
             tot_q=0.
-                
-            call totfld(bx,bx0,bsx,nx,ny,nz,ngrd,m)
-            call totfld(by,by0,bsy,nx,ny,nz,ngrd,m)
-            call totfld(bz,bz0,bsz,nx,ny,nz,ngrd,m)
+            !
+            call totfld(bx,bx0,bsx,nx,ny,nz,n_grids,box)
+            call totfld(by,by0,bsy,nx,ny,nz,n_grids,box)
+            call totfld(bz,bz0,bsz,nx,ny,nz,n_grids,box)
             !
             do k=1,nz
-                az=(grd_zmin(m)+dz*(k-1)-zdip)
+                az=(grd_zmin(box)+dz*(k-1)-zdip)
                 do j=1,ny
-                    ay=grd_ymin(m)+dy*(j-1)-ydip
+                    ay=grd_ymin(box)+dy*(j-1)-ydip
                     do i=1,nx
-                        ax=(grd_xmin(m)+dx*(i-1)-xdip)
+                        ax=(grd_xmin(box)+dx*(i-1)-xdip)
                         !
                         rx=ax*re_equiv
                         ry=ay*re_equiv
@@ -2947,7 +2874,7 @@ program multifluid
                         !
                         ar_encel=sqrt(ax**2+ay**2)*re_equiv
                         dr_encel=abs(ar_encel -lunar_dist)
-  
+  						!
                         ! MAT - Corrected, according to 
                         !   doi:10.1029/2009JE003372
                         !   and
@@ -2959,51 +2886,50 @@ program multifluid
                             zscale=exp(-((az*re_equiv)/(0.5*torus_rad))**2)
                             abtot=(bsx(i,j,k)**2+bsy(i,j,k)**2)/bsz(i,j,k)**2
                             dscale=amax1(0.,1.-10.*abtot)
-                             
                             !
                             ! Inject W+ (O+,OH+,H2O+,H3O+)
                             !
                             hden=den_lunar*rmassh*rscale*zscale*dscale
-                            hrho(i,j,k,m)=hrho(i,j,k,m)+hden
+                            hrho(i,j,k,box)=hrho(i,j,k,box)+hden
                             !temp goes as rho*v**2
                             del_hp=hden*(corotate**2)*t_torus
-                            hpresx(i,j,k,m)=hpresx(i,j,k,m)+del_hp
-                            hpresy(i,j,k,m)=hpresy(i,j,k,m)+del_hp
-                            hpresz(i,j,k,m)=hpresz(i,j,k,m)+del_hp*aniso_factor
-                            hpresxy(i,j,k,m)=hpresxy(i,j,k,m)+del_hp
-
-                            hpx(i,j,k,m)=hpx(i,j,k,m)+reduct*hden*rvx
-                            hpy(i,j,k,m)=hpy(i,j,k,m)+reduct*hden*rvy
+                            hpresx(i,j,k,box)=hpresx(i,j,k,box)+del_hp
+                            hpresy(i,j,k,box)=hpresy(i,j,k,box)+del_hp
+                            hpresz(i,j,k,box)=hpresz(i,j,k,box)+del_hp*aniso_factor
+                            hpresxy(i,j,k,box)=hpresxy(i,j,k,box)+del_hp
+							!
+                            hpx(i,j,k,box)=hpx(i,j,k,box)+reduct*hden*rvx
+                            hpy(i,j,k,box)=hpy(i,j,k,box)+reduct*hden*rvy
                             !
                             ! Inject H+ 
                             !
                             qden=0.0731*hden*rmassq/rmassh 
-                            qrho(i,j,k,m)=qrho(i,j,k,m)+qden
+                            qrho(i,j,k,box)=qrho(i,j,k,box)+qden
                             !temp goes as v**2
                             del_qp=(qden/rmassq)*(corotate**2)*t_torus
-                            qpresx(i,j,k,m)=qpresx(i,j,k,m)+del_qp
-                            qpresy(i,j,k,m)=qpresy(i,j,k,m)+del_qp
-                            qpresz(i,j,k,m)=qpresz(i,j,k,m)+del_qp*aniso_factor
-                            qpresxy(i,j,k,m)=qpresxy(i,j,k,m)+del_qp
-                                
-                            qpx(i,j,k,m)=qpx(i,j,k,m)+reduct*qden*rvx
-                            qpy(i,j,k,m)=qpy(i,j,k,m)+reduct*qden*rvy
+                            qpresx(i,j,k,box)=qpresx(i,j,k,box)+del_qp
+                            qpresy(i,j,k,box)=qpresy(i,j,k,box)+del_qp
+                            qpresz(i,j,k,box)=qpresz(i,j,k,box)+del_qp*aniso_factor
+                            qpresxy(i,j,k,box)=qpresxy(i,j,k,box)+del_qp
+                            !
+                            qpx(i,j,k,box)=qpx(i,j,k,box)+reduct*qden*rvx
+                            qpy(i,j,k,box)=qpy(i,j,k,box)+reduct*qden*rvy
                             !
                             ! Inject O2+ 
                             !
                             oden=1.93E-3*hden*rmasso/rmassh 
-                            orho(i,j,k,m)=orho(i,j,k,m)+oden
-                            !temp goes as v**2
+                            orho(i,j,k,box)=orho(i,j,k,box)+oden
+                            !	temp goes as v**2
                             del_op=(oden/rmasso)*(corotate**2)*t_torus    
-                            opresx(i,j,k,m)=opresx(i,j,k,m)+del_op
-                            opresy(i,j,k,m)=opresy(i,j,k,m)+del_op
-                            opresz(i,j,k,m)=opresz(i,j,k,m)+del_op*aniso_factor
-                            opresxy(i,j,k,m)=opresxy(i,j,k,m)+del_op
+                            opresx(i,j,k,box)=opresx(i,j,k,box)+del_op
+                            opresy(i,j,k,box)=opresy(i,j,k,box)+del_op
+                            opresz(i,j,k,box)=opresz(i,j,k,box)+del_op*aniso_factor
+                            opresxy(i,j,k,box)=opresxy(i,j,k,box)+del_op
 
-                            opx(i,j,k,m)=opx(i,j,k,m)+reduct*oden*rvx
-                            opy(i,j,k,m)=opy(i,j,k,m)+reduct*oden*rvy
-                            ! equal temps
-                            epres(i,j,k,m)=epres(i,j,k,m)+(del_op+del_hp+del_qp)
+                            opx(i,j,k,box)=opx(i,j,k,box)+reduct*oden*rvx
+                            opy(i,j,k,box)=opy(i,j,k,box)+reduct*oden*rvy
+                            !	equal temps
+                            epres(i,j,k,box)=epres(i,j,k,box)+(del_op+del_hp+del_qp)
                             !
                             tot_q=tot_q+qden*dx*dy*dz
                             tot_h=tot_h+hden*dx*dy*dz
@@ -3019,18 +2945,18 @@ program multifluid
             volume=(re_equiv*planet_rad*1.e3)**3  !(cubic meters)
             atime=deltinj*t_equiv
             proton_mass=1.67e-27
-            write(6,*)'volume,t_equiv,atime',ut,volume,t_equiv,atime
+            write(*,*)'volume,t_equiv,atime',ut,volume,t_equiv,atime
             !
             tot_q=tot_q*volume/atime*rho_equiv*1.e6/rmassq
             tot_h=tot_h*volume/atime*rho_equiv*1.e6/rmassh
             tot_o=tot_o*volume/atime*rho_equiv*1.e6/rmasso
-            write(6,*)'tot torus ions/s',ut,tot_q,tot_h,tot_o
+            write(*,*)'tot torus ions/s',ut,tot_q,tot_h,tot_o
             write(10,*)'tot torus ions/s',ut,tot_q,tot_h,tot_o
             !
             tot_q=tot_q*proton_mass*rmassq
             tot_h=tot_h*proton_mass*rmassh
             tot_o=tot_o*proton_mass*rmasso
-            write(6,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
+            write(*,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
             write(10,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
             !
             
@@ -3101,29 +3027,29 @@ program multifluid
             !
             if(divb_lores)then
                 range=1.33*lunar_dist/re_equiv
-                write(6,*)'range for divb taper',lunar_dist,range
-                do m=ngrd,1,-1
-                    write(6,*)'divb on box',m
+                write(*,*)'Range for divb taper: ',lunar_dist,range
+                do box=n_grids,1,-1
+                    write(*,*)'divb on box: ',box
                     call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
                         curx,cury,curz,efldx,efldy,efldz, &
-                        7,nx*ny*nz,nx,ny,nz,ngrd,m,xspac)
+                        7,nx*ny*nz,nx,ny,nz,n_grids,box,xspac)
                     call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
                         curx,cury,curz,efldx,efldy,efldz, &
-                        7,nx*ny*nz,nx,ny,nz,ngrd,m,xspac)
-                    write(6,*)'completed divb on box',m
-                enddo !end m loop
+                        7,nx*ny*nz,nx,ny,nz,n_grids,box,xspac)
+                    write(*,*)'Completed divb on box: ',box
+                enddo !end box loop
                 !
                 !        apply bndry conditions
                 !
-                do m=ngrd-1,1,-1
-                    call flanks_synced(bx,nx,ny,nz,ngrd,m, &
+                do box=n_grids-1,1,-1
+                    call flanks_synced(bx,nx,ny,nz,n_grids,box, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-                    call flanks_synced(by,nx,ny,nz,ngrd,m, &
+                    call flanks_synced(by,nx,ny,nz,n_grids,box, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-                    call flanks_synced(bz,nx,ny,nz,ngrd,m, &
+                    call flanks_synced(bz,nx,ny,nz,n_grids,box, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
                 enddo
-                do m=1,ngrd-1
+                do box=1,n_grids-1
                     call bndry_corer( &
                         qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
                         hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -3132,7 +3058,7 @@ program multifluid
                         qpresxy,qpresxz,qpresyz, &
                         hpresxy,hpresxz,hpresyz, &
                         opresxy,opresxz,opresyz, &
-                        nx,ny,nz,ngrd,m, &
+                        nx,ny,nz,n_grids,box, &
                         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
                 enddo  !end bndry_corer
             endif  ! end divb_lores
