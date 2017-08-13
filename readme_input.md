@@ -1,11 +1,11 @@
 ﻿NOTE: many of these pre-date me (MAT), and I never updated the var names - confusion expected
  
 $ option
-tmax - duration in seconds of physical time for single call to executable
-ntgraf - number of gmeta frames for each var during tmax run
+tmax - duration in units of t_equiv of physical time for single call to executable
+ntgraph - number of gmeta frames for each var during tmax run
 stepsz - upper limit to solution timestep (can drive instability, try lowering this until stable)
 start - true for new run, false if continuing with input fluid files
-tsave - duration in seconds per fluid file (number of fluid files * tsave should = tmax, above)
+tsave - duration in units of t_equiv per fluid file (number of fluid files * tsave should = tmax, above)
 isotropic - deprecated after splitting code into two versions (can be removed/ignored)
  
  
@@ -74,7 +74,8 @@ re_equiv - fraction of planetary radius in single grid point in innermost grid
 b_equiv - magnetic field normalization factor (obtained from next two norms + alfven speed def)
 v_equiv - velocity normalization factor (chosen to keep calculations near unity)
 rho_equiv - density normalization factor (chosen to keep calculations near unity)
-spacecraft - conditional to read in spacecraft data (unused in my code)
+spacecraft - conditional to record spacecraft data (unused in my code)
+craft_input - conditional to use spacecraft data as physical inputs for sims
 warp - conditional related to spacecraft data (unused in my code)
 utstart - time offset for start (related to spacecraft data, unused in my code)
  
