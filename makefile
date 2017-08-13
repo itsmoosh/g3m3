@@ -7,7 +7,7 @@ FCFLAGS += -liomp5 -g -traceback
 FILES = code/*.f90
 LIBS = -L/opt/intel/composer_xe_2013/lib/intel64
 
-saturn.x: $(OBJECTS)
+master.x: $(OBJECTS)
 	$(FC) $(FCFLAGS) -o master.x $(FILES)
 
 clean:
