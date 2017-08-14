@@ -73,12 +73,11 @@ program multifluid
     xspac(n_grids)
     !
     !
-    !    grid limits are set by grd_min grd_max arrays
-    !    xspac is the relative grid spacing, relative to inner grid system
+    !	Grid limits are set by grd_min grd_max arrays
+    !	xspac is the relative grid spacing, relative to inner grid system
+	!	*****************************************************************
 	!
-	!	******************************************************************
-	!
-    !    physics plasma quantities: main grid
+    !	Physics plasma quantities: Main grid
     !
     real bx(nx,ny,nz,n_grids),by(nx,ny,nz,n_grids),bz(nx,ny,nz,n_grids), &
     qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids),qpz(nx,ny,nz,n_grids), &
@@ -876,7 +875,7 @@ program multifluid
         ijzero,numzero,ijmid,nummid,ijsrf,numsrf
         close(nchf)
         !
-        !      Check for div b errors
+        !	Check for div b errors
         !
         if(divb_lores)then
             range=1.33*lunar_dist/re_equiv
@@ -892,7 +891,7 @@ program multifluid
                 write(*,*)'Completed divb on box: ',box
             enddo !end box loop
             !
-            !        Apply boundary conditions
+            !	Apply boundary conditions
             !
             do box=n_grids-1,1,-1
                 call flanks_synced(bx,nx,ny,nz,n_grids,box, &
@@ -1184,8 +1183,8 @@ program multifluid
             write(*,*)box,numsrf(box),nummid(box),numzero(box)
         enddo
         !
-        !     initialize solar wind plasa can be placed beyond
-        !       the earth at a radius of re_wind
+        !	Initialize solar wind plasma. ?[Can be placed beyond
+        !		the earth at a radius of re_wind.]?
         !
         wind_bnd=r_rot/re_equiv
         ofrac=rho_frac
@@ -1346,22 +1345,20 @@ program multifluid
         enddo
     endif ! if(.not.start) then
     !
-    !     initialized other important stuff
+    !	Initialize other important stuff
     !
     ut=utstart+t*t_equiv/3600.
     nrot=ut/planet_per
     rot_hrs=ut-nrot*planet_per
     rot_angle=6.2832*rot_hrs/planet_per
     !
-    !     initialize plasma resistivity
+    !	Initialize plasma resistivity
     !
     call set_resist(resistive,nx,ny,nz,mbndry,resist, &
         ijzero,numzero,ijmid,nummid,ijsrf,numsrf, &
         msrf,mmid,mzero,1.)
     !
-    !     read down relevant data list to find correct pointer
     !
-	!
 	!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	!		@		INITIALIZE SPACECRAFT FILES		@
 	!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -1369,7 +1366,7 @@ program multifluid
 	!
     if(spacecraft)then
         !
-        !      read down data file until correct time in data file
+        !	Open and go to end of .dat files for each craft
         !
         do n=1,ncraft
 			recording(n)=.true.
@@ -1483,13 +1480,17 @@ program multifluid
                     ncount(j,k)=nc
                     avx=svxf(j,k)
                     !
-                    !      calculate delay
+                    !	Calculate delay
                     !
                     if(warp)then
+						stop
+						exit
+						!	'warp' is not implemented.
                         b_perp=sqrt(bzf(j,k)**2+byf(j,k)**2)
                         b_perp=amax1(b_perp,0.33*abs(bxf(j,k)))
-                        ay=grd_ymin(m)+dy*(j-1)-rcraft(2)/re_equiv
-                        az=grd_zmin(m)+dz*(k-1)-rcraft(3)/re_equiv
+						!	WARNING: This is not in a loop over 'box'.
+						ay=grd_ymin(box)+dy*(j-1)-rcraft(2)/re_equiv
+                        az=grd_zmin(box)+dz*(k-1)-rcraft(3)/re_equiv
                         !
                         !       Assuming Bz IMF is positive on average 
 						!			and that we can ignore transients
@@ -1503,16 +1504,18 @@ program multifluid
             enddo
         enddo
         !
-        call set_imf(bx,by,bz,bx0,by0,bz0,bxp,byp,bzp, &
-            qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
-            hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
-            orho,opresx,opresy,opresz,opx,opy,opz, &
-            rmassq,rmassh,rmasso,epres, &
-            qpresxy,qpresxz,qpresyz, &
-            hpresxy,hpresxz,hpresyz, &
-            opresxy,opresxz,opresyz, &
-            rhop,svxp,svyp,svzp,svelx,spress, &
-            ti_te,rho_frac,nx,ny,nz,n_grids)
+		if(craft_input)then
+		    call set_imf(bx,by,bz,bx0,by0,bz0,bxp,byp,bzp, &
+		        qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
+		        hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
+		        orho,opresx,opresy,opresz,opx,opy,opz, &
+		        rmassq,rmassh,rmasso,epres, &
+		        qpresxy,qpresxz,qpresyz, &
+		        hpresxy,hpresxz,hpresyz, &
+		        opresxy,opresxz,opresyz, &
+		        rhop,svxp,svyp,svzp,svelx,spress, &
+		        ti_te,rho_frac,nx,ny,nz,n_grids)
+		endif
     endif   ! end spacecraft if
     !
     !     check initial conditions
@@ -1550,10 +1553,10 @@ program multifluid
             rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
             pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
             vlim,alf_lim,o_conc,fastest,isotropic)
-        write(*,195)m,csmax,alfmax,pxmax,pymax,pzmax
+        write(*,195)box,csmax,alfmax,pxmax,pymax,pzmax
         195   format(1x,i2,5(1x,1pe12.5))
         !
-        t_stepnew(m)=stepsz*xspac(m)/fastest
+        t_stepnew(box)=stepsz*xspac(box)/fastest
     enddo
     write(*,*)'Speeds checked.'
     !
@@ -1655,7 +1658,7 @@ program multifluid
         write(3,*) flux_header
         do box=n_grids,1,-1
             scale=rho_equiv*v_equiv*1.e5* &
-            (xspac(m)*planet_rad*re_equiv*1.e5)**2
+            (xspac(box)*planet_rad*re_equiv*1.e5)**2
 	        !	calculate flux from torus
             call flux_counter(qpx,qpy,qpz,hpx,hpy,hpz, &
                 opx,opy,opz,nx,ny,nz,n_grids,box, &
@@ -1871,7 +1874,7 @@ program multifluid
             do box=n_grids,1,-1
                 !
                 !	Test if grid sector needs to be moved in time
-                !
+				!
                 yes_step=.false.
                 !
                 if(box.eq.1)then
@@ -2775,7 +2778,7 @@ program multifluid
             enddo	!	lores box increment
         enddo	!	box sweep of lores grid            
         !
-        write(*,*) 'Final sync on boundary conditions.'
+        !write(*,*) 'Final sync on boundary conditions.'
         t_old(1)=t_new(1)
         !
         do box=1,n_grids-1
