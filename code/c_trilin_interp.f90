@@ -11,9 +11,7 @@ subroutine trilin_interp(sxyz,gridpts,qty,sdata)
 	real, intent(in) :: sxyz(3), gridpts(3,2), qty(2,2,2)
 	real, intent(out) :: sdata
 	!
-	real :: x0=gridpts(1,1), x1=gridpts(1,2)
-	real :: y0=gridpts(2,1), y1=gridpts(2,2)
-	real :: z0=gridpts(3,1), z1=gridpts(3,2)
+	real x0, x1, y0, y1, z0, z1
 	!
 	!	We interpolate between corners to approximate x-parallel edge values
 	real edge00, edge01, edge10, edge11
@@ -21,6 +19,15 @@ subroutine trilin_interp(sxyz,gridpts,qty,sdata)
 	real face0, face1
 	!
 	real xd, yd, zd
+	!
+	!	**********************************
+	!
+	x0=gridpts(1,1)
+	x1=gridpts(1,2)
+	y0=gridpts(2,1)
+	y1=gridpts(2,2)
+ 	z0=gridpts(3,1)
+	z1=gridpts(3,2)
 	!
 	!	Find % of the way from pt. 0 to pt. 1 for each axis
 	xd = (sxyz(1) - x0)/(x1 - x0)

@@ -37,12 +37,9 @@ program multifluid
 	!	*******************
 	!	Critical parameters
 	!	*******************
-		integer,parameter :: nx=121,ny=121,nz=61,n_grids=5,division=2 &
+		integer,parameter :: nx=121,ny=121,nz=61,n_grids=5,division=2, &
 		mbndry=1,msrf=2000,mmid=1500,mzero=5000, &
-		ncts=281, num_pts(3)
-		num_pts(1) = nx
-		num_pts(2) = ny
-		num_pts(3) = nz
+		ncts=281, num_pts(3)=[nx,ny,nz]
 		!
 	!
 	!	********************
@@ -107,7 +104,7 @@ program multifluid
 		!		1-29	Top-level I/O, fluid files, primary output data, etc
 		!		30-59	Spacecraft position/trajectory input files
 		!		60-89	Spacecraft data recording
-		integer,parameter :: scin=30,scout=60
+		integer,parameter :: scin=30, scout=60
 		character,parameter :: tab=char(9)
 		character*120,parameter :: dat_header='time'//tab//'xpos'//tab// &
 		'ypos'//tab//'zpos'//tab//'Bxval'//tab//'Byval'//tab//'Bzval'//'temp'
@@ -1991,7 +1988,7 @@ program multifluid
 					if(craft_gridpt(1,n) .le. 0) then
 						recording(n) = .false.
 						close(scout+n)
-						write(*,*) 'Gridding problem with craft ',craftnames(n) &
+						write(*,*) 'Gridding problem with craft ',craftnames(n), &
 						'at UT = ',ut,' Future points skipped.'
 						cycle
 					endif
@@ -2031,7 +2028,7 @@ program multifluid
 				endif	!end if(time to record)
             enddo
             !
-			if(craft_input)
+			if(craft_input) then
 		    	!	Perhaps we should call limcraft on the craftpos values when we read them in.
 				!	Then, we won't need to call limcraft repeatedly during time stepping.	MJS 08/13/17
 		        call limcraft(xcraft,ncraft,re_equiv,n_grids, &

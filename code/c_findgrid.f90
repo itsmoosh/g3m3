@@ -24,13 +24,13 @@ subroutine findgrid(xyz,n_grids,grid_minvals,grid_maxvals,num_pts,craft_gridpt)
 		endif
 	enddo
 	!
-	if(craft_grdpt(4).eq.0) then
+	if(craft_gridpt(4).eq.0) then
 		write(*,*) 'Craft outside of grid limits.'
-		craft_grdpt(1) = 0
+		craft_gridpt(1) = 0
 	else
 		!
 		do axis=1,3
-			grid_spacing = ( grid_maxvals(axis,craft_grdpt(4)) - grid_minvals(axis,craft_grdpt(4)) ) / num_pts(axis)
+			grid_spacing = ( grid_maxvals(axis,craft_gridpt(4)) - grid_minvals(axis,craft_gridpt(4)) ) / num_pts(axis)
 			delta_pos = xyz(axis) - grid_minvals(axis,craft_gridpt(4))
 			craft_gridpt(axis) = 1 + int(delta_pos/grid_spacing)
 		enddo
