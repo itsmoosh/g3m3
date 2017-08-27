@@ -386,8 +386,8 @@ subroutine set_speed_agrd( &
     pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
     vlim,alf_lim,o_conc,fastest,isotropic)
     !
-    !    checks for minimum rho and negative pressure
-    !     and resets value if necessary
+    !	Checks for minimum rho and negative pressure
+    !		and resets value if necessary
     !
     dimension qrho(nx,ny,nz,ngrd),qpresx(nx,ny,nz,ngrd), &
     qpresy(nx,ny,nz,ngrd),qpresz(nx,ny,nz,ngrd), &
@@ -420,7 +420,7 @@ subroutine set_speed_agrd( &
     rx,ry,rz,xdip,ydip,zdip,rearth,b0, &
     sin_tilt,cos_tilt
     !
-    !      determine speeds on the code and changes accordingly
+    !	Determine speeds on the code and changes accordingly
     !
     fastest=0.
     !
@@ -671,7 +671,7 @@ subroutine set_speed_agrd( &
         enddo
     enddo
     !
-    !     do electron pressure and alfven speed
+    !	Do electron pressure and alfven speed
     !
     call qvset(0.,bsx,nx*ny*nz)
     call qvset(0.,bsy,nx*ny*nz)
@@ -681,7 +681,7 @@ subroutine set_speed_agrd( &
     call totfld(by,by0,bsy,nx,ny,nz,ngrd,m)
     call totfld(bz,bz0,bsz,nx,ny,nz,ngrd,m)
     !
-    !      find magnitude of b
+    !	Find magnitude of b
     !
     call tot_b(btot,bsx,bsy,bsz,nx,ny,nz)
     !
@@ -706,7 +706,7 @@ subroutine set_speed_agrd( &
                 ip=i+1
                 im=i-1
                 !
-                !       electron pressure
+                !	Electron pressure
 				!
                 arho=qrho(i,j,k,m)+hrho(i,j,k,m)+orho(i,j,k,m)+1.e-5
                 cs=sqrt(epres(i,j,k,m)/arho)
@@ -714,7 +714,7 @@ subroutine set_speed_agrd( &
                     epres(i,j,k,m)=epres(i,j,k,m)*cslim/cs
                 endif
                 !
-                !       find alfven speed
+                !	Find alfven speed
                 !
                 abfld=sqrt(bsx(i,j,k)**2+bsy(i,j,k)**2 &
                 +bsz(i,j,k)**2)
