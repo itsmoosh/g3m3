@@ -475,8 +475,9 @@ program multifluid
 		!grd_zmin(i) = -limit/2*xspac(i)
 		!grd_zmax(i) = limit/2*xspac(i)
 		if(i.eq.n_grids) then
-			grid_minvals(1,i) = grid_minvals(1,i) / wind_adjust
-			grid_maxvals(1,i) = grid_maxvals(1,i) * wind_adjust
+			grid_diff = grid_maxvals(1,i) * wind_adjust - grid_maxvals(1,i)
+			grid_maxvals(1,i) = grid_maxvals(1,i) + grid_diff
+			grid_minvals(1,i) = grid_minvals(1,i) + grid_diff
 		endif
 		!
 		write(*,*) grid_minvals(1,i), grid_maxvals(1,i), &
