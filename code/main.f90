@@ -54,7 +54,8 @@ program multifluid
 	!	Input file parameters
 	!	*********************
 		! group 'option':
-		real tmax, ntgraph, stepsz, tsave
+		real tmax, stepsz, tsave
+		integer ntgraph
 		logical start, isotropic
 		! group 'earth'
 		real xdip, ydip, zdip, rearth, &
@@ -84,8 +85,8 @@ program multifluid
 		! group 'smooth'
 		real chirho, chipxyz, chierg, difrho, difpxyz, difer
 		!
-		real,parameter :: xspac(n_grids), wind_adjust=4./3., limit=60., &
-		grid_minvals(3,n_grids), grid_maxvals(3,n_grids)
+		real,parameter :: wind_adjust=4./3., limit=60.
+		real xspac(n_grids), grid_minvals(3,n_grids), grid_maxvals(3,n_grids)
 		!
 		!	Notes about grid variables:
 		!		
@@ -227,7 +228,7 @@ program multifluid
 	!	Miscellaneous
 	!	*************
 		integer n, m, ms, nn, box	!	Loop counters
-		integer m_smallest, m_step	!	Placeholders
+		integer m_smallest, m_step, cbox	!	Placeholders
 		integer mating_index, next_box	!	For checking grid mating
 		real grid_diff	!	For checking grid mating
 		real dx,dy,dz	!	Used for differences between points in various checks (stand-in for xspac)
@@ -803,13 +804,16 @@ program multifluid
 				!
 				!	Initial positions of default spacecraft in re but simulation directions
 				craftpos(1:3,n,1) = craftpos(1:3,n,1) * re_equiv
-				craftpos(4,n,2) = craftpos(4,n,1) + t_equiv*tmax/3600.
-				xcraft(:,n) = craftpos(:,n,1)	!	Set starting spacecraft position to first value in craftpos array
 				ntimes(n,2) = -1	!	We don't have a set number of recordings for default craft
 				!
 				!	Default craft must be placed on grid points.
 				!	If not, snap to nearest grid point.
-				call findgrid(xcraft(1:3,n),n_grids,grid_minvals,grid_maxvals,craft_gridpt(:,n))
+				call findgrid(craftpos(1:3,n,1),n_grids,grid_minvals,grid_maxvals,craft_gridpt(:,n))
+				cbox = craft_gridpt(4,n)					
+				do axis=1,3
+					craftpos(axis,n,1) = grid_minvals(axis,cbox) + xspac(cbox)*re_equiv*craft_gridpt(axis,n)
+				enddo
+				xcraft(:,n) = craftpos(:,n,1)	!	Set spacecraft actual position to first value in craftpos array
 			enddo
 		close(scin+1)
 		!
@@ -1520,8 +1524,8 @@ program multifluid
 					do m=1, (ntimes(n,1)+1)	!	Step through the file until the end, so we are ready to write new measurements. +1 is for header line.
 						read(scout+n,*) junkline
 					enddo
-					xcraft(:,n) = craftpos(:,n,ntimes(n))
-					zcraft(:,n) = craftpos(:,n,ntimes(n)+1)
+					xcraft(:,n) = craftpos(:,n,ntimes(n,1))
+					zcraft(:,n) = craftpos(:,n,ntimes(n,1)+1)
 				endif
 				if(craftstat.ne.0) then
 					write(*,*) 'Problem reading .dat file for craft: ', craftnames(n)
@@ -1930,9 +1934,9 @@ program multifluid
 							ar=distance+displace
 	                        future(j,k)=future(j,k)+t_equiv*ar/avx/3600.
                         endif
-                    enddo
-                enddo
-            enddo
+            !          enddo
+            !      enddo
+            !  enddo
             !	Update spacecraft position and magnetic field
 			!dut=(ut-xcraft(4,n))/(zcraft(4,n)-utold)
             !xcraft(1,n)=xcraft(1,n)+dut*(zcraft(1,n)-xcraft(1,n))
@@ -1959,7 +1963,7 @@ program multifluid
 						sdata(1) = bx(craft_gridpt(1,n),craft_gridpt(2,n),craft_gridpt(3,n),craft_gridpt(4,n))
 						sdata(2) = by(craft_gridpt(1,n),craft_gridpt(2,n),craft_gridpt(3,n),craft_gridpt(4,n))
 						sdata(3) = bz(craft_gridpt(1,n),craft_gridpt(2,n),craft_gridpt(3,n),craft_gridpt(4,n))
-						!	Default craft xyz are in simulation coordinates
+						!	Default craft xyz are in simulation coordinates, including measurements
 						write(scout+n) ut, xcraft(1:3,n), sdata
 					endif
 				enddo
@@ -1984,6 +1988,7 @@ program multifluid
 					!	Plan: find indices of nearest grid point, then check if that point is above/below along each axis. Then go the other way to find next nearest point along that axis.
 					!	Find closest xyz values below
 					call findgrid(sxyz,n_grids,grid_minvals,grid_maxvals,num_pts,craft_gridpt)
+					cbox = craft_gridpt(4,n)
 					!craft_gridpt contains x,y,z,box indices: the indices of the closest xyz BELOW the craft location, and the smallest box the craft fits within.
 					if(craft_gridpt(1,n) .le. 0) then
 						recording(n) = .false.
@@ -1995,8 +2000,8 @@ program multifluid
 					!	Indices in craft_gridpt are used to identify the physical parameters at those points
 					!	Position values for the vertices of the grid point cube surrounding sxyz are stored in gridpts
 					do axis=1,3
-						gridpts(axis,1) = grid_minvals(axis,craft_gridpt(4,n)) + (craft_gridpt(axis,n)-1.)*xspac(craft_gridpt(4,n))*re_equiv
-						gridpts(axis,2) = gridpts(axis,1) + xspac(craft_gridpt(4,n))*re_equiv
+						gridpts(axis,1) = grid_minvals(axis,cbox) + (craft_gridpt(axis,n)-1.)*xspac(cbox)*re_equiv
+						gridpts(axis,2) = gridpts(axis,1) + xspac(cbox)*re_equiv
 					enddo
 					!	WARNING: A line must be added below each time num_inst is incremented
 					!		to add the new quantity to the array meas_qty. meas_qty values are in GSM
@@ -2020,7 +2025,7 @@ program multifluid
 						recording = .false.
 					else
 						xcraft(:,n) = zcraft(:,n)
-						zcraft(:,n) = craftpos(:,n,ntimes(n+1))
+						zcraft(:,n) = craftpos(:,n,ntimes(n,1))
 						!	Change direction to get from GSM to simulation coords
 						zcraft(1,n)=-zcraft(1,n)
 						zcraft(2,n)=-zcraft(2,n)
