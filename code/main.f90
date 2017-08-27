@@ -83,7 +83,7 @@ program multifluid
 		real re_equiv, b_equiv, v_equiv, rho_equiv, uday, utstart
 		logical spacecraft, craft_input, warp
 		! group 'smooth'
-		real chirho, chipxyz, chierg, difrho, difpxyz, difer
+		real chirho, chipxyz, chierg, difrho, difpxyz, diferg
 		!
 		real,parameter :: wind_adjust=4./3., limit=60.
 		real xspac(n_grids), grid_minvals(3,n_grids), grid_maxvals(3,n_grids)
@@ -350,7 +350,7 @@ program multifluid
     namelist/physical/re_equiv,b_equiv,v_equiv,rho_equiv, &
     spacecraft,craft_input,warp,uday,utstart
     namelist/smooth/chirho,chipxyz,chierg, &
-    difrho,difpxyz,difer
+    difrho,difpxyz,diferg
 	!	
     !	Allocate arrays
     !
