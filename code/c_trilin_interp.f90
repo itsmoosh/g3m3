@@ -50,5 +50,14 @@ subroutine trilin_interp(sxyz,gridpts,qty,sdata)
 	!		value for qty at sxyz location
 	sdata = face0*(1-zd) + face1*zd
 	!
+	write(*,*) 'TRILIN_INTERP DIAGNOSTICS:'
+	write(*,*) '--------------------------'
+	write(*,*) 'sxyz:', 'gridpts', 'qty', 'sdata'
+	write(*,*) sxyz, gridpts, qty, sdata
+	write(*,*) 'xd', 'yd', 'zd'
+	write(*,*) xd, yd, zd
+	write(*,*) 'edge00', 'edge01', 'edge10', 'edge11'
+	write(*,*) edge00, edge01, edge10, edge11
+	!
     return
 end subroutine trilin_interp
