@@ -21,13 +21,13 @@
 !       ncts is the size of the data array for the imf data file
 !
 program multifluid
-    integer,parameter :: nx=101,ny=101,nz=53,ngrd=4, &
+    integer,parameter :: nx=81,ny=81,nz=81,ngrd=3, &
     mbndry=1,msrf=2000,mmid=1500,mzero=5000, &
     ncraft=30,ncts=281
     !
     !      graphics parameters:muvwp2=amax(mx,my,mz)+2,mz2=(mz-1)/2+1
     !
-    integer,parameter :: mx=61,my=61,mz=31,muvwp2=63,mz2=16
+    integer,parameter :: mx=61,my=61,mz=61,muvwp2=63,mz2=31
     !
     common /space/vvx(nx,ny,nz),vvy(nx,ny,nz),vvz(nx,ny,nz), &
     tvx(nx,ny,nz),tvy(nx,ny,nz),tvz(nx,ny,nz), &
@@ -180,9 +180,7 @@ program multifluid
     tilt1,tilt2,tilting,rmassq,rmassh,rmasso
     namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
     alpha_e,den_earth,den_lunar,o_conc,gravity, &
-    ti_te,gamma,ringo,update,reload, &
-    divb_lores,divb_hires,reduct,t_torus,aniso_factor, &
-    ani_q,ani_h,ani_o
+    ti_te,gamma,ringo,divb_lores
     namelist/windy/re_wind,cs_wind,vx_wind1,vx_wind2, &
     vy_wind1,vy_wind2,vz_wind1,vz_wind2, &
     alfx_wind1,alfx_wind2, &
@@ -190,10 +188,6 @@ program multifluid
     alfz_wind1,alfz_wind2, &
     den_wind1,den_wind2, &
     reynolds,resist,rho_frac,bfrac,vfrac
-    namelist/lunar/orbit_moon,theta_moon,cs_moon, &
-    qden_moon,hden_moon,oden_moon, &
-    alf_moon,ti_te_moon, &
-    xdip_moon,ydip_moon,zdip_moon,offset
     namelist/physical/re_equiv,b_equiv,v_equiv,rho_equiv, &
     spacecraft,warp,uday,utstart
     namelist/smooth/chirho,chipxyz,chierg, &
@@ -255,8 +249,8 @@ program multifluid
     open(5,file='input',status='old',form='formatted')
     !     open(6,file='rmpd3dout',status='unknown',form='formatted')
     !open(7,file='grid.dat',status='unknown',form='formatted')
-    !open(8,file='cur.dat',status='unknown',form='unformatted')
-    !open(9,file='pot.dat',status='unknown',form='unformatted')
+    open(8,file='cur.dat',status='unknown',form='unformatted')
+    open(9,file='pot.dat',status='unknown',form='unformatted')
     open(10,file='conc.dat',status='unknown',form='formatted')
     !      open ncargraphics
     !
@@ -283,8 +277,6 @@ program multifluid
     write(6,speeds)
     read(5,windy)
     write(6,windy)
-    read(5,lunar)
-    write(6,lunar)
     read(5,physical)
     write(6,physical)
     read(5,smooth)
@@ -523,12 +515,12 @@ program multifluid
     !v_rot=6.2832*planet_rad/(planet_per*3600.)/v_equiv  ! normalized units
     !r_rot=30.0   !re where corotation stops
     !
-    ! earth parameters
+    ! proxima centauri b (earth-like) parameters
     planet_rad=6371.   !km
     planet_per=24.     !hr
     lunar_dist=60.      !orbital radii
     v_rot=6.2832*planet_rad/(planet_per*3600.)/v_equiv  ! normalized units
-    r_rot=10.0   !re where corotation stops
+    r_rot=5.0   !re where corotation stops
     !
     !     saturn parameters
     !
@@ -948,6 +940,72 @@ program multifluid
             enddo  !end bndry_corer
         endif  ! end divb_lores
 
+        if(ringo)then
+            m=1
+            rx=xspac(m)
+            ry=xspac(m)
+            rz=xspac(m)
+            !,
+            call calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
+                rx,ry,rz)
+            !
+            !        field aligned currents
+            !
+            do k=1,nz
+                do j=1,ny
+                    do i=1,nx
+                        abx=bx(i,j,k,m)+bx0(i,j,k,m)
+                        aby=by(i,j,k,m)+by0(i,j,k,m)
+                        abz=bz(i,j,k,m)+bz0(i,j,k,m)
+                        abmag=sqrt(abx**2+aby**2+abz**2) &
+                            +0.00000001
+                        btot(i,j,k)=(curx(i,j,k)*abx+cury(i,j,k)*aby &
+                            +curz(i,j,k)*abz)/abmag
+                    enddo
+                enddo
+            enddo
+            !
+            save_dat=.false.
+            add_dip=.false.
+            !
+            radstrt=rearth+8.
+            write(6,*)'entering aurora_cur', radstrt
+            call aurora_cur(btot,nx,ny,nz,m,radstrt,re_equiv, &
+                rearth,1,ut,save_dat,add_dip,'cur4 nth',14,write_dat, &
+                b_equiv,planet_rad,tot_cur_nth,peak_cur_nth,ngrd, &
+                grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+            old_o_conc=o_conc
+            if(tot_cur_nth.gt.cur_max)then
+                o_conc=o_conc_max
+            else if(tot_cur_nth.gt.cur_min)then
+                o_conc=o_conc_min+(o_conc_max-o_conc_min)* &
+                (tot_cur_nth-cur_min)/(cur_max-cur_min)
+            else
+                o_conc=o_conc_min
+            endif
+
+            write(10,*)ut,tot_cur_nth,o_conc,old_o_conc
+            !
+            do n=1,numsrf(m)
+                parm_srf(m,3,n)=o_conc*(rmasso/rmassh)*parm_srf(m,2,n)
+                parm_srf(m,6,n)=o_conc*parm_srf(m,5,n)
+                parm_srf(m,7,n)=(parm_srf(m,5,n)+ parm_srf(m,6,n))/ti_te
+            enddo
+            !
+            do n=1,nummid(m)
+                parm_mid(m,3,n)=o_conc*(rmasso/rmassh)*parm_mid(m,2,n)
+                parm_mid(m,6,n)=o_conc*parm_mid(m,5,n)
+                parm_mid(m,7,n)=(parm_mid(m,5,n)+ parm_mid(m,6,n))/ti_te
+            enddo
+    
+            do n=1,numzero(m)
+                parm_zero(m,3,n)=o_conc*(rmasso/rmassh)*parm_zero(m,2,n)
+                parm_zero(m,6,n)=o_conc*parm_zero(m,5,n)
+                parm_zero(m,7,n)=(parm_zero(m,5,n)+ parm_zero(m,6,n))/ti_te
+            enddo
+
+        endif ! if(ringo)
+
         !
         !     if(update)t=0.
         write(6,*)'entering lores visual'
@@ -958,10 +1016,13 @@ program multifluid
             epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
             curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
             tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
-            nx,ny,nz,ngrd,xspac, &
-            cross,along,flat,xcraft,ncraft,re_equiv, &
+            nx,ny,nz,ngrd,xspac,ringo,mbndry,gamma1, &
+            cross,along,flat,xcraft,ncraft,re_equiv,v_equiv, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-            grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv)
+            grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv, &
+            parm_srf,parm_mid,parm_zero,numsrf,nummid,numzero, &
+            mzero,mmid,msrf,ijzero,ijmid,ijsrf,reynolds,resist, &
+            evx,evy,evz,rearth,planet_rad)
 
         ts1=t+tsave
         tstep=tmax
@@ -986,10 +1047,13 @@ program multifluid
             epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
             curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
             tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
-            nx,ny,nz,ngrd,xspac, &
-            cross,along,flat,xcraft,ncraft,re_equiv, &
+            nx,ny,nz,ngrd,xspac,ringo,mbndry,gamma1, &
+            cross,along,flat,xcraft,ncraft,re_equiv,v_equiv, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-            grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv)
+            grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv, &
+            parm_srf,parm_mid,parm_zero,numsrf,nummid,numzero, &
+            mzero,mmid,msrf,ijzero,ijmid,ijsrf,reynolds,resist, &
+            evx,evy,evz,rearth,planet_rad)
         !
         write(6,79) nchf
         79 format('  restart from fluid_',i2)
@@ -1151,8 +1215,6 @@ program multifluid
                         epres(i,j,k,m)=(qpresx(i,j,k,m)+hpresx(i,j,k,m)+ &
                             opresx(i,j,k,m))/ti_te
                         !
-                        !  check for enceladus plasma torus additions
-                        !
                         !
                         bx(i,j,k,m)=0.
                         by(i,j,k,m)=0.
@@ -1242,7 +1304,7 @@ program multifluid
         enddo
         !
         !     initialize solar wind plasa can be placed beyond
-        !       the earth at a radius of re_wind
+        !       the earth at a radius of wind_bnd
         !
         wind_bnd=r_rot/re_equiv
         ofrac=rho_frac
@@ -1742,7 +1804,7 @@ program multifluid
             !    grd_zmin,grd_zmax)
         enddo
         !
-        !      calculate flux from torus
+        !      calculate total flux
         !
         write(3,*)'main grid'
         do m=ngrd,1,-1
@@ -2893,10 +2955,51 @@ program multifluid
                 epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
                 curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
                 tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
-                nx,ny,nz,ngrd,xspac, &
-                cross,along,flat,xcraft,ncraft,re_equiv, &
+                nx,ny,nz,ngrd,xspac,ringo,mbndry,gamma1, &
+                cross,along,flat,xcraft,ncraft,re_equiv,v_equiv, &
                 grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-                grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv)
+                grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv, &
+                parm_srf,parm_mid,parm_zero,numsrf,nummid,numzero, &
+                mzero,mmid,msrf,ijzero,ijmid,ijsrf,reynolds,resist, &
+                evx,evy,evz,rearth,planet_rad)
+            !
+            if(divb_lores)then
+                range=1.33*lunar_dist/re_equiv
+                write(6,*)'range for divb taper',lunar_dist,range
+                do m=ngrd,1,-1
+                    write(6,*)'divb on box',m
+                    call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
+                        curx,cury,curz,efldx,efldy,efldz, &
+                        7,nx*ny*nz,nx,ny,nz,ngrd,m,xspac)
+                    call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
+                        curx,cury,curz,efldx,efldy,efldz, &
+                        7,nx*ny*nz,nx,ny,nz,ngrd,m,xspac)
+                    write(6,*)'completed divb on box',m
+                enddo !end m loop
+                !
+                !        apply bndry conditions
+                !
+                do m=ngrd-1,1,-1
+                    call flanks_synced(bx,nx,ny,nz,ngrd,m, &
+                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+                    call flanks_synced(by,nx,ny,nz,ngrd,m, &
+                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+                    call flanks_synced(bz,nx,ny,nz,ngrd,m, &
+                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+                enddo
+                do m=1,ngrd-1
+                    call bndry_corer( &
+                        qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
+                        hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
+                        orho,opresx,opresy,opresz,opx,opy,opz, &
+                        epres,bx,by,bz, &
+                        qpresxy,qpresxz,qpresyz, &
+                        hpresxy,hpresxz,hpresyz, &
+                        opresxy,opresxz,opresyz, &
+                        nx,ny,nz,ngrd,m, &
+                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+                enddo  !end bndry_corer
+            endif  ! end divb_lores
             !
             tgraf=tgraf+deltg
         endif !if(t.ge.tgraf)
@@ -2962,47 +3065,11 @@ program multifluid
             if(nchf.gt.15)nchf=11
             ts1=ts1+tsave
             !
-            if(divb_lores)then
-                range=1.33*lunar_dist/re_equiv
-                write(6,*)'range for divb taper',lunar_dist,range
-                do m=ngrd,1,-1
-                    write(6,*)'divb on box',m
-                    call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
-                        curx,cury,curz,efldx,efldy,efldz, &
-                        7,nx*ny*nz,nx,ny,nz,ngrd,m,xspac)
-                    call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
-                        curx,cury,curz,efldx,efldy,efldz, &
-                        7,nx*ny*nz,nx,ny,nz,ngrd,m,xspac)
-                    write(6,*)'completed divb on box',m
-                enddo !end m loop
-                !
-                !        apply bndry conditions
-                !
-                do m=ngrd-1,1,-1
-                    call flanks_synced(bx,nx,ny,nz,ngrd,m, &
-                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-                    call flanks_synced(by,nx,ny,nz,ngrd,m, &
-                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-                    call flanks_synced(bz,nx,ny,nz,ngrd,m, &
-                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-                enddo
-                do m=1,ngrd-1
-                    call bndry_corer( &
-                        qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
-                        hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
-                        orho,opresx,opresy,opresz,opx,opy,opz, &
-                        epres,bx,by,bz, &
-                        qpresxy,qpresxz,qpresyz, &
-                        hpresxy,hpresxz,hpresyz, &
-                        opresxy,opresxz,opresyz, &
-                        nx,ny,nz,ngrd,m, &
-                        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
-                enddo  !end bndry_corer
-            endif  ! end divb_lores
-            !
         endif ! if(t.ge.ts1)
     enddo ! do while(t.lt.tmax)
-          
+    
+    close(8)
+    close(9)
     call clsgks
 end
 
@@ -3851,10 +3918,13 @@ subroutine visual( &
     epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
     curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
     tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
-    nx,ny,nz,ngrd,xspac, &
-    cross,along,flat,xcraft,ncraft,re_equiv, &
+    nx,ny,nz,ngrd,xspac,ringo,mbndry,gamma1, &
+    cross,along,flat,xcraft,ncraft,re_equiv,v_equiv, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-    grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv)
+    grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv, &
+    parm_srf,parm_mid,parm_zero,numsrf,nummid,numzero, &
+    mzero,mmid,msrf,ijzero,ijmid,ijsrf,reynolds,resist, &
+    evx,evy,evz,rearth,planet_rad)
     !
     real grd_xmin(ngrd),grd_xmax(ngrd),grd_ymin(ngrd),grd_ymax(ngrd), &
     grd_zmin(ngrd),grd_zmax(ngrd),xspac(ngrd)
@@ -3873,18 +3943,26 @@ subroutine visual( &
     real efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz), &
     tvx(nx,ny,nz),tvy(nx,ny,nz),tvz(nx,ny,nz), &
     curx(nx,ny,nz),cury(nx,ny,nz),curz(nx,ny,nz), &
-    bsx(nx,ny,nz),bsy(nx,ny,nz),bsz(nx,ny,nz)
+    bsx(nx,ny,nz),bsy(nx,ny,nz),bsz(nx,ny,nz),btot(nx,ny,nz)
     real tx(mx,my,mz),ty(mx,my,mz),tz(mx,my,mz),tg1(mx,my,mz), &
     tg2(mx,my,mz2),tt(mx,my,mz),work(muvwp2,muvwp2), &
     cross(ny,nz),along(nx,nz),flat(nx,ny)
     real xcraft(4,ncraft)
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
+    integer mmid,mzero,msrf,mbndry
+    real  parm_srf(mbndry,7,msrf),parm_mid(mbndry,7,mmid), &
+        parm_zero(mbndry,7,mzero)
+    integer ijsrf(mbndry,3,msrf),ijmid(mbndry,3,mmid), &
+        ijzero(mbndry,3,mzero)
+    real evx(nx,ny,nz),evy(nx,ny,nz),evz(nx,ny,nz)
     !
     character*4 wd1
     character*12 label
     !
-    logical add_dip
+    real gamma1,rearth,planet_rad,v_equiv,re_equiv,resist,reynolds
+    logical add_dip,ringo
+    logical save_dat, add_two, write_dat
     !
     do m=ngrd,1,-1
         rx=xspac(m)
@@ -3911,10 +3989,10 @@ subroutine visual( &
         call qvset(0.,curz,nx*ny*nz)
         !
         if(m.le.3)then
-            preslim=16.0/float(m)
+            preslim=25.0/float(m)
             po=preslim*0.33
         else
-            preslim=16.0/(m-1.)
+            preslim=25.0/(m-1.)
             po=preslim*0.33
         endif
         !
@@ -4566,7 +4644,8 @@ subroutine visual( &
             do  j=1,ny
                 do  i=1,nx
                     tden=(orho(i,j,k,m)/rmasso+ &
-                    hrho(i,j,k,m)/rmassh+qrho(i,j,k,m)/rmassq)
+                        hrho(i,j,k,m)/rmassh+qrho(i,j,k,m)/rmassq)
+
                     efldy(i,j,k)=(hrho(i,j,k,m)/rmassh)/(tden+1.e-6)
                     efldz(i,j,k)=(orho(i,j,k,m)/rmasso)/(tden+1.e-6)
                     efldx(i,j,k)=(qrho(i,j,k,m)/rmassq)/(tden+1.e-6)
@@ -4592,7 +4671,493 @@ subroutine visual( &
             ut,label,3,18,1,2.0,0.5, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    enddo !m
+
+    ! run on m=1 boundary
+    m=1
+
+    call calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
+        rx,ry,rz)
+    !
+    !     find the  electric field from electron momentum eqn
+    !
+    call fnd_evel(qpx,qpy,qpz,qrho, &
+        hpx,hpy,hpz,hrho, &
+        opx,opy,opz,orho, &
+        curx,cury,curz,evx,evy,evz, &
+        tvx,tvy,tvz,nx,ny,nz,ngrd,m, &
+        rmassq,rmassh,rmasso,reynolds)
+    !
+    call bande(efldx,efldy,efldz,bsx,bsy,bsz, &
+        curx,cury,curz,evx,evy,evz,btot, &
+        epres,qrho,hrho,orho, &
+        resistive,resist,reynolds, &
+        nx,ny,nz,ngrd,m,rmassq,rmassh,rmasso, &
+        ijmid,nummid,ijzero,mbndry,numzero,mmid,mzero, &
+        rx,ry,rz)
+
+    do k=1,nz
+        do j=1,ny
+            do i=1,nx
+                abx=bx(i,j,k,m)+bx0(i,j,k,m)
+                aby=by(i,j,k,m)+by0(i,j,k,m)
+                abz=bz(i,j,k,m)+bz0(i,j,k,m)
+                bmag=sqrt(abx**2+aby**2+abz**2) &
+                    +0.00000001
+                btot(i,j,k)=(curx(i,j,k)*abx+cury(i,j,k)*aby &
+                    +curz(i,j,k)*abz)/bmag
+            enddo
+        enddo
     enddo
+
+    radstrt= rearth + 5.
+    save_dat = .false.
+    add_two = .false.
+    write_dat = .true.
+    call aurora_cur(btot,nx,ny,nz,m,radstrt,re_equiv, &
+        rearth,1,ut,save_dat,add_two,'cur nth',14,write_dat, &
+        b_equiv,planet_rad,tot_cur_nth,peak_cur_nth,ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    call aurora_cur(btot,nx,ny,nz,m,radstrt,re_equiv, &
+        rearth,-1,ut,save_dat,add_two,'cur sth',14,write_dat, &
+        b_equiv,planet_rad,tot_cur_sth,peak_cur_sth,ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+
+    o_conc_min=0.01
+    o_conc_max=1.0
+    if(ringo)then
+        old_o_conc=o_conc
+
+        if(tot_cur_nth.gt.cur_max)then
+            o_conc=o_conc_max
+        else if(tot_cur_nth.gt.cur_min)then
+            o_conc=o_conc_min+(o_conc_max-o_conc_min)* &
+            (tot_cur_nth-cur_min)/(cur_max-cur_min)
+        else
+        o_conc=o_conc_min
+        endif
+
+        write(10,*)ut,tot_cur_nth,o_conc,old_o_conc
+        !
+        do n=1,numsrf
+            parm_srf(m,3,n)=o_conc*(rmasso/rmassh)*parm_srf(m,2,n)
+            parm_srf(m,6,n)=o_conc*parm_srf(m,5,n)
+            parm_srf(m,7,n)=(parm_srf(m,5,n)+ parm_srf(m,6,n))/ti_te
+        enddo
+        
+        do n=1,nummid
+            parm_mid(m,3,n)=o_conc*(rmasso/rmassh)*parm_mid(m,2,n)
+            parm_mid(m,6,n)=o_conc*parm_mid(m,5,n)
+            parm_mid(m,7,n)=(parm_mid(m,5,n)+ parm_mid(m,6,n))/ti_te
+        enddo
+        !
+        do n=1,numzero
+            parm_mid(m,3,n)=o_conc*(rmasso/rmassh)*parm_mid(m,2,n)
+            parm_mid(m,6,n)=o_conc*parm_mid(m,5,n)
+            parm_mid(m,7,n)=(parm_mid(m,5,n)+ parm_mid(m,6,n))/ti_te
+        enddo
+        !
+    endif
+
+
+    !
+    !     mapping closed field lines using grid 3
+    !
+    add_dip=.false.
+    radstrt=rearth+3.
+    !
+    m=3
+    rx=xspac(m)
+    ry=xspac(m)
+    rz=xspac(m)
+    radstrt=2.*rearth
+    !
+    !     find total magnetic field
+    !
+    call totfld(bx,bx0,bsx,nx,ny,nz,ngrd,m)
+    call totfld(by,by0,bsy,nx,ny,nz,ngrd,m)
+    call totfld(bz,bz0,bsz,nx,ny,nz,ngrd,m)
+    !
+    xmin=grd_xmin(m)+rx
+    xmax=grd_xmax(m)-rx
+    ymin=grd_ymin(m)+ry
+    ymax=grd_ymax(m)-ry
+    zmin=grd_zmin(m)+rz
+    zmax=grd_zmax(m)-rz
+    !
+    call aurora_bfld(bsx,bsy,bsz,nx,ny,nz,m,rx, &
+        xmin,xmax,ymin,ymax,zmin,zmax,1, &
+        add_dip,radstrt,re_equiv,rearth,ut,'big nth',ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    call aurora_bfld(bsx,bsy,bsz,nx,ny,nz,m,rx, &
+        xmin,xmax,ymin,ymax,zmin,zmax,-1, &
+        add_dip,radstrt,re_equiv,rearth,ut,'big sth',ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+
+    !
+    !     mapping closed field lines using grid 2
+    !
+    m=2
+    rx=xspac(m)
+    ry=xspac(m)
+    rz=xspac(m)
+    radstrt=2.*rearth
+    !
+    !     find total magnetic field
+    !
+    call totfld(bx,bx0,bsx,nx,ny,nz,ngrd,m)
+    call totfld(by,by0,bsy,nx,ny,nz,ngrd,m)
+    call totfld(bz,bz0,bsz,nx,ny,nz,ngrd,m)
+    !
+    !
+    xmin=grd_xmin(m)+rx
+    xmax=grd_xmax(m)-rx
+    ymin=grd_ymin(m)+ry
+    ymax=grd_ymax(m)-ry
+    zmin=grd_zmin(m)+rz
+    zmax=grd_zmax(m)-rz
+    !
+    write_dat=.true.
+    save_dat=.false.
+    add_dip=.false.
+    !
+    !
+    call aurora_bfld(bsx,bsy,bsz,nx,ny,nz,m,rx, &
+        xmin,xmax,ymin,ymax,zmin,zmax,1, &
+        add_dip,radstrt,re_equiv,rearth,ut,'crse nth',ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    call aurora_bfld(bsx,bsy,bsz,nx,ny,nz,m,rx, &
+        xmin,xmax,ymin,ymax,zmin,zmax,-1, &
+        add_dip,radstrt,re_equiv,rearth,ut,'crse sth',ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+
+    !
+    !     find the surface current magnetic field and convective
+    !         electric field at the same time
+    !
+    call calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
+        rx,ry,rz)
+    !
+    call fnd_evel(qpx,qpy,qpz,qrho, &
+        hpx,hpy,hpz,hrho, &
+        opx,opy,opz,orho, &
+        curx,cury,curz,evx,evy,evz, &
+        tvx,tvy,tvz,nx,ny,nz,ngrd,m, &
+        rmassq,rmassh,rmasso,reynolds)
+    !
+    call bande(efldx,efldy,efldz,bsx,bsy,bsz, &
+        curx,cury,curz,evx,evy,evz,btot, &
+        epres,qrho,hrho,orho, &
+        resistive,resist,reynolds, &
+        nx,ny,nz,ngrd,m,rmassq,rmassh,rmasso, &
+        ijmid,nummid,ijzero,mbndry,numzero,mmid,mzero, &
+        rx,ry,rz)
+    !
+    !
+    !     pot_scale=v_equiv*b_equiv*rx*re_equiv*6371.*1.e-9 ! units in MV 1e-6
+    !               1.e3      1.e-9          1.e3
+    !     calculate unscaled potential as first estimate
+    !
+    !     calculate the space charge density to be used later in
+    !        making potential plots
+    !
+    !     need m=2 to remove potential boundary conditions problems
+    !
+    call space_charge(bsz,efldx,efldy,efldz, &
+        bx0,by0,bz0,opx,opy,opz,orho,nx,ny,nz,ngrd,m,rearth, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    !
+    !      plot these guys out
+    !
+    call cappot(bsz,bsx,nx,ny,nz,ngrd,m,radstrt, &
+        re_equiv,v_equiv,b_equiv,ut,write_dat, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+
+    !
+    !     aurora diagnostics using inner grid system
+    !
+    m=1
+    rx=xspac(m)
+    ry=xspac(m)
+    rz=xspac(m)
+    radstrt=(2.*rearth)
+    !
+    xmin=grd_xmin(m)+rx
+    xmax=grd_xmax(m)-rx
+    ymin=grd_ymin(m)+ry
+    ymax=grd_ymax(m)-ry
+    zmin=grd_zmin(m)+rz
+    zmax=grd_zmax(m)-rz
+    !
+    !     find total magnetic field
+    !
+    call totfld(bx,bx0,bsx,nx,ny,nz,ngrd,m)
+    call totfld(by,by0,bsy,nx,ny,nz,ngrd,m)
+    call totfld(bz,bz0,bsz,nx,ny,nz,ngrd,m)
+    !
+    !     find magnitude of B
+    !
+    call tot_b(btot,bsx,bsy,bsz,nx,ny,nz)
+    !
+    !     mark the alleged position of open and closed field lines
+    !
+    add_dip=.false.
+    call aurora_bfld(bsx,bsy,bsz,nx,ny,nz,m,rx, &
+        xmin,xmax,ymin,ymax,zmin,zmax,1, &
+        add_dip,radstrt,re_equiv,rearth,ut,'fine nth',ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    call aurora_bfld(bsx,bsy,bsz,nx,ny,nz,m,rx, &
+        xmin,xmax,ymin,ymax,zmin,zmax,-1, &
+        add_dip,radstrt,re_equiv,rearth,ut,'fine sth',ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    !
+    !      find outflow velcoities
+    !
+    call fnd_vtot(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
+        opx,opy,opz,orho,curx,cury,curz,nx,ny,nz,ngrd,m, &
+        rmassq,rmassh,rmasso)
+
+    write_dat=.true.
+    save_dat=.false.
+    add_dip=.false.
+    !
+    !      plot convection patterns and potential
+    !
+    do nhi=4,8,4
+        radstrt=rearth+nhi
+        write(wd1,'(f4.1)')radstrt
+
+        label='flwn'//wd1
+        call convect(curx,cury,curz,nx,ny,nz,m,radstrt, &
+            re_equiv,1,ut,label,write_dat,ngrd, &
+            grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+
+        label='flws'//wd1
+        call convect(curx,cury,curz,nx,ny,nz,m,radstrt, &
+            re_equiv,-1,ut,label,write_dat,ngrd, &
+            grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    enddo
+    !
+    !
+    call calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
+        rx,ry,rz)
+    !
+    !     find the surface current magnetic field and convective
+    !         electric field at the same time
+    !
+    
+    call fnd_evel(qpx,qpy,qpz,qrho, &
+        hpx,hpy,hpz,hrho, &
+        opx,opy,opz,orho, &
+        curx,cury,curz,evx,evy,evz, &
+        tvx,tvy,tvz,nx,ny,nz,ngrd,m, &
+        rmassq,rmassh,rmasso,reynolds)
+    !
+    call bande(efldx,efldy,efldz,bsx,bsy,bsz, &
+        curx,cury,curz,evx,evy,evz,btot, &
+        epres,qrho,hrho,orho, &
+        resistive,resist,reynolds, &
+        nx,ny,nz,ngrd,m,rmassq,rmassh,rmasso, &
+        ijmid,nummid,ijzero,mbndry,numzero,mmid,mzero, &
+        rx,ry,rz)
+    !
+    !
+    !      field-aligned potential drop
+    !
+    call aurora_pot(efldx,efldy,efldz,bsx,bsy,bsz, &
+        nx,ny,nz,ngrd,m,radstrt,re_equiv,1,rearth, &
+        ut,save_dat,add_dip,'ppot nth',11,write_dat, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    call aurora_pot(efldx,efldy,efldz,bsx,bsy,bsz, &
+        nx,ny,nz,ngrd,m,radstrt,re_equiv,-1,rearth, &
+        ut,save_dat,add_dip,'ppot sth',11,write_dat, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    !
+    !        field aligned flows
+    !
+    do k=1,nz
+        do j=1,ny
+            do i=1,nx
+                abx=bx(i,j,k,m)+bx0(i,j,k,m)
+                aby=by(i,j,k,m)+by0(i,j,k,m)
+                abz=bz(i,j,k,m)+bz0(i,j,k,m)
+
+                bmag=sqrt(abx**2+aby**2+abz**2) &
+                    +0.00000001
+
+                aden=qrho(i,j,k,m)/rmassq+hrho(i,j,k,m)/rmassh &
+                    +orho(i,j,k,m)/rmasso
+                efldx(i,j,k)=(qpx(i,j,k,m)*abx+qpy(i,j,k,m)*aby &
+                    +qpz(i,j,k,m)*abz)/bmag
+                efldy(i,j,k)=(hpx(i,j,k,m)*abx+hpy(i,j,k,m)*aby &
+                    +hpz(i,j,k,m)*abz)/bmag
+                efldz(i,j,k)=(opx(i,j,k,m)*abx+opy(i,j,k,m)*aby &
+                    +opz(i,j,k,m)*abz)/bmag
+                epx=qpx(i,j,k,m)/rmassq+hpx(i,j,k,m)/rmassh &
+                    +opx(i,j,k,m)/rmasso-curx(i,j,k)/reynolds
+                epy=qpy(i,j,k,m)/rmassq+hpy(i,j,k,m)/rmassh &
+                    +opy(i,j,k,m)/rmasso-cury(i,j,k)/reynolds
+                epz=qpz(i,j,k,m)/rmassq+hpz(i,j,k,m)/rmassh &
+                    +opz(i,j,k,m)/rmasso-curz(i,j,k)/reynolds
+                curz(i,j,k)=(epx*abx+epy*aby+epz*abz)/bmag
+            enddo
+        enddo
+    enddo
+    !
+    save_dat=.false.
+    add_dip=.false.
+    !
+    call aurora(efldx,nx,ny,nz,m,radstrt,re_equiv,1, &
+        ut,save_dat,add_dip,'qfluxnth',14,write_dat,ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    call aurora(efldx,nx,ny,nz,m,radstrt,re_equiv,-1, &
+        ut,save_dat,add_dip,'qfluxsth',14,write_dat,ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    !
+    call aurora(efldy,nx,ny,nz,m,radstrt,re_equiv,1, &
+        ut,save_dat,add_dip,'hfluxnth',14,write_dat,ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    call aurora(efldy,nx,ny,nz,m,radstrt,re_equiv,-1, &
+        ut,save_dat,add_dip,'hfluxsth',14,write_dat,ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    !
+    call aurora(efldz,nx,ny,nz,m,radstrt,re_equiv,1, &
+        ut,save_dat,add_dip,'ofluxnth',14,write_dat,ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    call aurora(efldz,nx,ny,nz,m,radstrt,re_equiv,-1, &
+        ut,save_dat,add_dip,'ofluxsth',14,write_dat,ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    !
+    call aurora(curz,nx,ny,nz,m,radstrt,re_equiv,1, &
+        ut,save_dat,add_dip,'efluxnth',14,write_dat,ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    call aurora(curz,nx,ny,nz,m,radstrt,re_equiv,-1, &
+        ut,save_dat,add_dip,'efluxsth',14,write_dat,ngrd, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    !
+    do k=1,nz
+        do j=1,ny
+            do i=1,nx
+                abx=bx(i,j,k,m)+bx0(i,j,k,m)
+                aby=by(i,j,k,m)+by0(i,j,k,m)
+                abz=bz(i,j,k,m)+bz0(i,j,k,m)
+
+                aqpres=(qpresx(i,j,k,m)+qpresy(i,j,k,m) &
+                    +qpresz(i,j,k,m))/3.
+                ahpres=(hpresx(i,j,k,m)+hpresy(i,j,k,m) &
+                    +hpresz(i,j,k,m))/3.
+                aopres=(opresx(i,j,k,m)+opresy(i,j,k,m) &
+                    +opresz(i,j,k,m))/3.
+
+                bmag=sqrt(abx**2+aby**2+abz**2) &
+                    +0.00000001
+
+                aqrho=amax1(0.000001,qrho(i,j,k,m))
+                ahrho=amax1(0.000001,hrho(i,j,k,m))
+                aorho=amax1(0.000001,orho(i,j,k,m))
+                !
+                efldx(i,j,k)=(qpx(i,j,k,m)*abx+qpy(i,j,k,m)*aby &
+                    +qpz(i,j,k,m)*abz)/bmag &
+                    *( 0.5*(qpx(i,j,k,m)**2+qpy(i,j,k,m)**2 &
+                    +qpz(i,j,k,m)**2)/(aqrho**2)+ &
+                    aqpres*rmassq/aqrho/gamma1)
+                !
+                efldy(i,j,k)=(hpx(i,j,k,m)*abx+hpy(i,j,k,m)*aby &
+                    +hpz(i,j,k,m)*abz)/bmag &
+                    *( 0.5*(hpx(i,j,k,m)**2+hpy(i,j,k,m)**2 &
+                    +hpz(i,j,k,m)**2)/(ahrho**2)+ &
+                    ahpres*rmassh/ahrho/gamma1)
+                !
+                efldz(i,j,k)=(opx(i,j,k,m)*abx+opy(i,j,k,m)*aby &
+                    +opz(i,j,k,m)*abz)/bmag &
+                    *( 0.5*(opx(i,j,k,m)**2+opy(i,j,k,m)**2 &
+                    +opz(i,j,k,m)**2)/(aorho**2)+ &
+                    aopres*rmasso/aorho/gamma1)
+                !
+                curx(i,j,k)=(ahpres+aopres)/ &
+                    (ahrho/rmassh+aorho/rmasso)
+            enddo
+        enddo
+    enddo
+
+
+    do k=1,nz
+        do j=1,ny
+            do i=1,nx
+                aqpres=(qpresx(i,j,k,m)+qpresy(i,j,k,m) &
+                    +qpresz(i,j,k,m))/3.
+                ahpres=(hpresx(i,j,k,m)+hpresy(i,j,k,m) &
+                    +hpresz(i,j,k,m))/3.
+                aopres=(opresx(i,j,k,m)+opresy(i,j,k,m) &
+                    +opresz(i,j,k,m))/3.
+                !
+                efldy(i,j,k)=(hrho(i,j,k,m)/rmassh+qrho(i,j,k,m)/rmassq)
+                efldz(i,j,k)=(orho(i,j,k,m)/rmasso)
+                efldx(i,j,k)=(qrho(i,j,k,m)/rmassq)
+                curx(i,j,k)=aqpres
+                cury(i,j,k)=ahpres+aqpres
+                curz(i,j,k)=aopres
+            enddo
+        enddo
+    enddo
+    !
+    call auroras(cury,efldy,bsx,bsy,bsz, &
+        nx,ny,nz,ngrd,m,radstrt,re_equiv,rearth,1, &
+        ut,save_dat,add_dip,'itempnth',14,write_dat, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    call auroras(cury,efldy,bsx,bsy,bsz, &
+        nx,ny,nz,ngrd,m,radstrt,re_equiv,rearth,-1, &
+        ut,save_dat,add_dip,'itempsth',14,write_dat, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    !
+    call auroras(curz,efldz,bsx,bsy,bsz, &
+        nx,ny,nz,ngrd,m,radstrt,re_equiv,rearth,1, &
+        ut,save_dat,add_dip,'otempnth',14,write_dat, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    call auroras(curz,efldz,bsx,bsy,bsz, &
+        nx,ny,nz,ngrd,m,radstrt,re_equiv,rearth,-1, &
+        ut,save_dat,add_dip,'otempsth',14,write_dat, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    !
+    call auroras(curx,efldx,bsx,bsy,bsz, &
+        nx,ny,nz,ngrd,m,radstrt,re_equiv,rearth,1, &
+        ut,save_dat,add_dip,'qtempnth',14,write_dat, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    call auroras(curx,efldx,bsx,bsy,bsz, &
+        nx,ny,nz,ngrd,m,radstrt,re_equiv,rearth,-1, &
+        ut,save_dat,add_dip,'qtempsth',14,write_dat, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    !
+    do k=1,nz
+        do j=1,ny
+            do i=1,nx
+                !
+                efldy(i,j,k)=(hrho(i,j,k,m)/rmassh+qrho(i,j,k,m)/rmassq+ &
+                    orho(i,j,k,m)/rmasso)
+                efldx(i,j,k)=(hrho(i,j,k,m)/rmassh)
+                curx(i,j,k)=0.33333*( hpresx(i,j,k,m)+ &
+                    hpresy(i,j,k,m)+hpresz(i,j,k,m) )
+                cury(i,j,k)=epres(i,j,k,m)
+            enddo
+        enddo
+    enddo
+    call auroras(curx,efldx,bsx,bsy,bsz, &
+        nx,ny,nz,ngrd,m,radstrt,re_equiv,rearth,1, &
+        ut,save_dat,add_dip,'htempnth',14,write_dat, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    call auroras(curx,efldx,bsx,bsy,bsz, &
+        nx,ny,nz,ngrd,m,radstrt,re_equiv,rearth,-1, &
+        ut,save_dat,add_dip,'htempsth',14,write_dat, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    !
+    call auroras(cury,efldy,bsx,bsy,bsz, &
+        nx,ny,nz,ngrd,m,radstrt,re_equiv,rearth,1, &
+        ut,save_dat,add_dip,'etempnth',14,write_dat, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+    call auroras(cury,efldy,bsx,bsy,bsz, &
+        nx,ny,nz,ngrd,m,radstrt,re_equiv,rearth,-1, &
+        ut,save_dat,add_dip,'etempsth',14,write_dat, &
+        grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     return
 end

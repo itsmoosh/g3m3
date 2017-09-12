@@ -5,16 +5,17 @@
 # version of gfortran prior to 4.6.
 
 FC = ncargf90
-FCFLAGS = -zero -save -openmp -debug -O0 -g -traceback 
+#FCFLAGS = -zero -save -openmp -O2 
+FCFLAGS = -zero -save -openmp -debug -g -traceback 
 FCFLAGS += -liomp5 
 FILES = earth3d_main.f90 \
-		earthd_main.f90 \
+		earthd_main.f \
 		earthg_main.f90 \
 		earths_main.f90
 LIBS = -L/opt/intel/composer_xe_2013/lib/intel64
 
 earth.x: $(OBJECTS)
-	$(FC) $(FCFLAGS) -o earth.x $(FILES)
+	$(FC) $(FCFLAGS) -o proxcentb.x $(FILES)
 
 clean:
 	rm -f *.o
