@@ -1797,8 +1797,8 @@ subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
     !$omp  parallel do
     do k=1,nz
         do i=1,nx
-            deltay(i,ny,j)=deltay(i,ny-1,k)
-            delta1y(i,ny,j)=delta1y(i,ny-1,k)
+            deltay(i,ny,k)=deltay(i,ny-1,k)
+            delta1y(i,ny,k)=delta1y(i,ny-1,k)
         enddo
     enddo
     !
