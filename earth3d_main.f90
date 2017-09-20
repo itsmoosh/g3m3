@@ -1365,48 +1365,6 @@ program multifluid
                 enddo
             enddo
         enddo
-        !
-        !
-        !     check speeds
-        !
-        do  m=ngrd,1,-1
-            do  k=1,nz
-                do  j=1,ny
-                    do  i=1,nx
-                        avx=qpx(i,j,k,m)/qrho(i,j,k,m)
-                        avy=qpy(i,j,k,m)/qrho(i,j,k,m)
-                        avz=qpz(i,j,k,m)/qrho(i,j,k,m)
-                        spd=sqrt(avx**2+avy**2+avz**2)
-                        if(spd.gt.1.)then
-                            qpx(i,j,k,m)=0.
-                            qpy(i,j,k,m)=0.
-                            qpz(i,j,k,m)=0.
-                        endif
-                        !
-                        avx=hpx(i,j,k,m)/hrho(i,j,k,m)
-                        avy=hpy(i,j,k,m)/hrho(i,j,k,m)
-                        avz=hpz(i,j,k,m)/hrho(i,j,k,m)
-                        spd=sqrt(avx**2+avy**2+avz**2)
-                        if(spd.gt.1.)then
-                            hpx(i,j,k,m)=0.
-                            hpy(i,j,k,m)=0.
-                            hpz(i,j,k,m)=0.
-                        endif
-                        !
-                        avx=opx(i,j,k,m)/orho(i,j,k,m)
-                        avy=opy(i,j,k,m)/orho(i,j,k,m)
-                        avz=opz(i,j,k,m)/orho(i,j,k,m)
-                        spd=sqrt(avx**2+avy**2+avz**2)
-                        if(spd.gt.1.)then
-                            opx(i,j,k,m)=0.
-                            opy(i,j,k,m)=0.
-                            opz(i,j,k,m)=0.
-                        endif
-                        !
-                    enddo
-                enddo
-            enddo
-        enddo
     endif ! if(.not.start) then
     
     !
