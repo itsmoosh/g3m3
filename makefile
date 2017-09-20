@@ -5,8 +5,8 @@
 # version of gfortran prior to 4.6.
 
 FC = ncargf90
-#FCFLAGS = -zero -save -openmp -O2 
-FCFLAGS = -zero -save -openmp -debug -g -traceback 
+FCFLAGS = -zero -save -openmp -O2 
+#FCFLAGS = -zero -save -openmp -debug -g -traceback 
 FCFLAGS += -liomp5 
 FILES = earth3d_main.f90 \
 		earthd_main.f \
