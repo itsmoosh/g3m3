@@ -77,12 +77,14 @@ rho_equiv - density normalization factor (chosen to keep calculations near unity
 spacecraft - conditional to record spacecraft data (unused in my code)
 craft_input - conditional to use spacecraft data as physical inputs for sims
 warp - conditional related to spacecraft data (unused in my code)
-utstart - time offset for start (related to spacecraft data, unused in my code)
+ut_init - time to set UT to for an initialization run (when start=.true.)
+utstart - UT to resume at
  
 $smooth
 	these parameters used in introducing artificial viscosity to stabilize the simulation
 	don’t change unless you are certain of what you intend
  
+-- Removed: --
 $randomlinesofnumbers
 grid sizes in grid points, each successive grid needs to be 2X the last, not necessarily centered
 

@@ -32,7 +32,7 @@ Info for getting started:
 	6. Start your run with the following syntax:
 		For solo executable:
 			cd ~/multifluid
-			./master.x >> output.log ; echo "master.x finished running!" | mail -s "Multifluid run complete" your@email.com &
+			./master.x >> output.log 2>&1 ; echo "master.x finished running!" | mail -s "Multifluid run complete" your@email.com &
 		For queued runs (note the use of the optional alias in .bashrc listed above):
 			run $runname $start $stop &
 		where $runname is the pre-extension executable name, $start and $stop are the indices of the first and last integers in the queued series.
@@ -72,3 +72,4 @@ Additional notes:
 @ Restarted and queued runs require 2 fluid data files to be present in addition to the correctly-named input file.
 	Queued runs copy the files fluid13 and fluid14 from the previous iteration into fluid11 and fluid12 respectively.
 	A restarted run, or the first of a set of queued runs, expects fluid11 and fluid12 to be present in the exection directory.
+	Subsequent runs must have 'input_out' copied to 'input' for ut values to work properly.

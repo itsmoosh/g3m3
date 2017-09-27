@@ -1,4 +1,4 @@
-subroutine trilin_interp(sxyz,gridpts,qty,sdata)
+subroutine trilin_interp(sxyz,gridpts,qty,scdata)
     !
     !   Performs trilinear interpolation to approximate the value
 	!		of the measurable quantity qty at the spatial coordinate
@@ -9,7 +9,7 @@ subroutine trilin_interp(sxyz,gridpts,qty,sdata)
 	!		vectors.
     !
 	real, intent(in) :: sxyz(3), gridpts(3,2), qty(2,2,2)
-	real, intent(out) :: sdata
+	real, intent(out) :: scdata
 	!
 	real x0, x1, y0, y1, z0, z1
 	!
@@ -48,12 +48,12 @@ subroutine trilin_interp(sxyz,gridpts,qty,sdata)
 	!
 	!	Interpolate between face values to get trilinearly interpolated
 	!		value for qty at sxyz location
-	sdata = face0*(1-zd) + face1*zd
+	scdata = face0*(1-zd) + face1*zd
 	!
 	write(*,*) 'TRILIN_INTERP DIAGNOSTICS:'
 	write(*,*) '--------------------------'
-	write(*,*) 'sxyz:', 'gridpts', 'qty', 'sdata'
-	write(*,*) sxyz, gridpts, qty, sdata
+	write(*,*) 'sxyz:', 'gridpts', 'qty', 'scdata'
+	write(*,*) sxyz, gridpts, qty, scdata
 	write(*,*) 'xd', 'yd', 'zd'
 	write(*,*) xd, yd, zd
 	write(*,*) 'edge00', 'edge01', 'edge10', 'edge11'
