@@ -21,13 +21,13 @@
 !       ncts is the size of the data array for the imf data file
 !
 program multifluid
-    integer,parameter :: nx=81,ny=81,nz=81,ngrd=3, &
+    integer,parameter :: nx=121,ny=121,nz=81,ngrd=3, &
     mbndry=1,msrf=2000,mmid=1500,mzero=5000, &
     ncraft=30,ncts=281
     !
     !      graphics parameters:muvwp2=amax(mx,my,mz)+2,mz2=(mz-1)/2+1
     !
-    integer,parameter :: mx=61,my=61,mz=61,muvwp2=63,mz2=31
+    integer,parameter :: mx=121,my=121,mz=81,muvwp2=123,mz2=41
     !
     common /space/vvx(nx,ny,nz),vvy(nx,ny,nz),vvz(nx,ny,nz), &
     tvx(nx,ny,nz),tvy(nx,ny,nz),tvz(nx,ny,nz), &
@@ -1547,7 +1547,7 @@ program multifluid
         !
         !       check speeds of individual grids
         !
-        vlim=0.6*m
+        vlim=1.333*m
         call set_speed_agrd( &
             qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
             hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -2179,7 +2179,7 @@ program multifluid
                         wrkopresxy,wrkopresxz,wrkopresyz,rmasso, &
                         wrkepres,nx,ny,nz,ngrd,m,o_conc)
                     !
-                    vlim=0.6*m
+                    vlim=1.333*m
                     call set_speed_agrd( &
                         wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                         wrkqpx,wrkqpy,wrkqpz, &
@@ -2413,7 +2413,7 @@ program multifluid
                         opresxy,opresxz,opresyz,rmasso, &
                         epres,nx,ny,nz,ngrd,m,o_conc)
                     !
-                    vlim=0.6*m
+                    vlim=1.333*m
                     call set_speed_agrd( &
                         qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
                         hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -2609,7 +2609,7 @@ program multifluid
                     !
                     !      write(6,*)'lapidus speeds'
                     !
-                    vlim=0.6*m
+                    vlim=1.333*m
                     call set_speed_agrd( &
                         wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                         wrkqpx,wrkqpy,wrkqpz, &
@@ -2763,7 +2763,7 @@ program multifluid
                         opresxy,opresxz,opresyz,rmasso, &
                         epres,nx,ny,nz,ngrd,m,o_conc)
                     !
-                    vlim=0.6*m
+                    vlim=1.333*m
                     call set_speed_agrd( &
                         qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
                         hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -2867,7 +2867,7 @@ program multifluid
             if(divb_lores.and.(tgraf.gt.0.))then
                 range=1.33*lunar_dist/re_equiv
                 write(6,*)'range for divb taper',lunar_dist,range
-                do m=ngrd,1,-1
+                do m=ngrd-1,1,-1
                     write(6,*)'divb on box',m
                     call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
                         curx,cury,curz,efldx,efldy,efldz, &
@@ -3890,10 +3890,10 @@ subroutine visual( &
         call qvset(0.,curz,nx*ny*nz)
         !
         if(m.le.3)then
-            preslim=25.0/float(m)
+            preslim=0.20/float(m)
             po=preslim*0.33
         else
-            preslim=25.0/(m-1.)
+            preslim=0.20/(m-1.)
             po=preslim*0.33
         endif
         !
@@ -3960,38 +3960,38 @@ subroutine visual( &
         label='qpresx '//wd1
         call conhot(tvx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
+            ut,label,3,19,1,2.0,preslim, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         label='qpresy '//wd1
         call conhot(tvy,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
+            ut,label,3,19,1,2.0,preslim, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         label='qpresz '//wd1
         call conhot(tvz,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
+            ut,label,3,19,1,2.0,preslim, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     
         label='rqprx '//wd1
         call conlog(efldx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.5,2.25, &
+            ut,label,3,19,1,2.0,0.5,2.25, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         label='rqpry '//wd1
         call conlog(efldy,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.5,2.25, &
+            ut,label,3,19,1,2.0,0.5,2.25, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         label='rqprz '//wd1
         call conlog(efldz,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.5,2.25, &
+            ut,label,3,19,1,2.0,0.5,2.25, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
@@ -4056,38 +4056,38 @@ subroutine visual( &
         label='hpresx '//wd1
         call conhot(tvx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
+            ut,label,3,19,1,2.0,preslim, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         label='hpresy '//wd1
         call conhot(tvy,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
+            ut,label,3,19,1,2.0,preslim, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         label='hpresz '//wd1
         call conhot(tvz,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
+            ut,label,3,19,1,2.0,preslim, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     
         label='rhprx '//wd1
         call conlog(efldx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.75,1.25, &
+            ut,label,3,19,1,2.0,0.75,1.25, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         label='rhpry '//wd1
         call conlog(efldy,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.75,1.25, &
+            ut,label,3,19,1,2.0,0.75,1.25, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         label='rhprz '//wd1
         call conlog(efldz,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.75,1.25, &
+            ut,label,3,19,1,2.0,0.75,1.25, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
@@ -4152,40 +4152,48 @@ subroutine visual( &
         label='opresx '//wd1
         call conhot(tvx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
+            ut,label,3,19,1,1.5,preslim, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         label='opresy '//wd1
         call conhot(tvy,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
+            ut,label,3,19,1,1.5,preslim, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         label='opresz '//wd1
         call conhot(tvz,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
+            ut,label,3,19,1,1.5,preslim, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         
         label='roprx '//wd1
         call conlog(efldx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.75,1.25, &
+            ut,label,3,19,1,1.5,0.75,1.25, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         label='ropry '//wd1
         call conlog(efldy,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.75,1.25, &
+            ut,label,3,19,1,1.5,0.75,1.25, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         label='roprz '//wd1
         call conlog(efldz,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,0.75,1.25, &
+            ut,label,3,19,1,1.5,0.75,1.25, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+        !
+        if(m.le.3)then
+            preslim=0.50/float(m)
+            po=preslim*0.33
+        else
+            preslim=0.50/(m-1.)
+            po=preslim*0.33
+        endif
         !
         do k=1,nz
             do j=1,ny
@@ -4198,7 +4206,7 @@ subroutine visual( &
         label='epres '//wd1
         call conhot(efldx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim, &
+            ut,label,3,19,1,2.0,preslim, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         do k=1,nz
@@ -4219,7 +4227,7 @@ subroutine visual( &
         label='tpres '//wd1
         call conhot(tvx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,preslim*3., &
+            ut,label,3,19,1,2.0,preslim*3., &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
@@ -4233,7 +4241,7 @@ subroutine visual( &
         label='pres-vel '//wd1
         call conflow(tvx,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,11,1,2.0, &
+            ut,label,3,12,1,2.0, &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
