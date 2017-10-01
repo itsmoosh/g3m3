@@ -5,6 +5,7 @@ a:	Anisotropy subroutines:	associated with pressure anisotropy in the plasma, re
 c:	Spacecraft subroutines:	reading, writing, and calculations associated with spacecraft inputs and outputs
 f:	Functions: In-line functions.
 g:	Graphics subroutines:	mid-simulation graphics outputs, which are stored in the gmeta file.
+m:	Modules containing global constants.
 s:	Standard (general) subroutines.
 cut:	Stand-alone code for parsing binary fluid files into ASCII output data. Unlike the other categories, this category is not in the code/ directory.
 
