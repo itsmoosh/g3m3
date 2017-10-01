@@ -4,6 +4,7 @@
  $end
 
  $planet
+	bodyname="saturn" moonname="enceladus"
      xdip=0.00001 ydip=0.00000 zdip=0.000000 r_inner=10.0 
           tilt1=0.0 tilt2=0.0 tilting =.f. 
           rmassq=1. rmassh=18. rmasso=32.
