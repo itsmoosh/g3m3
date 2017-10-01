@@ -416,7 +416,7 @@ program multifluid
 		!
 		!	Adapted parameters for simulation use (boundaries etc., see 'Planet & moon calculations' below)
 			real,parameter :: torus_rad=1.0
-			real lunar_dist, lunar_rad, lunar_dist, grav	
+			real lunar_rad, lunar_dist, grav	
 			real r_orbit, v_orbit, tilt
 			real xmoon, ymoon, zmoon, rmoon, b0_moon
 			!
@@ -427,8 +427,7 @@ program multifluid
 		real	vvx(nx,ny,nz), vvy(nx,ny,nz), vvz(nx,ny,nz), &
 				tvx(nx,ny,nz), tvy(nx,ny,nz), tvz(nx,ny,nz), &
 				evx(nx,ny,nz), evy(nx,ny,nz), evz(nx,ny,nz)
-		real	v_rot, r_rot, rot_angle, xdip, ydip, zdip, &
-				sin_tilt, cos_tilt, b0
+		real	v_rot, sin_tilt, cos_tilt, b0
 		real	planet_orbit_rad, planet_year, planet_rad, &
 				planet_per, planet_mass, planet_obliq, planet_incl, &
 				r_rot, torus_infall, planet_tilt, planet_init_long, &
