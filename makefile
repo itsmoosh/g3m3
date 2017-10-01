@@ -22,4 +22,4 @@ clean:
 	rm -f *.dat
 
 test:
-	$(FC) $(FCFLAGS) -o test.x $(TESTP) $(TESTF)
+	$(FC) $(FCFLAGS) -o test.x $(TESTF) $(TESTP)
