@@ -4,15 +4,17 @@
 !
 !	Required inputs:
 !	cutter_input	input file from the run generating the fluid file
-!	cutter_fluid	binary fluid file to sliced
+!	cutter_fluid	binary fluid file to be sliced
 !
 program cut_fluid_to_ascii
 
       implicit none
       integer, parameter :: nx=121,ny=121,nz=61,ngrd=5, &
                   mbndry=1,msrf=2000,mmid=1500,mzero=5000, &
-                  ncraft=30,ncts=281
+                  ncraft=30,ncts=281, division=2
 
+	  real,parameter :: wind_adjust=4./3., limit=60.
+	  
 !     --------------------------------------------------------------
       integer, parameter :: nlines=479 !synthetic trajectory length
 !      integer, parameter :: nlines2=6302
@@ -49,7 +51,7 @@ program cut_fluid_to_ascii
 !                   interpolated
        real grd_xmin(ngrd),grd_xmax(ngrd),grd_ymin(ngrd), &
            grd_ymax(ngrd), grd_zmin(ngrd),grd_zmax(ngrd), &
-           xspac(ngrd)
+           xspac(ngrd), grid_diff
        integer ncore(ngrd),nbndry(ngrd)
 !
 
@@ -208,7 +210,9 @@ program cut_fluid_to_ascii
               spacecraft,tilting,warp,reload, &
               divb_lores,divb_hires,divb_on
 
-      real tmax,stepsz,tsave,xdip,ydip,zdip,rearth, &
+	character*10 bodyname,moonname
+
+      real tmax,stepsz,tsave,xdip,ydip,zdip,r_inner, &
            tilt1,tilt2,rmassq,rmassh,rmasso,cs_inner, &
            alf_inner1,alf_inner2,alpha_e,den_earth, &
            o_conc,gravity,ti_te,gamma, &
@@ -260,7 +264,7 @@ program cut_fluid_to_ascii
 !           rx,ry,rz should not be set identically to zero
 !
         namelist/option/tmax,ntgraf,stepsz,start,tsave,isotropic
-        namelist/earth/xdip,ydip,zdip,rearth, &
+        namelist/planet/bodyname,moonname,xdip,ydip,zdip,r_inner, &
             tilt1,tilt2,tilting,rmassq,rmassh,rmasso
         namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
             alpha_e,den_earth,den_lunar,o_conc,gravity, &
@@ -296,7 +300,7 @@ program cut_fluid_to_ascii
 !     read input parameters
 !
       read(5,option)
-      read(5,earth)
+      read(5,planet)
       read(5,speeds)
       read(5,windy)
       read(5,lunar)
@@ -308,19 +312,35 @@ program cut_fluid_to_ascii
 !        ncore -> grid gets all the information from this grid no.
 !        nbdry -> which grid data will be applied to this grid no.for bndry
 !
-      do m=1,ngrd
-         read(5,*)grd_xmin(m),grd_xmax(m),grd_ymin(m),grd_ymax(m), &
-              grd_zmin(m),grd_zmax(m),xspac(m)
-         write(6,*)grd_xmin(m),grd_xmax(m),grd_ymin(m),grd_ymax(m), &
-              grd_zmin(m),grd_zmax(m),xspac(m)
-         ix=1+int((grd_xmax(m)-grd_xmin(m))/xspac(m))
-         iy=1+int((grd_ymax(m)-grd_ymin(m))/xspac(m))
-         iz=1+int((grd_zmax(m)-grd_zmin(m))/xspac(m))
-         if((ix.ne.nx).or.(iy.ne.ny).or.(iz.ne.nz))then
-            write(6,*)' warning: sizes',ix,iy,iz,nx,ny,nz
-            stop
-         endif
-      enddo
+      write(*,*) 'Grid xmin: ','Grid xmax: ','Grid ymin: ','Grid ymax: ', &
+		'Grid zmin: ','Grid zmax: ','Grid spacing: '
+	  do i=1,ngrd
+		xspac(i) = division**(i-1)
+		grd_xmin(i) = -limit*xspac(i)
+		grd_xmax(i) = limit*xspac(i)
+	    grd_ymin(i) = -limit*xspac(i)
+		grd_ymax(i) = limit*xspac(i)        
+		grd_zmin(i) = -limit/2*xspac(i)
+		grd_zmax(i) = limit/2*xspac(i)
+		!
+		if(i.eq.n_grids) then
+			grid_diff = grd_xmax(i) * wind_adjust - grd_xmax(i)
+			grd_xmaxvals(i) = grd_xmax(i) + grd_diff
+			grd_xminvals(i) = grd_xmin(i) + grd_diff
+		endif
+		!
+		write(*,*) grd_xmin(i), grd_xmax(i), &
+		grd_ymin(i), grd_ymax(i), &
+		grd_zmin(i), grd_zmax(i), xspac(i)
+		ix = 1 + ( grd_xmax(i) - grd_xmin(i) ) / xspac(i)
+		iy = 1 + ( grd_ymax(i) - grd_ymin(i) ) / xspac(i)
+	    iz = 1 + ( grd_zmax(i) - grd_zmin(i) ) / xspac(i)
+	    if((ix.ne.nx).or.(iy.ne.ny).or.(iz.ne.nz)) then
+	        write(*,*)'ERROR: grid spacing does not match number of points.', &
+				' Actual x,y,z: ',ix,iy,iz,'Expected x,y,z: ',nx,ny,nz
+	        stop
+	    endif
+	  enddo
 !
 !
 !!!!
