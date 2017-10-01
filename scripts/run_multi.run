@@ -11,6 +11,8 @@
 #	@ Fluid files in $execdir named fluid11 and fluid12
 #		& Note: if the "start" variable in input is set to .t., no fluid files are required, but subsequent runs must have their own input files
 
+set -e
+
 execdir=$HOME/multifluid # If any data/run directory or input name is changed here it must also be changed in archive.run
 scriptdir=$HOME/multifluid/scripts
 datadir=$HOME/multifluid/data
@@ -51,14 +53,8 @@ do
 	date +"START: %T-%Y-%m-%d" >> output.log
 #
 #
-	$execdir/$runname.x >> output.log # Main code runs here
+	$execdir/$runname.x >> output.log 2>&1 # Main code runs here
 #
-#
-	MAIN_EXIT_STATUS=$? # Check STDERR in case main code had errors. This usually indicates missing/problem files.
-	if [ $MAIN_EXIT_STATUS -ne 0 ] ; then # Save us overwriting files we need to restart if the main code fails.
-		echo "File ${runname}_${kk} exited with errors." | mail -s "${runname}_${kk} script reported errors, runscript aborted." $myemail
-		exit 1
-	fi
 #
 	date +"FINISH: %T-%Y-%m-%d" >> output.log
 	mv -f output.log $datadir/output_$kk.log # Move old data files to data directory
