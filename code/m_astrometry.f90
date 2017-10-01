@@ -130,13 +130,13 @@ contains
 
 		real	planet_orbit_rad, planet_year, planet_rad, &
 				planet_per, planet_mass, planet_obliq, planet_incl, &
-				r_rot, torus_infall, tilt, planet_init_long, &
+				r_lim, torus_infall, tilt, planet_init_long, &
 				moon_orbit_rad, moon_per, moon_rad, moon_mass, &
 				moon_incl, moon_init_rot
 
 		common /planetary/planet_orbit_rad, planet_year, planet_rad, &
-		planet_per, planet_mass, planet_obliq, planet_incl, r_rot, &
-		torus_infall, planet_tilt, planet_init_long, &
+		planet_per, planet_mass, planet_obliq, planet_incl, &
+		r_lim, torus_infall, planet_tilt, planet_init_long, &
 		moon_orbit_rad, moon_per, moon_rad, moon_mass, moon_incl, &
 		moon_init_rot
 
@@ -154,7 +154,7 @@ contains
 				planet_mass = jupiter_mass
 				planet_obliq = jupiter_obliq
 				planet_incl = jupiter_incl
-				r_rot = jupiter_r_rot
+				r_lim = jupiter_r_rot
 				torus_infall = jupiter_torus_infall
 				planet_tilt = jupiter_tilt
 				planet_init_long = jupiter_init_long
@@ -167,7 +167,7 @@ contains
 				planet_mass = saturn_mass
 				planet_obliq = saturn_obliq
 				planet_incl = saturn_incl
-				r_rot = saturn_r_rot
+				r_lim = saturn_r_rot
 				torus_infall = saturn_torus_infall
 				planet_tilt = saturn_tilt
 				planet_init_long = saturn_init_long
@@ -180,7 +180,7 @@ contains
 				planet_mass = earth_mass
 				planet_obliq = earth_obliq
 				planet_incl = earth_incl
-				r_rot = earth_r_rot
+				r_lim = earth_r_rot
 				torus_infall = earth_torus_infall
 				planet_tilt = earth_tilt
 				planet_init_long = earth_init_long
@@ -196,7 +196,7 @@ contains
 				planet_mass = saturn_mass
 				planet_obliq = saturn_obliq
 				planet_incl = saturn_incl
-				r_rot = saturn_r_rot
+				r_lim = saturn_r_rot
 				torus_infall = saturn_torus_infall
 				tilt = saturn_tilt
 				planet_init_long = saturn_init_long

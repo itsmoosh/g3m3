@@ -427,10 +427,10 @@ program multifluid
 		real	vvx(nx,ny,nz), vvy(nx,ny,nz), vvz(nx,ny,nz), &
 				tvx(nx,ny,nz), tvy(nx,ny,nz), tvz(nx,ny,nz), &
 				evx(nx,ny,nz), evy(nx,ny,nz), evz(nx,ny,nz)
-		real	v_rot, sin_tilt, cos_tilt, b0
+		real	v_rot, r_rot, sin_tilt, cos_tilt, b0
 		real	planet_orbit_rad, planet_year, planet_rad, &
 				planet_per, planet_mass, planet_obliq, planet_incl, &
-				r_rot, torus_infall, planet_tilt, planet_init_long, &
+				r_lim, torus_infall, planet_tilt, planet_init_long, &
 				moon_orbit_rad, moon_per, moon_rad, moon_mass, &
 				moon_incl, moon_init_rot
 		!
@@ -440,14 +440,14 @@ program multifluid
 		sin_tilt,cos_tilt,b0
 		!
 		common /planetary/planet_orbit_rad, planet_year, planet_rad, &
-		planet_per, planet_mass, planet_obliq, planet_incl, r_rot, &
-		torus_infall, planet_tilt, planet_init_long, &
+		planet_per, planet_mass, planet_obliq, planet_incl, &
+		r_lim, torus_infall, planet_tilt, planet_init_long, &
 		moon_orbit_rad, moon_per, moon_rad, moon_mass, moon_incl, &
 		moon_init_rot
 	!
 	!
 	!	Called from astrometry module
-	call choose_bodies(bodyname,moonname)	!	Sets planetary parameters via the planetary common block and bodyname and moonname strings from input file
+	call choose_system(bodyname,moonname)	!	Sets planetary parameters via the planetary common block and bodyname and moonname strings from input file
 	!
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -462,6 +462,7 @@ program multifluid
 	!	Planet & moon calculations
 	!	**************************
 		!
+		r_rot = r_lim
 		v_rot = 2.*pi*planet_rad/(planet_per*3600.)/v_equiv  !	Normalized units
 		lunar_dist = moon_rad + torus_infall
 		lunar_rad = 1.25 * moon_rad	!	Start exobase at 1.25 rt
