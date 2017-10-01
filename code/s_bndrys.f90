@@ -1298,9 +1298,6 @@ subroutine bndry_moon(qrho,qpresx,qpresy,qpresz, &
     real    parm_srf(mbndry,7,msrf),parm_mid(mbndry,7,mmid), &
     parm_zero(mbndry,7,mzero)
     !
-    common /moon/xmoon,ymoon,zmoon,rmoon,b0_moon, &
-    xdip_moon,ydip_moon,zdip_moon,offset
-    !
     tempi=cs_moon**2/gamma
     alpha_m=6.
     rvx=vx_moon

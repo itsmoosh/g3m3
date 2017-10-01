@@ -121,8 +121,6 @@ program multifluid
 		evx(nx,ny,nz),evy(nx,ny,nz),evz(nx,ny,nz)
 		common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
 		sin_tilt,cos_tilt,b0
-		common /moon/xmoon,ymoon,zmoon,rmoon,b0_moon, &
-		xdip_moon,ydip_moon,zdip_moon,offset
 		!
 	!
     !	************************************
