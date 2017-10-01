@@ -67,7 +67,7 @@ do
 	mv -f conc.dat $datadir/conc_$kk.dat
 	cp -f input $datadir/$inp$kk
 #
-	[ -f $inp$kknext ] || mv -f input $inp$kknext # Only copy the current input file to be used next if the next input does not already exist
+	[ -f $inp$kknext ] || mv -f input_out $inp$kknext # Only copy the current input file to be used next if the next input does not already exist
 	rm -f $inp$kk
 	mv -f fluid11 $datadir/$runname${kk}_11
 	mv -f fluid12 $datadir/$runname${kk}_12
