@@ -27,8 +27,8 @@ program multifluid
     !
     !      graphics parameters:muvwp2=amax(mx,my,mz)+2,mz2=(mz-1)/2+1
     !
-    integer,parameter :: mx=61,my=61,mz=31, &
-                         muvwp2=63,mz2=16,ntinj=120
+    integer,parameter :: mx=121,my=121,mz=61, &
+                         muvwp2=123,mz2=31,ntinj=120
     !
     common /space/vvx(nx,ny,nz),vvy(nx,ny,nz),vvz(nx,ny,nz), &
     tvx(nx,ny,nz),tvy(nx,ny,nz),tvz(nx,ny,nz), &
@@ -953,21 +953,21 @@ program multifluid
 
         !
         !     if(update)t=0.
-        write(6,*)'entering lores visual'
-        ut=utstart+t*t_equiv/3600.
-        call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
-            qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
-            hrho,hpresx,hpresy,hpresz,hpresxy, &
-            hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
-            orho,opresx,opresy,opresz,opresxy, &
-            opresxz,opresyz,opx,opy,opz,rmasso, &
-            epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
-            curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
-            tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
-            nx,ny,nz,ngrd,xspac, &
-            cross,along,flat,xcraft,ncraft,re_equiv, &
-            grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-            grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv)
+        !write(6,*)'entering lores visual'
+        !ut=utstart+t*t_equiv/3600.
+        !call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
+        !    qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
+        !    hrho,hpresx,hpresy,hpresz,hpresxy, &
+        !    hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
+        !    orho,opresx,opresy,opresz,opresxy, &
+        !    opresxz,opresyz,opx,opy,opz,rmasso, &
+        !    epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
+        !    curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
+        !    tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
+        !    nx,ny,nz,ngrd,xspac, &
+        !    cross,along,flat,xcraft,ncraft,re_equiv, &
+        !    grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
+        !    grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv)
 
         ts1=t+tsave
         tstep=tmax
@@ -985,21 +985,21 @@ program multifluid
             msrf,mmid,mzero,1.)
         !
     
-        write(6,*)'entering lores visual'
-        ut=utstart+t*t_equiv/3600.
-        call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
-            qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
-            hrho,hpresx,hpresy,hpresz,hpresxy, &
-            hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
-            orho,opresx,opresy,opresz,opresxy, &
-            opresxz,opresyz,opx,opy,opz,rmasso, &
-            epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
-            curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
-            tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
-            nx,ny,nz,ngrd,xspac, &
-            cross,along,flat,xcraft,ncraft,re_equiv, &
-            grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-            grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv)
+        !write(6,*)'entering lores visual'
+        !ut=utstart+t*t_equiv/3600.
+        !call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
+        !    qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
+        !    hrho,hpresx,hpresy,hpresz,hpresxy, &
+        !    hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
+        !    orho,opresx,opresy,opresz,opresxy, &
+        !    opresxz,opresyz,opx,opy,opz,rmasso, &
+        !    epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
+        !    curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
+        !    tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
+        !    nx,ny,nz,ngrd,xspac, &
+        !    cross,along,flat,xcraft,ncraft,re_equiv, &
+        !    grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
+        !    grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv)
         !
         write(6,79) nchf
         79 format('  restart from fluid_',i2)
@@ -2861,30 +2861,30 @@ program multifluid
         !     write(6,999)t
         ! 999 format(' step 2 complete at t= ',1pe12.5)
         !
-        if(t.ge.tgraf) then
+        !if(t.ge.tgraf) then
             !
             !     plot plasma propeties
             !
             !      calculate size of plotting stuff and ensure no distortions
             !         over desired scales
             !
-            519  write(6,*)'graphics plotted'
-            call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
-                qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
-                hrho,hpresx,hpresy,hpresz,hpresxy, &
-                hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
-                orho,opresx,opresy,opresz,opresxy, &
-                opresxz,opresyz,opx,opy,opz,rmasso, &
-                epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
-                curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
-                tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
-                nx,ny,nz,ngrd,xspac, &
-                cross,along,flat,xcraft,ncraft,re_equiv, &
-                grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-                grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv)
+            !519  write(6,*)'graphics plotted'
+            !call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
+            !    qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
+            !    hrho,hpresx,hpresy,hpresz,hpresxy, &
+            !    hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
+            !    orho,opresx,opresy,opresz,opresxy, &
+            !    opresxz,opresyz,opx,opy,opz,rmasso, &
+            !    epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
+            !    curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
+            !    tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
+            !    nx,ny,nz,ngrd,xspac, &
+            !    cross,along,flat,xcraft,ncraft,re_equiv, &
+            !    grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
+            !    grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv)
             !
-            tgraf=tgraf+deltg
-        endif !if(t.ge.tgraf)
+            !tgraf=tgraf+deltg
+        !endif !if(t.ge.tgraf)
 
         if(t.ge.tinj.and.ringo) then
             !
