@@ -14,7 +14,7 @@ FILES = saturn3d_main.f90 \
 LIBS = -L/opt/intel/composer_xe_2013/lib/intel64
 
 saturn.x: $(OBJECTS)
-	$(FC) $(FCFLAGS) -o saturn_iso.x $(FILES)
+	$(FC) $(FCFLAGS) -o saturn.x $(FILES)
 
 clean:
 	rm -f *.o
