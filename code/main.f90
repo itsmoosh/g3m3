@@ -112,8 +112,8 @@ program multifluid
 		alf_moon, ti_te_moon, &
 		xdip_moon, ydip_moon, zdip_moon, offset
 		! group 'physical' 
-		real re_equiv, b_equiv, v_equiv, rho_equiv, uday, ut_init
-		real(dp) utstart
+		real re_equiv, b_equiv, v_equiv, rho_equiv, utstart
+		real(dp) utstart_copy	!	1 RUN ONLY MJS 10/01/17
 		logical spacecraft, craft_input, warp
 		! group 'smooth'
 		real chirho, chipxyz, chierg, difrho, difpxyz, diferg
@@ -122,14 +122,15 @@ program multifluid
 	!	Output file parameters
 	!	**********************
 		! group 'crafthead'
-		character*8 cname
-		integer num_vals	!	FIX NEEDED: Write the ntimes value for each craft to this
-		real rot_closest	!	FIX NEEDED: Use utc_to_jd subroutine to find these numbers so they can print to file headers
-		character*40 git_hash
+		character*8	:: cname = 'default'
+		integer		:: num_vals = 0	!	FIX NEEDED: Write the ntimes value for each craft to this
+		real		:: rot_closest = 0.0	!	FIX NEEDED: Use utc_to_jd subroutine to find these numbers so they can print to file headers
+		character*40 :: git_hash = 'deadbeef'
 		!
 		real,parameter :: wind_adjust=4./3., limit=60.
 		real xspac(n_grids), grid_minvals(3,n_grids), grid_maxvals(3,n_grids)
-		real(dp) ut
+		real ut
+		real(dp) ut_copy	!	1 RUN ONLY MJS 10/01/17
 		!
 		!	Notes about grid variables:
 		!		
@@ -231,9 +232,15 @@ program multifluid
 	!	*************************
     !	Variable time step arrays
 	!	*************************
-		real(dp) t_old(n_grids),t_new(n_grids),t_step(n_grids),t_stepnew(n_grids), &
+		real t_old(n_grids),t_new(n_grids),t_step(n_grids),t_stepnew(n_grids), &
 		t_equiv
-		real(dp) t		!	We give t extra precision to make sure we don't easily hit an upper limit on runtime.
+		real t		
+		real(dp) t_old_copy(n_grids)	!	1 RUN ONLY MJS 10/01/17
+		real(dp) t_new_copy(n_grids)	!	1 RUN ONLY MJS 10/01/17
+		real(dp) t_step_copy(n_grids)	!	1 RUN ONLY MJS 10/01/17
+		real(dp) t_stepnew_copy(n_grids)	!	1 RUN ONLY MJS 10/01/17
+		real(dp) t_equiv_copy	!	1 RUN ONLY MJS 10/01/17
+		real(dp) t_copy	!	1 RUN ONLY MJS 10/01/17		!	We give t extra precision to make sure we don't easily hit an upper limit on runtime.
 		!
 	!
 	!	*************************
@@ -362,6 +369,7 @@ program multifluid
 	integer nheadlines
 	!
 	logical	:: dat_exists=.false.
+	logical :: dummy_exists=.false.
 	!
 	real	meas_qty(2,2,2,num_inst)
 	real	scdata(num_inst)
@@ -400,7 +408,7 @@ program multifluid
 		alf_moon,ti_te_moon, &
 		xdip_moon,ydip_moon,zdip_moon,offset
 		namelist/physical/re_equiv,b_equiv,v_equiv,rho_equiv, &
-		spacecraft,craft_input,warp,uday,ut_init
+		spacecraft,craft_input,warp,utstart
 		namelist/smooth/chirho,chipxyz,chierg, &
 		difrho,difpxyz,diferg
 		!
@@ -467,11 +475,14 @@ program multifluid
 	!	******************
 	!	Count header lines
 	!	******************
-		!	
+		!
+		inquire(file=trim(dummy_craft), exist=dummy_exists)
+		if(dummy_exists) call system ('rm '//trim(dummy_craft))
+		!
 		open(dummy_f,file=trim(dummy_craft),status='unknown',form='formatted')
 			write(dummy_f,crafthead)
 			write(dummy_f,*) dat_header
-			call system ('wc -l '//trim(fname)//' >> '//trim(fname))
+			call system ('wc -l '//trim(dummy_craft)//' >> '//trim(dummy_craft))
 			read(dummy_f,*) nheadlines, junkline
 		close(dummy_f)
 		call system ('rm '//trim(dummy_craft))
@@ -540,7 +551,7 @@ program multifluid
     open(1,file='input',status='old',form='formatted')
     open(2,file='input_out',status='unknown',form='formatted')
     open(3,file='fluxes.dat',status='unknown',form='formatted')
-    !open(6,file='output.log',status='unknown',form='formatted')
+    open(6,file='speeds.dat',status='unknown',form='formatted')
     !open(7,file='grid.dat',status='unknown',form='formatted')
     !open(8,file='cur.dat',status='unknown',form='unformatted')
     !open(9,file='pot.dat',status='unknown',form='unformatted')
@@ -1083,7 +1094,7 @@ program multifluid
 		!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 		!
         !###########################################
-		ut=ut_init	!	ut_init read from input file
+		ut=utstart	!	utstart read from input file
 		!###########################################
 		!
 		ts1 = tsave
@@ -1547,7 +1558,7 @@ program multifluid
 				recording(n)=.true.
 				read(scin+1,*) craftnames(n), craftpos(1,n,1), &
 					craftpos(2,n,1), craftpos(3,n,1)
-				craftpos(4,n,1) = ut_init
+				craftpos(4,n,1) = utstart	!	FIX NEEDED: utstart is not correct ut reference
 				!
 				!	Initial positions of default spacecraft in re but simulation directions
 				craftpos(1:3,n,1) = craftpos(1:3,n,1) * re_equiv
@@ -2236,7 +2247,7 @@ program multifluid
                     t_old(box)=t_new(box)
                     t_new(box)=t_old(box)+t_step(box)
                     !
-                    write(*,*)'lores time stepping: box/t_old/t_new: ',box, t_old(box),t_new(box)
+                    write(6,*)'lores t step. box/old/new: ',box, t_old(box),t_new(box)
                     !
                     delt = t_step(box)
                     delt2=delt/2.
@@ -3161,7 +3172,6 @@ program multifluid
             !	Calculate size of plotting stuff and ensure no distortions
             !		over desired scales
             !
-            519  write(*,*)'graphics plotted'
             call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
                 qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
                 hrho,hpresx,hpresy,hpresz,hpresxy, &
@@ -3177,6 +3187,7 @@ program multifluid
                 grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
             !
             tgraph=tgraph+deltg
+			write(*,*)'Graphics plotted.'
         endif !if(t.ge.tgraph)
 		!
         if(t.ge.tinj.and.ringo) then
@@ -3292,7 +3303,7 @@ program multifluid
             volume=(re_equiv*planet_rad*1.e3)**3  !(cubic meters)
             atime=deltinj*t_equiv
             proton_mass=1.67e-27
-            write(*,*)'volume,t_equiv,atime',ut,volume,t_equiv,atime
+            write(*,*)'ut,volume,t_equiv,atime',ut,volume,t_equiv,atime
             !
             tot_q=tot_q*volume/atime*rho_equiv*1.e6/rmassq
             tot_h=tot_h*volume/atime*rho_equiv*1.e6/rmassh
@@ -3311,7 +3322,11 @@ program multifluid
         endif !if(t.ge.tinj.and.ringo)
 		!
         if(t.ge.ts1) then
-			write(*,*) 'Writing to fluid file.'
+			write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+			write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+			write(*,*) 'Writing to fluid file. t =', t
+			write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+			write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
             if(nchf.eq.11) &
                 open(11,file='fluid11',status='unknown',form='unformatted')
             if(nchf.eq.12) &
@@ -3426,4 +3441,8 @@ program multifluid
     write(2,physical)
     write(2,smooth)
 	close(2)
+	!
+	write(*,*) '@@@@@@@@@@@@@@@@@@@@@'
+	write(*,*) 'Run complete! t =', t
+	write(*,*) '@@@@@@@@@@@@@@@@@@@@@'
 end
