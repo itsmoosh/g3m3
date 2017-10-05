@@ -51,7 +51,7 @@ program cut_fluid_to_ascii
 !                   interpolated
        real grd_xmin(ngrd),grd_xmax(ngrd),grd_ymin(ngrd), &
            grd_ymax(ngrd), grd_zmin(ngrd),grd_zmax(ngrd), &
-           xspac(ngrd), grid_diff
+           xspac(ngrd), grd_diff
        integer ncore(ngrd),nbndry(ngrd)
 !
 
@@ -233,7 +233,7 @@ program cut_fluid_to_ascii
            orbit_moon,theta_moon,ani,resist_moon,den_lunar, &
            reduct,t_torus,aniso_factor,ani_q,ani_h,ani_o,uday
 
-      integer no_shock,ntgraf
+      integer no_shock,ntgraph
 
       logical isotropic,flow_reset
 
@@ -263,7 +263,7 @@ program cut_fluid_to_ascii
 !     variable grid spacing enabled with rxyz >1
 !           rx,ry,rz should not be set identically to zero
 !
-        namelist/option/tmax,ntgraf,stepsz,start,tsave,isotropic
+        namelist/option/tmax,ntgraph,stepsz,start,tsave,isotropic
         namelist/planet/bodyname,moonname,xdip,ydip,zdip,r_inner, &
             tilt1,tilt2,tilting,rmassq,rmassh,rmasso
         namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
@@ -294,7 +294,7 @@ program cut_fluid_to_ascii
 
 !*******************************************************************
 
-      open(5,file='cutter_input',status='old',form='formatted')
+      open(5,file='data/cutdata/cutter_input',status='old',form='formatted')
       open(15,file='timebox.dat',status='unknown',form='formatted')
 
 !     read input parameters
@@ -323,10 +323,10 @@ program cut_fluid_to_ascii
 		grd_zmin(i) = -limit/2*xspac(i)
 		grd_zmax(i) = limit/2*xspac(i)
 		!
-		if(i.eq.n_grids) then
-			grid_diff = grd_xmax(i) * wind_adjust - grd_xmax(i)
-			grd_xmaxvals(i) = grd_xmax(i) + grd_diff
-			grd_xminvals(i) = grd_xmin(i) + grd_diff
+		if(i.eq.ngrd) then
+			grd_diff = grd_xmax(i) * wind_adjust - grd_xmax(i)
+			grd_xmax(i) = grd_xmax(i) + grd_diff
+			grd_xmin(i) = grd_xmin(i) + grd_diff
 		endif
 		!
 		write(*,*) grd_xmin(i), grd_xmax(i), &
@@ -349,14 +349,15 @@ program cut_fluid_to_ascii
 ! read in data file to cut 
 !~*~*~*~*~*~*~*~*~**~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 
-      print *,'begin reading data files'
+      write(*,*) 'Begin reading data files:'
 
       ! input fluid file 'cutter_fluid'
-      open(12,file='cutter_fluid',status='unknown',form='unformatted')
       nchf=12
+      open(nchf,file='cutter_fluid',status='unknown',form='unformatted')
+
 !
        read(nchf)t
-
+		write(*,*) 't = ', t
        read(nchf)qrho
        read(nchf)qpx
        read(nchf)qpy
@@ -399,7 +400,7 @@ program cut_fluid_to_ascii
        read(nchf)bz0
        read(nchf)parm_srf,parm_mid,parm_zero, &
                 ijzero,numzero,ijmid,nummid,ijsrf,numsrf
-       close(12)
+       close(nchf)
 
 !
       moon_rad = 2575.   !km
@@ -416,7 +417,7 @@ program cut_fluid_to_ascii
       write(15,*)ut
       close(15)
 
-      close(11)
+!      close(11)
 
 !~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~**~*~*~*~*~*~*~*~*~*~
 ! calculate fields/currents/velocities from data file
