@@ -13,6 +13,10 @@ program cut_fluid_to_ascii
                   mbndry=1,msrf=2000,mmid=1500,mzero=5000, &
                   ncraft=30,ncts=281, division=2
 
+      integer, parameter :: dp = kind(1.d0)  !	Double precision
+
+      real(dp) t, t_equiv, ut, utstart
+
 	  real,parameter :: wind_adjust=4./3., limit=60.
 	  
 !     --------------------------------------------------------------
@@ -157,7 +161,6 @@ program cut_fluid_to_ascii
            xsat(nlines),ysat(nlines),zsat(nlines), &
            xplot_f, yplot_f
 
-
       real,allocatable :: gx(:),gy(:),gz(:),gr(:), &
            gbx(:),gby(:),gbz(:),xpos(:),ypos(:),zpos(:), &
            inbox(:,:)
@@ -188,7 +191,7 @@ program cut_fluid_to_ascii
 
       character*32 wd1,wd2,wd3,wd4,wd5,wd6,wd7,wd8,wd9
 
-      real t, planet_rad, moon_rad, pl_ratio, t_equiv, ut, &
+      real planet_rad, moon_rad, pl_ratio, &
            ofrac, frac_o,dist,tot_v,rot_mach,j_rad,j_phi, &
            cur_norm, planet_per
 
@@ -224,7 +227,7 @@ program cut_fluid_to_ascii
            den_wind1,den_wind2, &
            reynolds,resist,rho_frac,bfrac,vfrac, &
            re_equiv,b_equiv,v_equiv,rho_equiv, &
-           utstart,chirho,chipxyz,chierg, &
+           chirho,chipxyz,chierg, &
            difrho,difpxyz,diferg
 
       real xmoon_re,ymoon_re,zmoon_re,cs_moon, &

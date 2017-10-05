@@ -112,8 +112,8 @@ program multifluid
 		alf_moon, ti_te_moon, &
 		xdip_moon, ydip_moon, zdip_moon, offset
 		! group 'physical' 
-		real re_equiv, b_equiv, v_equiv, rho_equiv, utstart
-		real(dp) utstart_copy	!	1 RUN ONLY MJS 10/01/17
+		real re_equiv, b_equiv, v_equiv, rho_equiv
+		real(dp) utstart
 		logical spacecraft, craft_input, warp
 		! group 'smooth'
 		real chirho, chipxyz, chierg, difrho, difpxyz, diferg
@@ -129,8 +129,7 @@ program multifluid
 		!
 		real,parameter :: wind_adjust=4./3., limit=60.
 		real xspac(n_grids), grid_minvals(3,n_grids), grid_maxvals(3,n_grids)
-		real ut
-		real(dp) ut_copy	!	1 RUN ONLY MJS 10/01/17
+		real(dp) ut
 		!
 		!	Notes about grid variables:
 		!		
@@ -232,15 +231,13 @@ program multifluid
 	!	*************************
     !	Variable time step arrays
 	!	*************************
-		real t_old(n_grids),t_new(n_grids),t_step(n_grids),t_stepnew(n_grids), &
-		t_equiv
-		real t		
-		real(dp) t_old_copy(n_grids)	!	1 RUN ONLY MJS 10/01/17
-		real(dp) t_new_copy(n_grids)	!	1 RUN ONLY MJS 10/01/17
-		real(dp) t_step_copy(n_grids)	!	1 RUN ONLY MJS 10/01/17
-		real(dp) t_stepnew_copy(n_grids)	!	1 RUN ONLY MJS 10/01/17
-		real(dp) t_equiv_copy	!	1 RUN ONLY MJS 10/01/17
-		real(dp) t_copy	!	1 RUN ONLY MJS 10/01/17		!	We give t extra precision to make sure we don't easily hit an upper limit on runtime.
+		!
+		real(dp) t_old(n_grids)
+		real(dp) t_new(n_grids)
+		real(dp) t_step(n_grids)
+		real(dp) t_stepnew(n_grids)
+		real(dp) t_equiv
+		real(dp) t		!	We give t extra precision to make sure we don't easily hit an upper limit on runtime.
 		!
 	!
 	!	*************************
