@@ -467,6 +467,7 @@ program multifluid
 		call system ('git rev-parse --short HEAD > '//trim(git_hash_file))
 		open(git_f,file=trim(git_hash_file),status='unknown',form='formatted')
 			read(git_f,*) git_hash
+			write(*,*) 'Git hash: ', git_hash
 		close(git_f)
 		!
 	!	******************
