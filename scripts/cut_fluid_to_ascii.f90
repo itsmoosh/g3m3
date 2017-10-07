@@ -15,9 +15,16 @@ program cut_fluid_to_ascii
 
       integer, parameter :: dp = kind(1.d0)  !	Double precision
 
-      real(dp) t, t_equiv, ut, utstart
+		integer :: percent = 0
+
+      real t
+		real t_equiv, ut, utstart
 
 	  real,parameter :: wind_adjust=4./3., limit=60.
+
+	character*12 :: wd_pre = 'orig_'
+	character*30 :: timebox
+	integer, parameter :: m_max = 5
 	  
 !     --------------------------------------------------------------
       integer, parameter :: nlines=479 !synthetic trajectory length
@@ -297,18 +304,21 @@ program cut_fluid_to_ascii
 
 !*******************************************************************
 
-      open(5,file='data/cutdata/cutter_input',status='old',form='formatted')
-      open(15,file='timebox.dat',status='unknown',form='formatted')
+	timebox = trim(wd_pre)//'timebox.dat'
+      open(2,file='cutter_input',status='old',form='formatted')
+      open(3,file=trim(timebox),status='unknown',form='formatted')
 
 !     read input parameters
 !
-      read(5,option)
-      read(5,planet)
-      read(5,speeds)
-      read(5,windy)
-      read(5,lunar)
-      read(5,physical)
-      read(5,smooth)
+      read(2,option)
+      read(2,planet)
+      read(2,speeds)
+      read(2,windy)
+      read(2,lunar)
+      read(2,physical)
+      read(2,smooth)
+
+	close(2)
 !
 !~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 !     large grid system
@@ -355,12 +365,13 @@ program cut_fluid_to_ascii
       write(*,*) 'Begin reading data files:'
 
       ! input fluid file 'cutter_fluid'
-      nchf=12
+      nchf=1
       open(nchf,file='cutter_fluid',status='unknown',form='unformatted')
 
 !
        read(nchf)t
 		write(*,*) 't = ', t
+		write(3,*) 't = ', t
        read(nchf)qrho
        read(nchf)qpx
        read(nchf)qpy
@@ -415,12 +426,11 @@ program cut_fluid_to_ascii
 !      t_equiv=(radius/1000.0)*re_equiv/v_equiv
 
 
-  170 ut=utstart+t*t_equiv/3600.
-      print*,'time = ',ut,'ut'
-      write(15,*)ut
-      close(15)
+      ut=utstart+t*t_equiv/3600.
+      write(*,*) 'ut = ',ut
+      write(3,*) 'ut = ',ut
+      close(3)
 
-!      close(11)
 
 !~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~**~*~*~*~*~*~*~*~*~*~
 ! calculate fields/currents/velocities from data file
@@ -518,21 +528,22 @@ program cut_fluid_to_ascii
 		! here, write out files for DATA explorer (ascii data)
 		! you can also just output as needed for matplotlib, etc.
 		!~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*
-		print *,'making ascii data files'
+		write(*,*) 'Making ASCII data files.'
+		call loadbar(percent)
 		!     output data file names
 		!     ------------
 		!
-		do m=1,3
+		do m=1,m_max
 			write(box,'(i1)') m
-			wd1 = "plasma-box"//trim(adjustl(box)//".dat")
-			wd2 = "flow-box"//trim(adjustl(box)//".dat")
-			wd3 = "field-box"//trim(adjustl(box)//".dat")
-			wd4 = "rad-box"//trim(adjustl(box)//".dat")
-			wd5 = "model-box"//trim(adjustl(box)//".dat")
-			wd6 = "efield-box"//trim(adjustl(box)//".dat")
-			wd7 = "pressure-box"//trim(adjustl(box)//".dat")
-			wd8 = "rotational-box"//trim(adjustl(box)//".dat")
-			wd9 = "currents-box"//trim(adjustl(box)//".dat")
+			wd1 = trim(wd_pre)//"plasma-box"//trim(adjustl(box)//".dat")
+			wd2 = trim(wd_pre)//"flow-box"//trim(adjustl(box)//".dat")
+			wd3 = trim(wd_pre)//"field-box"//trim(adjustl(box)//".dat")
+			wd4 = trim(wd_pre)//"rad-box"//trim(adjustl(box)//".dat")
+			wd5 = trim(wd_pre)//"model-box"//trim(adjustl(box)//".dat")
+			wd6 = trim(wd_pre)//"efield-box"//trim(adjustl(box)//".dat")
+			wd7 = trim(wd_pre)//"pressure-box"//trim(adjustl(box)//".dat")
+			wd8 = trim(wd_pre)//"rotational-box"//trim(adjustl(box)//".dat")
+			wd9 = trim(wd_pre)//"currents-box"//trim(adjustl(box)//".dat")
 			open(7,file=wd1,status='replace',form='formatted')
 			open(8,file=wd2,status='replace',form='formatted')
 			open(9,file=wd3,status='replace',form='formatted')
@@ -548,6 +559,10 @@ program cut_fluid_to_ascii
 			! in plotting
 			!
 			do k=1,nz
+				if (k.eq.nz/2) then
+					percent = percent + 100/(m_max*2)
+					call loadbar(percent)
+				endif
 		    	do j=1,ny
 		    		do i=1,nx
 						!
@@ -672,11 +687,17 @@ program cut_fluid_to_ascii
 		    close(13)
 		    close(14)
 		    close(15)
+			percent = percent + 100/(m_max*2)
+			if (percent.lt.100) call loadbar(percent)
 			!
 		enddo ! loop over m
 	!
 	endif
+	call loadbar(100)
 	!~*~*~*~*~*~*~*~*~**~*~*~*~*~*~*~*~*~*~*~*~*~*~*~**~*~*~*~*~*~*~*~**~*~
+	write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+	write(*,*) '                Done writing ASCII files!'
+	write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
 end
 !
 !~*~*~*~*~*~*~*~*~**~*~*~*~*~*~*~*~*~*~*~*~*~*~*~**~*~*~*~*~*~*~*~**~*~
@@ -966,7 +987,7 @@ subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
 	!      calculates the surface magnetic field bs
 	!      and the body electric field eb
 	!
-dimension bsx(nx,ny,nz),bsy(nx,ny,nz),bsz(nx,ny,nz), &
+	dimension bsx(nx,ny,nz),bsy(nx,ny,nz),bsz(nx,ny,nz), &
 	efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz), &
 	curx(nx,ny,nz),cury(nx,ny,nz),curz(nx,ny,nz), &
 	evx(nx,ny,nz),evy(nx,ny,nz),evz(nx,ny,nz), &
@@ -1333,4 +1354,61 @@ subroutine tot_b(btot,bsx,bsy,bsz,nx,ny,nz)
 	!
     return
 end
+!
+!
+!     *************************************************
+!
+!
+subroutine loadbar(percent)
+	integer, intent(in)	:: percent
+	integer, parameter	:: mult = 6	! (mult*10)+2 is number of characters used
+	character,parameter	:: esc  = char(27)
 
+	integer :: loop		= 1
+	integer :: barperc
+    integer :: totalbar	= mult*10
+	integer :: progress
+	integer :: remain
+
+	character*10 :: full10 = '==========', empty10 = '          '
+	character*60 :: full = '', empty = ''
+
+	character*6 :: fmtbeg
+	character*6 :: fmtend
+	character*3 :: progfmt
+	character*3 :: remfmt
+
+	barperc = percent
+
+	if(barperc.lt.0) barperc = 0
+
+	if(barperc.ge.100) then
+		barperc = 100
+		progress = totalbar
+		remain = 0
+	else
+		progress = barperc*totalbar/100
+		remain = totalbar - progress - 1
+	endif
+
+	do n=1, mult
+		full	= trim(full)//full10
+		empty	= trim(empty)//empty10
+	enddo
+
+	write(progfmt,'(I3)') progress
+	fmtbeg   = '(A'//trim(adjustl(progfmt))//'$)'
+	write(remfmt,'(I3)') remain
+	fmtend = '(A'//trim(adjustl(remfmt))//'$)'
+
+	write(*,'(A1$)') '['
+	write(*,fmtbeg) full
+	if(progress.lt.totalbar)	write(*,'(A1$)') '>'
+	write(*,fmtend) empty
+	write(*,'(A1)') ']'
+	write(*,'(A,I3,A)') 'Working,', barperc, '% done.'
+
+	if(barperc.lt.100) write(*,'(A,A$)') esc, '[2A'
+
+	return
+end subroutine

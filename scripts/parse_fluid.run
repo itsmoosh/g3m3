@@ -16,14 +16,16 @@ kk=$2
 qtr=$3
 
 # Create executable from "cutter file" Fortran code
-ncargf90 -o $cutdir/cutting_fluid.x $scriptdir/cut_fluid_to_ascii.f90
+ncargf90 -g -traceback -o $cutdir/cutting_fluid.x $scriptdir/cut_fluid_to_ascii.f90
 
 # Move selected fluid and input files to cutdata directory
 cp $datadir/$1${kk}_1$qtr $cutdir/cutter_fluid
 cp $datadir/input_${1}_$kk $cutdir/cutter_input
 
 # Parse files into ASCII
+cd $cutdir
 $cutdir/cutting_fluid.x #>> $cutdir/cutter_out.log
 
 # Clean up
 #rm $cutdir/cutter_fluid $cutdir/cutter_input $cutdir/cutting_fluid.x
+cd $HOME
