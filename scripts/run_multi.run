@@ -61,6 +61,8 @@ do
 	mv -f gmeta $datadir/${runname}_$kk
 	mv -f fluxes.dat $datadir/fluxes_$kk.dat
 	mv -f conc.dat $datadir/conc_$kk.dat
+	mv -f speeds.dat $datadir/speeds_$kk.dat
+	mv -f git_hash.txt $datadir/git_hash_$kk.txt
 	cp -f input $datadir/$inp$kk
 #
 	[ -f $inp$kknext ] || mv -f input_out $inp$kknext # Only copy the current input file to be used next if the next input does not already exist

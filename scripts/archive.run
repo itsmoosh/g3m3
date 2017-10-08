@@ -25,12 +25,13 @@ relgmeta=$reldir/${nrun}_$kk
 relinput=$reldir/$inp$kk
 reloutput=$reldir/output_$kk.log
 relconc=$reldir/conc_$kk.dat
-relspeeds=$reldir/speeds.dat
+relspeeds=$reldir/speeds_$kk.dat
 relfluxes=$reldir/fluxes_$kk.dat
 relflu=$reldir/$nrun${kk}_1
+relgit=$reldir/git_hash_$kk.txt
 
 # Compress EVERYTHING to do with run run# into a single tar file named runname00#.tar.gz
-tar -cvz --file=$farchive --directory=/home/mjstyczi/ $relinput $reloutput $relconc $relspeeds $relfluxes ${relflu}1 ${relflu}2 ${relflu}3 ${relflu}4 $relgmeta >> $tlog
+tar -cvz --file=$farchive --directory=/home/mjstyczi/ $relinput $relgit $reloutput $relconc $relspeeds $relfluxes ${relflu}1 ${relflu}2 ${relflu}3 ${relflu}4 $relgmeta >> $tlog
 
 TAR_EXIT_STATUS=$? # Check STDERR in case a file is missing
 if [ $TAR_EXIT_STATUS -ne 0 ] ; then
@@ -38,17 +39,19 @@ if [ $TAR_EXIT_STATUS -ne 0 ] ; then
 fi
 
 # Move gmeta file into 'complete' directory to store next to (but outside of) tar archive
-mv /$relgmeta $compdir/${nrun}_$kk >> $tlog
+mv $HOME/$relgmeta $compdir/${nrun}_$kk >> $tlog
 
 # Tidy up data directory:
-mv /$relinput $garbage/$inp$kk >> $tlog
-mv /$reloutput $garbage/output_$kk.log >> $tlog
-mv /$relconc $garbage/conc_$kk.dat >> $tlog
-mv /$relspeeds $garbage/speeds_$kk.dat >> $tlog
-mv /$relfluxes $garbage/fluxes_$kk.dat >> $tlog
-mv /${relflu}1 $garbage/$nrun${kk}_11 >> $tlog
-mv /${relflu}2 $garbage/$nrun${kk}_12 >> $tlog
-mv /${relflu}3 $garbage/$nrun${kk}_13 >> $tlog
-mv /${relflu}4 $garbage/$nrun${kk}_14 >> $tlog
+mv $HOME/$relinput $garbage/$inp$kk >> $tlog
+mv $HOME/$reloutput $garbage/output_$kk.log >> $tlog
+mv $HOME/$relconc $garbage/conc_$kk.dat >> $tlog
+mv $HOME/$relspeeds $garbage/speeds_$kk.dat >> $tlog
+mv $HOME/$relfluxes $garbage/fluxes_$kk.dat >> $tlog
+mv $HOME/${relflu}1 $garbage/$nrun${kk}_11 >> $tlog
+mv $HOME/${relflu}2 $garbage/$nrun${kk}_12 >> $tlog
+mv $HOME/${relflu}3 $garbage/$nrun${kk}_13 >> $tlog
+mv $HOME/${relflu}4 $garbage/$nrun${kk}_14 >> $tlog
+mv $HOME/$relgit $garbage/git_hash_$kk.txt >> $tlog
+
 
 echo " " >> $tlog
