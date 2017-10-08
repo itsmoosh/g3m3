@@ -22,7 +22,7 @@ program cut_fluid_to_ascii
 
 	  real,parameter :: wind_adjust=4./3., limit=60.
 
-	character*12 :: wd_pre = 'orig_'
+	character*12 :: wd_pre = 'origF_'
 	character*30 :: timebox
 	integer, parameter :: m_max = 5
 	  
@@ -529,11 +529,12 @@ program cut_fluid_to_ascii
 		! you can also just output as needed for matplotlib, etc.
 		!~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*
 		write(*,*) 'Making ASCII data files.'
-		call loadbar(percent)
 		!     output data file names
 		!     ------------
 		!
 		do m=1,m_max
+			percent = (m-1)*20
+			call loadbar(percent)
 			write(box,'(i1)') m
 			wd1 = trim(wd_pre)//"plasma-box"//trim(adjustl(box)//".dat")
 			wd2 = trim(wd_pre)//"flow-box"//trim(adjustl(box)//".dat")
@@ -559,10 +560,9 @@ program cut_fluid_to_ascii
 			! in plotting
 			!
 			do k=1,nz
-				if (k.eq.nz/2) then
-					percent = percent + 100/(m_max*2)
-					call loadbar(percent)
-				endif
+				percent = 100.*( 1.0*(m-1.)/m_max + 0.2*k/nz )
+				call loadbar(percent)
+
 		    	do j=1,ny
 		    		do i=1,nx
 						!
@@ -687,13 +687,11 @@ program cut_fluid_to_ascii
 		    close(13)
 		    close(14)
 		    close(15)
-			percent = percent + 100/(m_max*2)
-			if (percent.lt.100) call loadbar(percent)
 			!
 		enddo ! loop over m
 	!
 	endif
-	call loadbar(100)
+	if (percent.lt.100)	call loadbar(100)
 	!~*~*~*~*~*~*~*~*~**~*~*~*~*~*~*~*~*~*~*~*~*~*~*~**~*~*~*~*~*~*~*~**~*~
 	write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
 	write(*,*) '                Done writing ASCII files!'
