@@ -14,7 +14,7 @@ subroutine divb_cor(bx,by,bz,px,py,pz,rho,ppres, &
     grd_zmin(ngrd),grd_zmax(ngrd)
 	!
 	real r_max, r_min, rad_lim
-	real dx, dy, dx, dxt, dyt, dzt
+	real dx, dy, dz, dxt, dyt, dzt
 	integer i, j, k
 	real ai, aj, ak, ar, arho
     !
