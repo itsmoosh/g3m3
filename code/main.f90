@@ -420,6 +420,7 @@ program multifluid
 	!			Calculations continued after input file is read in
 		!
 		!	Adapted parameters for simulation use (boundaries etc., see 'Planet & moon calculations')
+		!	lunar_dist is used for making a correction to plasma torus injection
 			real,parameter :: torus_rad=1.0
 			real lunar_rad, lunar_dist, grav	
 			real r_orbit, v_orbit, tilt
@@ -658,7 +659,7 @@ program multifluid
 		!
 		r_rot = r_lim
 		v_rot = 2.*pi*planet_rad/(planet_per*3600.)/v_equiv  !	Normalized units
-		lunar_dist = moon_rad + torus_infall
+		lunar_dist = moon_orbit_rad + torus_infall
 		lunar_rad = 1.25 * moon_rad	!	Start exobase at 1.25 rt
 		!
 		rmoon = ( lunar_rad / planet_rad ) / re_equiv   !	In grid points
