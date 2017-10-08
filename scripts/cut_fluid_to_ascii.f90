@@ -22,7 +22,7 @@ program cut_fluid_to_ascii
 
 	  real,parameter :: wind_adjust=4./3., limit=60.
 
-	character*12 :: wd_pre = 'origF_'
+	character*12 :: wd_pre = 'redo5_'
 	character*30 :: timebox
 	integer, parameter :: m_max = 5
 	  
@@ -554,13 +554,23 @@ program cut_fluid_to_ascii
 			open(13,file=wd7,status='replace',form='formatted')
 			open(14,file=wd8,status='replace',form='formatted')
 			open(15,file=wd9,status='replace',form='formatted')
+			!	Write header lines to cut data files
+			write(14,'(3(A9))') 'ri','rj','rot_mach'
+			write(15,'2(A9),2(A14)') 'ri','rj','j_rad','j_phi'
+			write(7,'(3(A9),8(A14))') 'ri','rj','rk',	'qdens','qtemp','hdens','htemp', 'odens','otemp','edens','etemp'
+			write(8,'(3(A9),9(A14))') 'ri','rj','rk', 'qvx','qvy','qvz', 'ovx','ovy','ovz', 'hvx','hvy','hvz'
+			write(9,'(3(A9),6(A14))') 'ri','rj','rk', 'abx','aby','abz','curx_all', 'cury_all','curz_all'
+			write(10,'(5(A14))') 'rad', 'bsurmag', 'ri', 'rj', 'rk'
+			write(11,'(3(A9),6(A14))') 'ri','rj','rk', 'abx','aby','abz','abx2','aby2','abz2'
+			write(12,'(3(A9),3(A14))') 'ri','rj','rk',	'efldx','efldy','efldz'
+			write(13,'(3(A9),10(A14))') 'ri','rj','rk', 'qpara','qperp','qcross'
 			!
 			! output loop, put data in physical units, 
 			! and essentially write out what you are interested
 			! in plotting
 			!
 			do k=1,nz
-				percent = 100.*( 1.0*(m-1.)/m_max + 0.2*k/nz )
+				percent = 100.*( (nz*(m-1)*1.0 + k*1.0)/(nz*m_max*1.0) )
 				call loadbar(percent)
 
 		    	do j=1,ny
@@ -655,7 +665,7 @@ program cut_fluid_to_ascii
 							abx,aby,abz,curx_all(i,j,k,m), &
 							cury_all(i,j,k,m),curz_all(i,j,k,m)
 						!
-						write(10,'(4(es14.6))')rad, bsurmag, ri, rj, rk
+						write(10,'(5(es14.6))')rad, bsurmag, ri, rj, rk
 						!
 						abx=b_equiv*(bx(i,j,k,m))
 						abx2=b_equiv*(bx0(i,j,k,m))
