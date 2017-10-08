@@ -5,13 +5,18 @@ subroutine divb_cor(bx,by,bz,px,py,pz,rho,ppres, &
     !     this subroutine corrects for possible non-divergence of b
     !         it integrates from the wind boundary
     !
-    dimension bx(nx,ny,nz,ngrd),by(nx,ny,nz,ngrd), &
+    real bx(nx,ny,nz,ngrd),by(nx,ny,nz,ngrd), &
     bz(nx,ny,nz,ngrd),rho(nx,ny,nz,ngrd),ppres(nx,ny,nz,ngrd), &
     px(nx,ny,nz,ngrd),py(nx,ny,nz,ngrd),pz(nx,ny,nz,ngrd)
     !
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
+    real grd_xmin(ngrd),grd_xmax(ngrd), &
     grd_ymin(ngrd),grd_ymax(ngrd), &
     grd_zmin(ngrd),grd_zmax(ngrd)
+	!
+	real r_max, r_min, rad_lim
+	real dx, dy, dx, dxt, dyt, dzt
+	integer i, j, k
+	real ai, aj, ak, ar, arho
     !
     !     set limit of x integration depending on when you
     !         hit magnetopause
