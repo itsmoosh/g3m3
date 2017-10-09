@@ -1,4 +1,6 @@
-﻿NOTE: many of these pre-date me (MAT), and I never updated the var names - confusion expected
+﻿NOTES:
+	@ Many of these pre-date me (MAT), and I never updated the var names - confusion expected
+	@ Some variable names have been changed. Previous names are indicated in [square brackets.] (MJS)
  
 $ option
 tmax - duration in units of t_equiv of physical time for single call to executable
@@ -9,11 +11,11 @@ tsave - duration in units of t_equiv per fluid file (number of fluid files * tsa
 isotropic - deprecated after splitting code into two versions (can be removed/ignored)
  
  
-$earth
+$planet	[formerly earth]
 xdip - x offset in sim units for dip moment (if @ center, enter small value in one avoid singularity)
 ydip - y offset in sim units for dip moment (if @ center, enter small value in one avoid singularity)
 zdip - z offset in sim units for dip moment (if @ center, enter small value in one avoid singularity)
-rearth - # grid points for the inner boundary radius (this * re_equiv = planetary radii of inner b)
+r_inner - [formerly rearth] # grid points for the inner boundary radius (this * re_equiv = planetary radii of inner b)
 tilt1 - initial tilt of dipole moment for this execution call
 tilt2 - final tilt of dipole moment for this execution call
 tilting - turn on/off tilting
@@ -84,7 +86,7 @@ $smooth
 	these parameters used in introducing artificial viscosity to stabilize the simulation
 	don’t change unless you are certain of what you intend
  
--- Removed: --
+[Removed (MJS):]
 $randomlinesofnumbers
 grid sizes in grid points, each successive grid needs to be 2X the last, not necessarily centered
 
