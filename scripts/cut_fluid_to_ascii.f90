@@ -532,9 +532,10 @@ program cut_fluid_to_ascii
 		!     output data file names
 		!     ------------
 		!
+		percent = 0
+		call loadbar(percent)
+		!
 		do m=1,m_max
-			percent = (m-1)*20
-			call loadbar(percent)
 			write(box,'(i1)') m
 			wd1 = trim(wd_pre)//"plasma-box"//trim(adjustl(box)//".dat")
 			wd2 = trim(wd_pre)//"flow-box"//trim(adjustl(box)//".dat")
@@ -570,7 +571,7 @@ program cut_fluid_to_ascii
 			! in plotting
 			!
 			do k=1,nz
-				percent = 100.*( (nz*(m-1)*1.0 + k*1.0)/(nz*m_max*1.0) )
+				percent = (100*k + 100*nz*(m-1))/(nz*m_max)
 				call loadbar(percent)
 
 		    	do j=1,ny
