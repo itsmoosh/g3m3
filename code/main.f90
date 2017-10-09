@@ -39,6 +39,7 @@ program multifluid
 	!	***********************
 	!
 	!	Contains planetary constants
+	!	And some physical constants, including pi
 	use astrometry
 	!
 	!	*******************
@@ -654,7 +655,15 @@ program multifluid
 	!	Planet & moon calculations
 	!	**************************
 		!
-		!	Use astrometry module to set planetary parameters
+		!	Use astrometry module to set planetary parameters. Import list:
+		!	planet_orbit_rad,	planet_year,
+		!	planet_rad,			planet_mass,
+		!	planet_obliq,		planet_incl,
+		!	r_lim,				torus_infall,
+		!	planet_tilt,		planet_init_long,
+		!	moon_orbit_rad,		moon_per,
+		!	moon_rad,			moon_mass,
+		!	moon_incl,			moon_init_rot,
 		call choose_system(bodyname,moonname)
 		!
 		r_rot = r_lim
@@ -663,7 +672,7 @@ program multifluid
 		lunar_rad = 1.25 * moon_rad	!	Start exobase at 1.25 rt
 		!
 		rmoon = ( lunar_rad / planet_rad ) / re_equiv   !	In grid points
-		r_orbit = moon_orbit_rad / re_equiv	!	In grid pts
+		r_orbit = moon_orbit_rad / planet_rad / re_equiv	!	In grid pts (Never used, 10/08/2017 MJS)
 		v_orbit = (moon_orbit_rad*2.*pi)/(moon_per*3600.)/v_equiv    !	Sim units
 		!
 		tilt = tilt1
@@ -676,7 +685,6 @@ program multifluid
 		t_equiv = planet_rad * re_equiv / v_equiv
 		grav = gravity * (planet_rad*re_equiv*1000.) / (1000.*v_equiv)**2
 		!
-    !
 	!
 	!	*************************************
     !	Write important data to graphics file
@@ -1882,7 +1890,7 @@ program multifluid
         !       i_step=smallest_step*10000
         !       smallest_step=i_step/10000.
         !
-        !     write(*,*)'unsync steps',t_step,mallest_step,smalslest_step
+        !     write(*,*)'unsync steps',t_step,mallest_step,smallest_step
         !
         do box=1,n_grids
             if(box.le.m_smallest) then
