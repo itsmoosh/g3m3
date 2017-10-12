@@ -76,7 +76,7 @@ re_equiv - fraction of planetary radius in single grid point in innermost grid
 b_equiv - magnetic field normalization factor (obtained from next two norms + alfven speed def)
 v_equiv - velocity normalization factor (chosen to keep calculations near unity)
 rho_equiv - density normalization factor (chosen to keep calculations near unity)
-spacecraft - conditional to record spacecraft data (unused in my code)
+spacecraft - conditional to record spacecraft data (unused in my code MAT)
 craft_input - conditional to use spacecraft data as physical inputs for sims
 warp - conditional related to spacecraft data (unused in my code)
 ut_init - time to set UT to for an initialization run (when start=.true.)
