@@ -3,8 +3,11 @@
 !	Source: NASA Horizons ephemeris tables:
 !	https://ssd.jpl.nasa.gov/horizons.cgi
 !
-!	Except for Earth dipole tilt, obtained from:
+!	Except for dipole tilt/offsets.
+!	Earth obtained from:
 !	https://www.ngdc.noaa.gov/geomag/data/poles/NP.xy
+!	Jupiter obtained from:
+!	https://radiojove.gsfc.nasa.gov/education/educ/jupiter/basics/jfacts.htm
 !
 !	Distances are in km
 !	Times are in hours
@@ -13,8 +16,10 @@
 module astrometry
 
 	!	General
-	real,parameter :: pi	= 4.0*atan(1.0)
-	real,parameter :: J2000	= 2451545.0
+	real,parameter :: pi		= 4.0*atan(1.0)
+	real,parameter :: J2000		= 2451545.0
+	real,parameter :: vsmall	= 1E-5
+	real,parameter :: zero		= 0.
 
 	!	Jupiter
 	real,parameter :: jupiter_orbit_rad	= 7.78557619E+08
@@ -27,7 +32,14 @@ module astrometry
 	real,parameter :: jupiter_r_rot		= 30.0   !	Units: re_equiv, where corotation stops
 	real,parameter :: jupiter_torus_infall = 0.075	!	Torus infall allowance
 	real,parameter :: jupiter_tilt		= 9.6*pi/180.
+	real,parameter :: jupiter_tilt_long	= 201.7*pi/180.
+	real,parameter :: jupiter_dip_long	= 148.6*pi/180.
+	real,parameter :: jupiter_dip_z		= 98.0*pi/180.
+	real,parameter :: jupiter_dip_off	= 0.131	!	Units: planetary radii
 	real,parameter :: jupiter_init_long	= atan(2.93857583/4.0011774)
+	real,parameter :: jupiter_xdip		= jupiter_dip_off * sin(jupiter_dip_z) * cos(jupiter_tilt_long - jupiter_dip_long)
+	real,parameter :: jupiter_ydip		= jupiter_dip_off * sin(jupiter_dip_z) * sin(jupiter_tilt_long - jupiter_dip_long)
+	real,parameter :: jupiter_zdip		= jupiter_dip_off * cos(jupiter_dip_z)
 
 	!	Moons: Io
 		real,parameter :: io_orbit_rad	= 421.769E+03/jupiter_rad	!	Units: jupiter_rad
@@ -79,6 +91,9 @@ module astrometry
 	real,parameter :: saturn_torus_infall = 0.05
 	real,parameter :: saturn_tilt		= 0.0
 	real,parameter :: saturn_init_long	= atan(6.5699885/6.40641043)
+	real,parameter :: saturn_xdip		= vsmall
+	real,parameter :: saturn_ydip		= zero
+	real,parameter :: saturn_zdip		= zero
 
 	!	Moons: Enceladus
 		real,parameter :: encel_orbit_rad	= 238.04E+03/saturn_rad	!	Units: saturn_rad
@@ -111,6 +126,9 @@ module astrometry
 	real,parameter :: earth_torus_infall = 0.
 	real,parameter :: earth_tilt		= (90.0 + 80.972)*pi/180.
 	real,parameter :: earth_init_long	= atan(9.6724169E-01/(-1.771351E-01)) + pi
+	real,parameter :: earth_xdip		= 500./earth_rad	!	Units: planetary radii
+	real,parameter :: earth_ydip		= zero
+	real,parameter :: earth_zdip		= zero
 
 
 	!	The Moon
@@ -130,13 +148,15 @@ contains
 
 		real	planet_orbit_rad, planet_year, planet_rad, &
 				planet_per, planet_mass, planet_obliq, planet_incl, &
-				r_lim, torus_infall, tilt, planet_init_long, &
+				r_lim, torus_infall, planet_tilt, planet_init_long, &
+				planet_xdip, planet_ydip, planet_zdip, &
 				moon_orbit_rad, moon_per, moon_rad, moon_mass, &
 				moon_incl, moon_init_rot
 
 		common /planetary/planet_orbit_rad, planet_year, planet_rad, &
 		planet_per, planet_mass, planet_obliq, planet_incl, &
 		r_lim, torus_infall, planet_tilt, planet_init_long, &
+		planet_xdip, planet_ydip, planet_zdip, &
 		moon_orbit_rad, moon_per, moon_rad, moon_mass, moon_incl, &
 		moon_init_rot
 
@@ -158,6 +178,9 @@ contains
 				torus_infall = jupiter_torus_infall
 				planet_tilt = jupiter_tilt
 				planet_init_long = jupiter_init_long
+				planet_xdip = jupiter_xdip
+				planet_ydip = jupiter_ydip
+				planet_zdip = jupiter_zdip
 
 			case ("saturn")
 				planet_orbit_rad = saturn_orbit_rad
@@ -171,6 +194,9 @@ contains
 				torus_infall = saturn_torus_infall
 				planet_tilt = saturn_tilt
 				planet_init_long = saturn_init_long
+				planet_xdip = saturn_xdip
+				planet_ydip = saturn_ydip
+				planet_zdip = saturn_zdip
 
 			case ("earth")
 				planet_orbit_rad = earth_orbit_rad
@@ -184,6 +210,10 @@ contains
 				torus_infall = earth_torus_infall
 				planet_tilt = earth_tilt
 				planet_init_long = earth_init_long
+				planet_xdip = earth_xdip	!	Incorrect values
+				planet_ydip = earth_ydip
+				planet_zdip = earth_zdip
+				write(*,*)	'Warning: Dipole offset values not rigorously determined.'
 
 			case default
 				write(*,*) 'Body name did not match valid options:'
@@ -200,6 +230,10 @@ contains
 				torus_infall = saturn_torus_infall
 				tilt = saturn_tilt
 				planet_init_long = saturn_init_long
+				planet_xdip = saturn_xdip
+				planet_ydip = saturn_ydip
+				planet_zdip = saturn_zdip
+
 		end select
 
 

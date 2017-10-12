@@ -438,6 +438,7 @@ program multifluid
 		real	planet_orbit_rad, planet_year, planet_rad, &
 				planet_per, planet_mass, planet_obliq, planet_incl, &
 				r_lim, torus_infall, planet_tilt, planet_init_long, &
+				planet_xdip, planet_ydip, planet_zdip, &
 				moon_orbit_rad, moon_per, moon_rad, moon_mass, &
 				moon_incl, moon_init_rot
 		!
@@ -449,6 +450,7 @@ program multifluid
 		common /planetary/planet_orbit_rad, planet_year, planet_rad, &
 		planet_per, planet_mass, planet_obliq, planet_incl, &
 		r_lim, torus_infall, planet_tilt, planet_init_long, &
+		planet_xdip, planet_ydip, planet_zdip, &
 		moon_orbit_rad, moon_per, moon_rad, moon_mass, moon_incl, &
 		moon_init_rot
 	!
@@ -661,6 +663,8 @@ program multifluid
 		!	planet_obliq,		planet_incl,
 		!	r_lim,				torus_infall,
 		!	planet_tilt,		planet_init_long,
+		!	planet_xdip,		planet_ydip,
+		!	planet_zdip,
 		!	moon_orbit_rad,		moon_per,
 		!	moon_rad,			moon_mass,
 		!	moon_incl,			moon_init_rot,
@@ -675,10 +679,13 @@ program multifluid
 		r_orbit = moon_orbit_rad / planet_rad / re_equiv	!	In grid pts (Never used, 10/08/2017 MJS)
 		v_orbit = (moon_orbit_rad*2.*pi)/(moon_per*3600.)/v_equiv    !	Sim units
 		!
-		tilt = tilt1
-		sin_tilt = sin(tilt*pi/180.)
-		cos_tilt = cos(tilt*pi/180.)
+		tilt = planet_tilt
+		sin_tilt = sin(tilt)
+		cos_tilt = cos(tilt)
 		dtilt = ( tilt2 - tilt1 ) / tmax
+		xdip = planet_xdip
+		ydip = planet_ydip
+		zdip = planet_zdip
 		!
 		!   Gravity in m/s**2 at earth's surface 
 		!	Need t_equiv in normalization
