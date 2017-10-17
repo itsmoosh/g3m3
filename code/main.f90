@@ -97,7 +97,7 @@ program multifluid
 		logical tilting
 		! group 'speeds'
 		real cs_inner, alf_inner1, alf_inner2, &
-		alpha_e, denh_inner, denq_torus, deno_torus, denh_torus, &
+		alpha_e, denh_inner, denq_torus, denh_torus, deno_torus, &
 		gravity, ti_te, gamma, reduct, t_torus, aniso_factor, &
 		ani_q, ani_h, ani_o
 		logical ringo, update, reload, divb_lores, divb_hires
@@ -390,7 +390,7 @@ program multifluid
 		namelist/planet/bodyname,moonname,xdip,ydip,zdip,r_inner, torus_rad, &
 		tilt1,tilt2,tilting,rmassq,rmassh,rmasso
 		namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
-		alpha_e,denh_inner,denq_torus,deno_torus,denh_torus, &
+		alpha_e,denh_inner,denq_torus,denh_torus,deno_torus, &
 		gravity,ti_te,gamma,ringo,update,reload, &
 		divb_lores,divb_hires,reduct,t_torus,aniso_factor, &
 		ani_q,ani_h,ani_o

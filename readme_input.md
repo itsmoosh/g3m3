@@ -35,8 +35,8 @@ alf_inner2 - final alfven speed at equator of inner boundary  for this exec (set
 alpha_e - exponent for latitudinal density scaling at inner boundary (‘top hat’ (?) distribution)
 denh_inner - number density in sim units for ‘heavy’ species at planetary inner boundary for this exec. denh_inner*rho_equiv = n_h (in cm^-3)
 denq_torus - number density in sim units for 'proton' species at moon inner boundary for this exec 
-deno_torus - number density in sim units for 'oxygen' species at moon inner boundary for this exec 
 denh_torus - number density in sim units for 'heavy' species at moon inner boundary for this exec 
+deno_torus - number density in sim units for 'oxygen' species at moon inner boundary for this exec 
 gravity - acceleration at planetary surface in SI
 ti_te - ion to electron temperature ratio
 gamma - polytropic index (ratio of specific heats at constant pressure and volume, 5/3 for adiabatic)
