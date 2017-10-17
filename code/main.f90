@@ -97,8 +97,8 @@ program multifluid
 		logical tilting
 		! group 'speeds'
 		real cs_inner, alf_inner1, alf_inner2, &
-		alpha_e, denh_inner, denh_torus, gravity, &
-		ti_te, gamma, reduct, t_torus, aniso_factor, &
+		alpha_e, denh_inner, denq_torus, deno_torus, denh_torus, &
+		gravity, ti_te, gamma, reduct, t_torus, aniso_factor, &
 		ani_q, ani_h, ani_o
 		logical ringo, update, reload, divb_lores, divb_hires
 		! group 'windy'
@@ -390,8 +390,8 @@ program multifluid
 		namelist/planet/bodyname,moonname,xdip,ydip,zdip,r_inner, torus_rad, &
 		tilt1,tilt2,tilting,rmassq,rmassh,rmasso
 		namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
-		alpha_e,denh_inner,denh_torus,o_conc,gravity, &
-		ti_te,gamma,ringo,update,reload, &
+		alpha_e,denh_inner,denq_torus,deno_torus,denh_torus, &
+		gravity,ti_te,gamma,ringo,update,reload, &
 		divb_lores,divb_hires,reduct,t_torus,aniso_factor, &
 		ani_q,ani_h,ani_o
 		namelist/windy/re_wind,cs_wind,vx_wind1,vx_wind2, &
@@ -3260,7 +3260,7 @@ program multifluid
                             abtot=(bsx(i,j,k)**2+bsy(i,j,k)**2)/bsz(i,j,k)**2
                             dscale=amax1(0.,1.-10.*abtot)
                             !
-                            ! Inject W+ (O+,OH+,H2O+,H3O+)
+                            ! Inject h species
                             !
                             hden=denh_torus*rmassh*rscale*zscale*dscale
                             hrho(i,j,k,box)=hrho(i,j,k,box)+hden
@@ -3274,9 +3274,9 @@ program multifluid
                             hpx(i,j,k,box)=hpx(i,j,k,box)+reduct*hden*rvx
                             hpy(i,j,k,box)=hpy(i,j,k,box)+reduct*hden*rvy
                             !
-                            ! Inject H+ 
+                            ! Inject q species
                             !
-                            qden=0.0731*hden*rmassq/rmassh 
+                            qden=denq_torus*rmassq*rscale*zscale*dscale 
                             qrho(i,j,k,box)=qrho(i,j,k,box)+qden
                             !temp goes as v**2
                             del_qp=(qden/rmassq)*(corotate**2)*t_torus
@@ -3288,9 +3288,9 @@ program multifluid
                             qpx(i,j,k,box)=qpx(i,j,k,box)+reduct*qden*rvx
                             qpy(i,j,k,box)=qpy(i,j,k,box)+reduct*qden*rvy
                             !
-                            ! Inject O2+ 
+                            ! Inject o species 
                             !
-                            oden=1.93E-3*hden*rmasso/rmassh 
+                            oden=deno_torus*rmasso*rscale*zscale*dscale 
                             orho(i,j,k,box)=orho(i,j,k,box)+oden
                             !	temp goes as v**2
                             del_op=(oden/rmasso)*(corotate**2)*t_torus    
