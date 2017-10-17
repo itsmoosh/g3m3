@@ -1,4 +1,7 @@
 ﻿NOTES:
+	@ Some quantities are set to 1 in sim units:
+		#	mu_o, the vacuum permeability
+		#	amu, in the values for rmassq, o, and h
 	@ Many of these pre-date me (MAT), and I never updated the var names - confusion expected
 	@ Some variable names have been changed. Previous names are indicated in [square brackets.] (MJS)
  
@@ -16,6 +19,7 @@ xdip - x offset in sim units for dip moment (if @ center, enter small value in o
 ydip - y offset in sim units for dip moment (if @ center, enter small value in one avoid singularity)
 zdip - z offset in sim units for dip moment (if @ center, enter small value in one avoid singularity)
 r_inner - [formerly rearth] # grid points for the inner boundary radius (this * re_equiv = planetary radii of inner b)
+torus_rad - minor radius of plasma torus in planetary radii. 1-sigma radius assuming Gaussian cross-sectional profile.
 tilt1 - initial tilt of dipole moment for this execution call
 tilt2 - final tilt of dipole moment for this execution call
 tilting - turn on/off tilting
@@ -26,11 +30,11 @@ rmasso - mass in amu for ‘oxygen’ species
  
 $speeds
 cs_inner - sound speed of ‘heavy’ species at inner boundary (sets ion temperature)
-alf_inner1 - initial alfven speed at equator of inner boundary for this exec (sets dipole strength)
+alf_inner1 - initial alfven speed at equator of inner boundary for this exec (sets dipole strength). alfven speed in sim units = B/sqrt()
 alf_inner2 - final alfven speed at equator of inner boundary  for this exec (sets dipole strength)
 alpha_e - exponent for latitudinal density scaling at inner boundary (‘top hat’ (?) distribution)
-den_earth - density in sim units for ‘heavy’ species at planetary inner boundary for this exec
-den_lunar - density in sim units for species at moon inner boundary for this exec 
+denh_inner - number density in sim units for ‘heavy’ species at planetary inner boundary for this exec. denh_inner*rho_equiv = n_h (in cm^-3)
+denh_torus - number density in sim units for 'heavy' species at moon inner boundary for this exec 
 o_conc - fraction of ‘oxygen’ species at inner boundary
 gravity - acceleration at planetary surface in SI
 ti_te - ion to electron temperature ratio
@@ -48,6 +52,7 @@ ani_h - deprecated (originally used to set definable aniso ratios per ion, I thi
 ani_o - deprecated (originally used to set definable aniso ratios per ion, I think?)
  
 $windy
+re_wind - deprecated, used to set distance scaling for solar wind
 vx_wind1 - initial x velocity in sim units for stellar wind for this exec
 vx_wind2 - final x velocity in sim units for stellar wind for this exec
 vy_wind1 - initial y velocity in sim units for stellar wind for this exec
@@ -72,10 +77,10 @@ $lunar
 details for the orbiting hi-res subgrid, extrapolate these from planetary vars or ask erika/robert, I didn’t use since I didn’t input physical moon in sub-grid
  
 $physical 
-re_equiv - fraction of planetary radius in single grid point in innermost grid
+re_equiv - spacing between grid points, for innermost grid, in units of planetary radii
 b_equiv - magnetic field normalization factor (obtained from next two norms + alfven speed def)
-v_equiv - velocity normalization factor (chosen to keep calculations near unity)
-rho_equiv - density normalization factor (chosen to keep calculations near unity)
+v_equiv - velocity normalization factor (chosen to keep calculations near unity). This is 1 sim unit in km/s
+rho_equiv - density normalization factor (chosen to keep calculations near unity). This is 1 sim unit in rmassq/cm^3
 spacecraft - conditional to record spacecraft data (unused in my code MAT)
 craft_input - conditional to use spacecraft data as physical inputs for sims
 warp - conditional related to spacecraft data (unused in my code)

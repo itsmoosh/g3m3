@@ -91,13 +91,13 @@ program multifluid
 		logical start, isotropic
 		! group 'planet'
 		character*10 bodyname, moonname
-		real xdip, ydip, zdip, r_inner, &
+		real xdip, ydip, zdip, r_inner, torus_rad, &
 		tilt1, tilt2, &
 		rmassq, rmassh, rmasso
 		logical tilting
 		! group 'speeds'
 		real cs_inner, alf_inner1, alf_inner2, &
-		alpha_e, den_earth, den_lunar, o_conc, gravity, &
+		alpha_e, denh_inner, denh_torus, o_conc, gravity, &
 		ti_te, gamma, reduct, t_torus, aniso_factor, &
 		ani_q, ani_h, ani_o
 		logical ringo, update, reload, divb_lores, divb_hires
@@ -387,10 +387,10 @@ program multifluid
 	!	Namelists for file I/O
 	!	**********************
 		namelist/option/tmax,ntgraph,stepsz,start,tsave,isotropic
-		namelist/planet/bodyname,moonname,xdip,ydip,zdip,r_inner, &
+		namelist/planet/bodyname,moonname,xdip,ydip,zdip,r_inner, torus_rad, &
 		tilt1,tilt2,tilting,rmassq,rmassh,rmasso
 		namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
-		alpha_e,den_earth,den_lunar,o_conc,gravity, &
+		alpha_e,denh_inner,denh_torus,o_conc,gravity, &
 		ti_te,gamma,ringo,update,reload, &
 		divb_lores,divb_hires,reduct,t_torus,aniso_factor, &
 		ani_q,ani_h,ani_o
@@ -422,7 +422,6 @@ program multifluid
 		!
 		!	Adapted parameters for simulation use (boundaries etc., see 'Planet & moon calculations')
 		!	lunar_dist is used for making a correction to plasma torus injection
-			real,parameter :: torus_rad=1.0
 			real lunar_rad, lunar_dist, grav	
 			real r_orbit, v_orbit, tilt
 			real xmoon, ymoon, zmoon, rmoon, b0_moon
@@ -719,7 +718,7 @@ program multifluid
 		!
 		!	Calculate effective magnetic field strength
 		!
-		erho = den_earth * rmassh
+		erho = denh_inner * rmassh
 		b01 = alf_inner1 * sqrt(erho) * r_inner**3
 		b02 = alf_inner2 * sqrt(erho) * r_inner**3
 		alf_lim = 6.00 * alf_inner1
@@ -731,7 +730,7 @@ program multifluid
 		write(wd1,'(f6.3)')cs_inner
 		write(wd2,'(f6.3)')alf_inner1
 		write(wd3,'(f6.3)')alf_inner2
-		write(wd4,'(f5.1)')den_earth
+		write(wd4,'(f5.1)')denh_inner
 		!
 		title='cs_inner = '//wd1
 		call wtstr(.15,.76,title,1,0,0)
@@ -739,7 +738,7 @@ program multifluid
 		call wtstr(.35,.76,title,1,0,0)
 		title='alf_inner2= '//wd3
 		call wtstr(.55,.76,title,1,0,0)
-		title='den_earth = '//wd4
+		title='denh_inner = '//wd4
 		call wtstr(.75,.76,title,1,0,0)
 		!
 		write(wd1,'(f6.3)')o_conc
@@ -3206,6 +3205,8 @@ program multifluid
 		!
         if(t.ge.tinj.and.ringo) then
             !
+			!	?[]?	MJS 10/16/17 needs work converting to soft-coded inputs
+			!			to make relevant to Jupiter
             !	Inject torus plasma
             !
             !	Calculate size of plotting stuff and ensure no distortions
@@ -3261,7 +3262,7 @@ program multifluid
                             !
                             ! Inject W+ (O+,OH+,H2O+,H3O+)
                             !
-                            hden=den_lunar*rmassh*rscale*zscale*dscale
+                            hden=denh_torus*rmassh*rscale*zscale*dscale
                             hrho(i,j,k,box)=hrho(i,j,k,box)+hden
                             !temp goes as rho*v**2
                             del_hp=hden*(corotate**2)*t_torus
