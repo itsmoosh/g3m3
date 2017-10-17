@@ -97,7 +97,7 @@ program multifluid
 		logical tilting
 		! group 'speeds'
 		real cs_inner, alf_inner1, alf_inner2, &
-		alpha_e, denh_inner, denh_torus, o_conc, gravity, &
+		alpha_e, denh_inner, denh_torus, gravity, &
 		ti_te, gamma, reduct, t_torus, aniso_factor, &
 		ani_q, ani_h, ani_o
 		logical ringo, update, reload, divb_lores, divb_hires
@@ -106,7 +106,7 @@ program multifluid
 		vx_wind1, vx_wind2, vy_wind1, vy_wind2, vz_wind1, vz_wind2, &
 		alfx_wind1, alfx_wind2, alfy_wind1, alfy_wind2, alfz_wind1, alfz_wind2, &
 		den_wind1, den_wind2, &
-		reynolds, resist, rho_frac, bfrac, vfrac
+		reynolds, resist, o_conc, rho_frac, bfrac, vfrac
 		! group 'lunar'
 		real orbit_moon, theta_moon, cs_moon, &
 		qden_moon, hden_moon, oden_moon, &
@@ -400,7 +400,7 @@ program multifluid
 		alfy_wind1,alfy_wind2, &
 		alfz_wind1,alfz_wind2, &
 		den_wind1,den_wind2, &
-		reynolds,resist,rho_frac,bfrac,vfrac
+		reynolds,resist,o_conc,rho_frac,bfrac,vfrac
 		namelist/lunar/orbit_moon,theta_moon,cs_moon, &
 		qden_moon,hden_moon,oden_moon, &
 		alf_moon,ti_te_moon, &

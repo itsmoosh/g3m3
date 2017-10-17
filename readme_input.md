@@ -35,7 +35,6 @@ alf_inner2 - final alfven speed at equator of inner boundary  for this exec (set
 alpha_e - exponent for latitudinal density scaling at inner boundary (‘top hat’ (?) distribution)
 denh_inner - number density in sim units for ‘heavy’ species at planetary inner boundary for this exec. denh_inner*rho_equiv = n_h (in cm^-3)
 denh_torus - number density in sim units for 'heavy' species at moon inner boundary for this exec 
-o_conc - fraction of ‘oxygen’ species at inner boundary
 gravity - acceleration at planetary surface in SI
 ti_te - ion to electron temperature ratio
 gamma - polytropic index
@@ -69,6 +68,7 @@ den_wind1 - initial  solar wind density in sim units for this exec
 den_wind2 - final  solar wind density in sim units for this exec
 reynolds - ion skin depths per grid point (start high = ideal MHD-ish, decr. 4 realism)
 resist - ionospheric resistance scaling (the only ionospheric parameter we set)
+o_conc - fraction of ‘oxygen’ species in solar wind (ratio of n_o to n_prot)
 rho_frac - fraction of heavy ions in stellar wind
 bfrac - fraction of tangential magnetic field allowed at planetary surface (not used)
 vfrac - scale plasma corotation as function of distance during initialization

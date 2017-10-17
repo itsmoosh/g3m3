@@ -12,7 +12,7 @@
 
  $speeds
      cs_inner=0.0163 alf_inner1=30.2 alf_inner2=30.2 alpha_e=6.0
-         denh_inner=1. denh_torus=3.333 o_conc=0.125 gravity=10.44 
+         denh_inner=1. denh_torus=3.333 gravity=10.44 
          ti_te=5. gamma=1.6666 ringo=.t. update=.f. reload=.f.
          divb_lores=.t. divb_hires=.f. reduct=1.
          t_torus=0.25  aniso_factor=0.0625
@@ -26,7 +26,7 @@
      alfy_wind1=0.044 alfy_wind2=0.044
      alfz_wind1=-0.011 alfz_wind2=-0.011
      den_wind1=0.325 den_wind2=0.325
-     reynolds=256.0  resist=64.  rho_frac=0.001
+     reynolds=256.0  resist=64. o_conc=0.125  rho_frac=0.001
      bfrac=1.0 vfrac=1.0
  $end
 
