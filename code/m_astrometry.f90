@@ -149,14 +149,14 @@ contains
 		real	planet_orbit_rad, planet_year, planet_rad, &
 				planet_per, planet_mass, planet_obliq, planet_incl, &
 				r_lim, torus_infall, planet_tilt, planet_init_long, &
-				planet_xdip, planet_ydip, planet_zdip, &
+				planet_xdip, planet_ydip, planet_zdip, torus_dist, &
 				moon_orbit_rad, moon_per, moon_rad, moon_mass, &
 				moon_incl, moon_init_rot
 
 		common /planetary/planet_orbit_rad, planet_year, planet_rad, &
 		planet_per, planet_mass, planet_obliq, planet_incl, &
 		r_lim, torus_infall, planet_tilt, planet_init_long, &
-		planet_xdip, planet_ydip, planet_zdip, &
+		planet_xdip, planet_ydip, planet_zdip, torus_dist, &
 		moon_orbit_rad, moon_per, moon_rad, moon_mass, moon_incl, &
 		moon_init_rot
 
@@ -176,6 +176,7 @@ contains
 				planet_incl = jupiter_incl
 				r_lim = jupiter_r_rot
 				torus_infall = jupiter_torus_infall
+				torus_dist = io_orbit_rad
 				planet_tilt = jupiter_tilt
 				planet_init_long = jupiter_init_long
 				planet_xdip = jupiter_xdip
@@ -192,6 +193,7 @@ contains
 				planet_incl = saturn_incl
 				r_lim = saturn_r_rot
 				torus_infall = saturn_torus_infall
+				torus_dist = encel_orbit_rad
 				planet_tilt = saturn_tilt
 				planet_init_long = saturn_init_long
 				planet_xdip = saturn_xdip
@@ -208,12 +210,14 @@ contains
 				planet_incl = earth_incl
 				r_lim = earth_r_rot
 				torus_infall = earth_torus_infall
+				torus_dist = moon_orbit_rad
 				planet_tilt = earth_tilt
 				planet_init_long = earth_init_long
 				planet_xdip = earth_xdip	!	Incorrect values
 				planet_ydip = earth_ydip
 				planet_zdip = earth_zdip
 				write(*,*)	'Warning: Dipole offset values not rigorously determined.'
+				write(*,*)	'Warning: torus_dist location unknown.'
 
 			case default
 				write(*,*) 'Body name did not match valid options:'
@@ -228,7 +232,8 @@ contains
 				planet_incl = saturn_incl
 				r_lim = saturn_r_rot
 				torus_infall = saturn_torus_infall
-				tilt = saturn_tilt
+				torus_dist = encel_orbit_rad
+				planet_tilt = saturn_tilt
 				planet_init_long = saturn_init_long
 				planet_xdip = saturn_xdip
 				planet_ydip = saturn_ydip

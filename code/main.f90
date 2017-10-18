@@ -421,8 +421,8 @@ program multifluid
 	!			Calculations continued after input file is read in
 		!
 		!	Adapted parameters for simulation use (boundaries etc., see 'Planet & moon calculations')
-		!	lunar_dist is used for making a correction to plasma torus injection
-			real lunar_rad, lunar_dist, grav	
+		!	torus_inj_dist is used for making a correction to plasma torus injection
+			real lunar_rad, torus_inj_dist, grav	
 			real r_orbit, v_orbit, tilt
 			real xmoon, ymoon, zmoon, rmoon, b0_moon
 			!
@@ -437,7 +437,7 @@ program multifluid
 		real	planet_orbit_rad, planet_year, planet_rad, &
 				planet_per, planet_mass, planet_obliq, planet_incl, &
 				r_lim, torus_infall, planet_tilt, planet_init_long, &
-				planet_xdip, planet_ydip, planet_zdip, &
+				planet_xdip, planet_ydip, planet_zdip, torus_dist, &
 				moon_orbit_rad, moon_per, moon_rad, moon_mass, &
 				moon_incl, moon_init_rot
 		!
@@ -449,7 +449,7 @@ program multifluid
 		common /planetary/planet_orbit_rad, planet_year, planet_rad, &
 		planet_per, planet_mass, planet_obliq, planet_incl, &
 		r_lim, torus_infall, planet_tilt, planet_init_long, &
-		planet_xdip, planet_ydip, planet_zdip, &
+		planet_xdip, planet_ydip, planet_zdip, torus_dist, &
 		moon_orbit_rad, moon_per, moon_rad, moon_mass, moon_incl, &
 		moon_init_rot
 	!
@@ -663,7 +663,7 @@ program multifluid
 		!	r_lim,				torus_infall,
 		!	planet_tilt,		planet_init_long,
 		!	planet_xdip,		planet_ydip,
-		!	planet_zdip,
+		!	planet_zdip,		torus_dist,
 		!	moon_orbit_rad,		moon_per,
 		!	moon_rad,			moon_mass,
 		!	moon_incl,			moon_init_rot,
@@ -671,7 +671,7 @@ program multifluid
 		!
 		r_rot = r_lim
 		v_rot = 2.*pi*planet_rad/(planet_per*3600.)/v_equiv  !	Normalized units
-		lunar_dist = moon_orbit_rad + torus_infall
+		torus_inj_dist = torus_dist + torus_infall
 		lunar_rad = 1.25 * moon_rad	!	Start exobase at 1.25 rt
 		!
 		rmoon = ( lunar_rad / planet_rad ) / re_equiv   !	In grid points
@@ -1009,8 +1009,8 @@ program multifluid
         !	Check for div b errors
         !
         if(divb_lores) then
-            range=1.33*lunar_dist/re_equiv
-            write(*,*)'Range for divb taper: ',lunar_dist,range
+            range=1.33*torus_inj_dist/re_equiv
+            write(*,*)'Range for divb taper: ',torus_inj_dist,range
             do box=n_grids,1,-1
                 write(*,*)'divb on box: ',box
                 call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
@@ -1140,7 +1140,7 @@ program multifluid
 		    nummid=0
 		    numzero=0
 		    !
-		    write(*,*)'Initial lunar_dist, rot_angle: ',lunar_dist, rot_angle
+		    write(*,*)'Initial torus_inj_dist, rot_angle: ',torus_inj_dist, rot_angle
 		    !
 		    !	Scale lengths for plasma sheet population
 		    !
@@ -3246,7 +3246,7 @@ program multifluid
                         corotate=sqrt(rvx**2+rvy**2)
                         !
                         ar_encel=sqrt(ax**2+ay**2)*re_equiv
-                        dr_encel=abs(ar_encel -lunar_dist)
+                        dr_encel=abs(ar_encel -torus_inj_dist)
   						!
                         ! MAT - Corrected, according to 
                         !   doi:10.1029/2009JE003372
@@ -3402,8 +3402,8 @@ program multifluid
             ts1=ts1+tsave
             !
             if(divb_lores) then
-                range=1.33*lunar_dist/re_equiv
-                write(*,*)'Range for divb taper: ',lunar_dist,range
+                range=1.33*torus_inj_dist/re_equiv
+                write(*,*)'Range for divb taper: ',torus_inj_dist,range
                 do box=n_grids,1,-1
                     write(*,*)'divb on box: ',box
                     call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
