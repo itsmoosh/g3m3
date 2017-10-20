@@ -46,8 +46,7 @@ program multifluid
 	!	Critical parameters
 	!	*******************
 		integer,parameter :: nx=121,ny=121,nz=61,n_grids=5,division=2, &
-		mbndry=1,msrf=2000,mmid=1500,mzero=5000, &
-		ncts=281, num_pts(3)=[nx,ny,nz]
+		mbndry=1, ncts=281, num_pts(3)=[nx,ny,nz]
 		integer, parameter :: dp = kind(1.d0)  !	Double precision
 		!
 		real,parameter	:: d_min=0.01	! Minimum density
@@ -56,12 +55,39 @@ program multifluid
 		real,parameter	:: cur_min=0.75
 		real,parameter	:: cur_max=20.0
 		!
+	    !	Scale lengths for plasma sheet population
+		real,parameter	:: sheet_den=0.25
+		real,parameter	:: alpha_s=4.
+		!
+		integer,parameter :: num_quants = 7	! Number of quantities to zero inside inner boundary
+		integer mzero	!	Number of grid points to zero inside innermost boundary
+		integer mmid	!	Number of grid points in 'mid' region between inner boundary and zero region
+		integer msrf	!	Number of grid points on inner boundary surface
+		real,parameter	:: zero_bndry_offset = -1.5
+		real,parameter	:: mid_bndry_offset = -0.5
+		real,parameter	:: srf_bndry_offset = 0.6
+		real zero_bndry
+		real mid_bndry
+		real srf_bndry
+		integer,allocatable	:: ijsrf(:,:,:)
+		integer,allocatable	:: ijmid(:,:,:)
+		integer,allocatable	:: ijzero(:,:,:)
+		integer	numsrf(mbndry)
+		integer	nummid(mbndry)
+		integer	numzero(mbndry)
+		real,allocatable	:: parm_srf(:,:,:)
+		real,allocatable	:: parm_mid(:,:,:)
+		real,allocatable	:: parm_zero(:,:,:)
+		!
 	!
 	!	********************
 	!	Graphics parameters:
 	!	********************
-		integer,parameter :: mx=61,my=61,mz=31, &
-		muvwp2=63,mz2=16,ntinj=120
+		integer,parameter :: mx=61
+		integer,parameter :: my=61
+		integer,parameter :: mz=31
+		integer,parameter :: muvwp2=63
+		integer,parameter :: mz2=16
 		!	Note: muvwp2=amax(mx,my,mz)+2,mz2=(mz-1)/2+1
 		!
 	!
@@ -73,11 +99,26 @@ program multifluid
 		real xr,yr,zr		!	Rotated coordinates
 		real xp,yp,zp		!	Dipole coordinates
 		real ar, ar2		!	Radial distance combining ax, ay, az
+		real ra				!	
 		real avx,avy,avz	!	Active loop values for velocity components
+		real rx, ry, rz, rd	!	Distances relative to the origin
+		real rvx,rvy,rvz	!	Velocity variables derived from rotational motion
+		!
+		real corotate		!	Corotation speed for current distance
+		real ar_tmid		!	Radial distance from origin to torus center in sim units
+		real dr_tmid		!	Distance from center of torus to current point
+		real ar_iono
+		real r_equat
+		real rerg_sphere
+		real rden_sphere
+		real zheight
+		real rho_iono
+		real vt
+		real abtot
 		!
 		integer nrot_p, nrot_m	!	Number of full rotations for planet and moon
 		real rot_hrs, rot_hrs_m	!	Number of hours into current local day/lunar orbit
-		real rot_angle, rot_angle_m, v_rot_p, v_rot_m, r_rot_p, r_rot_m
+		real rot_angle, rot_angle_m
 		real sin_rot, cos_rot, sin_rot_m, cos_rot_m
 		!
     !
@@ -87,7 +128,7 @@ program multifluid
 	!	*********************
 		! group 'option':
 		real tmax, stepsz, tsave
-		integer ntgraph
+		integer ntgraph, ntinj
 		logical start, isotropic
 		! group 'planet'
 		character*10 bodyname, moonname
@@ -114,7 +155,8 @@ program multifluid
 		xdip_moon, ydip_moon, zdip_moon, offset
 		! group 'physical' 
 		real re_equiv, b_equiv, v_equiv, rho_equiv
-		real(dp) utstart
+		!real(dp) utstart	!	Some day.
+		real utstart
 		logical spacecraft, craft_input, warp
 		! group 'smooth'
 		real chirho, chipxyz, chierg, difrho, difpxyz, diferg
@@ -130,7 +172,8 @@ program multifluid
 		!
 		real,parameter :: wind_adjust=4./3., limit=60.
 		real xspac(n_grids), grid_minvals(3,n_grids), grid_maxvals(3,n_grids)
-		real(dp) ut
+!		real(dp) ut	!	Some day.
+		real ut
 		!
 		!	Notes about grid variables:
 		!		
@@ -233,12 +276,18 @@ program multifluid
     !	Variable time step arrays
 	!	*************************
 		!
-		real(dp) t_old(n_grids)
-		real(dp) t_new(n_grids)
-		real(dp) t_step(n_grids)
-		real(dp) t_stepnew(n_grids)
-		real(dp) t_equiv
-		real(dp) t		!	We give t extra precision to make sure we don't easily hit an upper limit on runtime.
+!		real(dp) t_old(n_grids)	!	Some day we will do this. But not today.
+!		real(dp) t_new(n_grids)
+!		real(dp) t_step(n_grids)
+!		real(dp) t_stepnew(n_grids)
+!		real(dp) t_equiv
+!		real(dp) t	!	We give t extra precision to make sure we don't easily hit an upper limit on runtime.
+		real t_old(n_grids)
+		real t_new(n_grids)
+		real t_step(n_grids)
+		real t_stepnew(n_grids)
+		real t_equiv
+		real t
 		!
 	!
 	!	*************************
@@ -273,15 +322,31 @@ program multifluid
 		integer mating_index, next_box	!	For checking grid mating
 		real grid_diff	!	For checking grid mating
 		!
-		integer ijsrf(mbndry,3,msrf),ijmid(mbndry,3,mmid), &
-		ijzero(mbndry,3,mzero)
-		integer numsrf(mbndry),nummid(mbndry),numzero(mbndry)
-		real parm_srf(mbndry,7,msrf),parm_mid(mbndry,7,mmid), &
-		parm_zero(mbndry,7,mzero)
-		!
 		logical add_dip, save_dat, write_dat, &
 		yes_step, yes_step_n, grid_reset
 		!
+	!
+	!	************************
+	!	Adjusted data parameters
+	!	************************
+		!
+		real gamma1
+		real epress, eerg, spress, serg
+		real rho_wind1, rho_wind2
+		real srho, delrho
+		real svelx, svely, svelz
+		real spx, spy, spz
+		!
+		real delvx_wind, delvy_wind, delvz_wind
+		real delbx_wind, delby_wind, delbz_wind
+		real sbx_wind, sby_wind, sbz_wind
+		!
+		real deltg, deltinj, delt
+		!
+		real	:: tgraph = 0.
+		real	:: tinj = 0.
+		real	:: tdiv = 10.
+		real	:: del_tdiv = 5.
 	!
 	!		spacecraft decides whether to include any spacecraft at all
 	!			(input or output)
@@ -386,8 +451,8 @@ program multifluid
 	!	**********************
 	!	Namelists for file I/O
 	!	**********************
-		namelist/option/tmax,ntgraph,stepsz,start,tsave,isotropic
-		namelist/planet/bodyname,moonname,xdip,ydip,zdip,r_inner, torus_rad, &
+		namelist/option/tmax,ntgraph,stepsz,start,tsave,ntinj,isotropic
+		namelist/planet/bodyname,moonname,xdip,ydip,zdip,r_inner,torus_rad, &
 		tilt1,tilt2,tilting,rmassq,rmassh,rmasso
 		namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
 		alpha_e,denh_inner,denq_torus,denh_torus,deno_torus, &
@@ -463,6 +528,8 @@ program multifluid
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	!
+	write(*,*) '-'
+	!
 	!	*************
 	!	Grab git hash
 	!	*************
@@ -473,6 +540,9 @@ program multifluid
 			write(*,*) 'Git hash: ', git_hash
 		close(git_f)
 		!
+	!
+	write(*,*) '-'
+	!
 	!	******************
 	!	Count header lines
 	!	******************
@@ -488,9 +558,202 @@ program multifluid
 		close(dummy_f)
 		call system ('rm '//trim(dummy_craft))
 		!
+	!
+	!	********************************
+    !	Open input and output data files
+	!	********************************
+    !
+    open(1,file='input',status='old',form='formatted')
+    open(2,file='input_out',status='unknown',form='formatted')
+    open(3,file='fluxes.dat',status='unknown',form='formatted')
+    open(6,file='speeds.dat',status='unknown',form='formatted')
+    !open(7,file='grid.dat',status='unknown',form='formatted')
+    !open(8,file='cur.dat',status='unknown',form='unformatted')
+    !open(9,file='pot.dat',status='unknown',form='unformatted')
+    open(10,file='conc.dat',status='unknown',form='formatted')
+    !
+	!	*****************
+    !	Open ncargraphics
+	!	*****************
+    !
+    call opngks
+    call gsclip(0)
+    !
 	!	***************
-	!	Allocate arrays
+    !	Set color table
 	!	***************
+    !
+    call cpclrs
+    !
+    call gselnt(0)
+    call gsplci(1)
+    call wtstr(.4,.975,'3d mutant code',2,0,0)
+    !
+	!	************************************************************
+    !	Read input parameters. We write to output at end of program.
+	!	************************************************************
+    !
+    read(1,option)
+    read(1,planet)
+    read(1,speeds)
+    read(1,windy)
+    read(1,lunar)
+    read(1,physical)
+    read(1,smooth)
+	!
+	!	***********************************
+    !	Write input data to stdout/log file
+	!	***********************************
+    !
+    write(*,option)
+    write(*,planet)
+    write(*,speeds)
+    write(*,windy)
+    write(*,lunar)
+    write(*,physical)
+    write(*,smooth)
+	!
+	write(*,*) 'Grid xmin: ','Grid xmax: ','Grid ymin: ','Grid ymax: ', &
+		'Grid zmin: ','Grid zmax: ','Grid spacing: '
+    do i=1,n_grids
+		xspac(i) = division**(i-1)
+		grid_minvals(1,i) = -limit*xspac(i)
+		grid_maxvals(1,i) = limit*xspac(i)
+        grid_minvals(2,i) = -limit*xspac(i)
+		grid_maxvals(2,i) = limit*xspac(i)        
+		grid_minvals(3,i) = -limit/2*xspac(i)
+		grid_maxvals(3,i) = limit/2*xspac(i)
+		!
+		if(i.eq.n_grids) then
+			grid_diff = grid_maxvals(1,i) * wind_adjust - grid_maxvals(1,i)
+			grid_maxvals(1,i) = grid_maxvals(1,i) + grid_diff
+			grid_minvals(1,i) = grid_minvals(1,i) + grid_diff
+		endif
+		!
+		write(*,*) grid_minvals(1,i), grid_maxvals(1,i), &
+		grid_minvals(2,i), grid_maxvals(2,i), &
+		grid_minvals(3,i), grid_maxvals(3,i), xspac(i)
+		ix = 1 + ( grid_maxvals(1,i) - grid_minvals(1,i) ) / xspac(i)
+		iy = 1 + ( grid_maxvals(2,i) - grid_minvals(2,i) ) / xspac(i)
+        iz = 1 + ( grid_maxvals(3,i) - grid_minvals(3,i) ) / xspac(i)
+        if((ix.ne.nx).or.(iy.ne.ny).or.(iz.ne.nz)) then
+            write(*,*)'ERROR: grid spacing does not match number of points.', &
+				' Actual x,y,z: ',ix,iy,iz,'Expected x,y,z: ',nx,ny,nz
+            stop
+        endif
+    enddo
+    !
+	!	**********************************************
+    !	Check if subgrids mate properly to larger grid
+	!	**********************************************
+    !
+    do box=1,n_grids-1
+        next_box = box + 1
+		!
+        grid_diff = 1. + (grid_minvals(1,box) - grid_minvals(1,next_box)) / xspac(next_box)
+        mating_index = int(grid_diff)
+        dx = grid_diff - mating_index
+        if(abs(dx).gt.0.001) then
+            write(*,*)'Main grid: xmin dont match. ',box,next_box,mating_index,grid_diff
+            stop
+        endif
+        !
+        grid_diff = 1. + (grid_minvals(2,box) - grid_minvals(2,next_box)) / xspac(next_box)
+        mating_index = int(grid_diff)
+        dy = grid_diff - mating_index
+        if(abs(dy).gt.0.001) then
+            write(*,*)'Main grid: ymin dont match. ',box,next_box,mating_index,grid_diff
+            stop
+        endif
+        !
+        grid_diff = 1. + (grid_minvals(3,box) - grid_minvals(3,next_box)) / xspac(next_box)
+        mating_index = int(grid_diff)
+        dz = grid_diff - mating_index
+        if(abs(dz).gt.0.001) then
+            write(*,*)'Main grid: zmin dont match. ',box,next_box,mating_index,grid_diff
+            stop
+        endif
+        !
+    enddo
+	!
+	!	**************************
+	!	Set inner boundary regions
+	!	**************************
+		!
+		zero_bndry = r_inner + zero_bndry_offset
+		mid_bndry = r_inner + mid_bndry_offset
+		srf_bndry = r_inner + srf_bndry_offset
+		!
+	!	**************************
+	!	Planet & moon calculations
+	!	**************************
+		!
+		!	Use astrometry module to set planetary parameters. Import list:
+		!	planet_orbit_rad,	planet_year,
+		!	planet_rad,			planet_mass,
+		!	planet_obliq,		planet_incl,
+		!	r_lim,				torus_infall,
+		!	planet_tilt,		planet_init_long,
+		!	planet_xdip,		planet_ydip,
+		!	planet_zdip,		torus_dist,
+		!	moon_orbit_rad,		moon_per,
+		!	moon_rad,			moon_mass,
+		!	moon_incl,			moon_init_rot,
+		call choose_system(bodyname,moonname)
+		!
+		r_rot = r_lim
+		v_rot = 2.*pi*planet_rad/(planet_per*3600.)/v_equiv  !	Normalized rotation rate
+		torus_inj_dist = torus_dist + torus_infall
+		lunar_rad = 1.25 * moon_rad	!	Start exobase at 1.25 rt
+		!
+		rmoon = ( lunar_rad / planet_rad ) / re_equiv   !	In grid points
+		r_orbit = moon_orbit_rad / planet_rad / re_equiv	!	In grid pts (Never used, 10/08/2017 MJS)
+		v_orbit = (moon_orbit_rad*2.*pi)/(moon_per*3600.)/v_equiv    !	Sim units
+		!
+		tilt = planet_tilt
+		sin_tilt = sin(tilt)
+		cos_tilt = cos(tilt)
+		dtilt = ( tilt2 - tilt1 ) / tmax
+		if(tilting) then
+			xdip = planet_xdip
+			ydip = planet_ydip
+			zdip = planet_zdip
+		else
+			xdip = 0.00001
+			ydip = 0.
+			zdip = 0.
+		endif
+		!
+		!   Gravity in m/s**2 at planet's surface 
+		!	Need t_equiv in normalization
+		t_equiv = planet_rad * re_equiv / v_equiv
+		grav = gravity * (planet_rad*re_equiv*1000.) / (1000.*v_equiv)**2
+		!
+	!	******************************
+	!	Calculate inner boundary sizes
+	!	******************************
+		!
+		!	Calculates approx. number of grid point volume units in each region
+		msrf  = 1.2 * 1.33*pi*(srf_bndry**3 - mid_bndry**3)/xspac(mbndry)**3
+		mmid  = 1.2 * 1.33*pi*(mid_bndry**3 - zero_bndry**3)/xspac(mbndry)**3
+		mzero = 1.2 * 1.33*pi*(zero_bndry**3)/xspac(mbndry)**3
+		!
+	!
+	!
+	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	!	@				ALLOCATE ARRAYS					@
+	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	!
+	!
+		!
+		!	Numbers of grid points to zero inside inner boundary
+		!
+		allocate(ijsrf(mbndry,3,msrf), ijmid(mbndry,3,mmid), &
+		ijzero(mbndry,3,mzero), &
+		!
+		parm_srf(mbndry,num_quants,msrf), &
+		parm_mid(mbndry,num_quants,mmid), &
+		parm_zero(mbndry,num_quants,mzero) )
 		!
 		!	Work arrays for runge-kutta and smoothing
 		!
@@ -546,151 +809,6 @@ program multifluid
 	!	@		PARAMETER DECLARATIONS COMPLETE			@
 	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	!
-	!
-    !	Open input data file
-    !
-    open(1,file='input',status='old',form='formatted')
-    open(2,file='input_out',status='unknown',form='formatted')
-    open(3,file='fluxes.dat',status='unknown',form='formatted')
-    open(6,file='speeds.dat',status='unknown',form='formatted')
-    !open(7,file='grid.dat',status='unknown',form='formatted')
-    !open(8,file='cur.dat',status='unknown',form='unformatted')
-    !open(9,file='pot.dat',status='unknown',form='unformatted')
-    open(10,file='conc.dat',status='unknown',form='formatted')
-    !
-    !	Open ncargraphics
-    !
-    call opngks
-    call gsclip(0)
-    !
-    !	Set color table
-    !
-    call cpclrs
-    !
-    call gselnt(0)
-    call gsplci(1)
-    call wtstr(.4,.975,'3d mutant code',2,0,0)
-    !
-    !	Read input parameters. We write to output at end of program.
-    !
-    read(1,option)
-    read(1,planet)
-    read(1,speeds)
-    read(1,windy)
-    read(1,lunar)
-    read(1,physical)
-    read(1,smooth)
-	!
-    !	Write input data to stdout/log file
-    !
-    write(*,option)
-    write(*,planet)
-    write(*,speeds)
-    write(*,windy)
-    write(*,lunar)
-    write(*,physical)
-    write(*,smooth)
-	!
-	write(*,*) 'Grid xmin: ','Grid xmax: ','Grid ymin: ','Grid ymax: ', &
-		'Grid zmin: ','Grid zmax: ','Grid spacing: '
-    do i=1,n_grids
-		xspac(i) = division**(i-1)
-		grid_minvals(1,i) = -limit*xspac(i)
-		grid_maxvals(1,i) = limit*xspac(i)
-        grid_minvals(2,i) = -limit*xspac(i)
-		grid_maxvals(2,i) = limit*xspac(i)        
-		grid_minvals(3,i) = -limit/2*xspac(i)
-		grid_maxvals(3,i) = limit/2*xspac(i)
-		!
-		if(i.eq.n_grids) then
-			grid_diff = grid_maxvals(1,i) * wind_adjust - grid_maxvals(1,i)
-			grid_maxvals(1,i) = grid_maxvals(1,i) + grid_diff
-			grid_minvals(1,i) = grid_minvals(1,i) + grid_diff
-		endif
-		!
-		write(*,*) grid_minvals(1,i), grid_maxvals(1,i), &
-		grid_minvals(2,i), grid_maxvals(2,i), &
-		grid_minvals(3,i), grid_maxvals(3,i), xspac(i)
-		ix = 1 + ( grid_maxvals(1,i) - grid_minvals(1,i) ) / xspac(i)
-		iy = 1 + ( grid_maxvals(2,i) - grid_minvals(2,i) ) / xspac(i)
-        iz = 1 + ( grid_maxvals(3,i) - grid_minvals(3,i) ) / xspac(i)
-        if((ix.ne.nx).or.(iy.ne.ny).or.(iz.ne.nz)) then
-            write(*,*)'ERROR: grid spacing does not match number of points.', &
-				' Actual x,y,z: ',ix,iy,iz,'Expected x,y,z: ',nx,ny,nz
-            stop
-        endif
-    enddo
-    !
-    !	Check if subgrids mate properly to larger grid
-    !
-    do box=1,n_grids-1
-        next_box = box + 1
-		!
-        grid_diff = 1. + (grid_minvals(1,box) - grid_minvals(1,next_box)) / xspac(next_box)
-        mating_index = int(grid_diff)
-        dx = grid_diff - mating_index
-        if(abs(dx).gt.0.001) then
-            write(*,*)'Main grid: xmin dont match. ',box,next_box,mating_index,grid_diff
-            stop
-        endif
-        !
-        grid_diff = 1. + (grid_minvals(2,box) - grid_minvals(2,next_box)) / xspac(next_box)
-        mating_index = int(grid_diff)
-        dy = grid_diff - mating_index
-        if(abs(dy).gt.0.001) then
-            write(*,*)'Main grid: ymin dont match. ',box,next_box,mating_index,grid_diff
-            stop
-        endif
-        !
-        grid_diff = 1. + (grid_minvals(3,box) - grid_minvals(3,next_box)) / xspac(next_box)
-        mating_index = int(grid_diff)
-        dz = grid_diff - mating_index
-        if(abs(dz).gt.0.001) then
-            write(*,*)'Main grid: zmin dont match. ',box,next_box,mating_index,grid_diff
-            stop
-        endif
-        !
-    enddo
-	!
-	!	**************************
-	!	Planet & moon calculations
-	!	**************************
-		!
-		!	Use astrometry module to set planetary parameters. Import list:
-		!	planet_orbit_rad,	planet_year,
-		!	planet_rad,			planet_mass,
-		!	planet_obliq,		planet_incl,
-		!	r_lim,				torus_infall,
-		!	planet_tilt,		planet_init_long,
-		!	planet_xdip,		planet_ydip,
-		!	planet_zdip,		torus_dist,
-		!	moon_orbit_rad,		moon_per,
-		!	moon_rad,			moon_mass,
-		!	moon_incl,			moon_init_rot,
-		call choose_system(bodyname,moonname)
-		!
-		r_rot = r_lim
-		v_rot = 2.*pi*planet_rad/(planet_per*3600.)/v_equiv  !	Normalized units
-		torus_inj_dist = torus_dist + torus_infall
-		lunar_rad = 1.25 * moon_rad	!	Start exobase at 1.25 rt
-		!
-		rmoon = ( lunar_rad / planet_rad ) / re_equiv   !	In grid points
-		r_orbit = moon_orbit_rad / planet_rad / re_equiv	!	In grid pts (Never used, 10/08/2017 MJS)
-		v_orbit = (moon_orbit_rad*2.*pi)/(moon_per*3600.)/v_equiv    !	Sim units
-		!
-		tilt = planet_tilt
-		sin_tilt = sin(tilt)
-		cos_tilt = cos(tilt)
-		dtilt = ( tilt2 - tilt1 ) / tmax
-		xdip = planet_xdip
-		ydip = planet_ydip
-		zdip = planet_zdip
-		!
-		!   Gravity in m/s**2 at earth's surface 
-		!	Need t_equiv in normalization
-		t_equiv = planet_rad * re_equiv / v_equiv
-		grav = gravity * (planet_rad*re_equiv*1000.) / (1000.*v_equiv)**2
-		!
 	!
 	!	*************************************
     !	Write important data to graphics file
@@ -906,12 +1024,7 @@ program multifluid
     deltg = tmax / float(ntgraph)
     deltinj = tmax / float(ntinj)
     delt = stepsz
-    tgraph = 0.
-    tinj = 0.
-
-    tdiv = 10.
-    del_tdiv = 5.
-    write_dat = .true.
+	write_dat = .true.
     !
     !	*****************
     !	Check for restart
@@ -1116,8 +1229,7 @@ program multifluid
 		!	Rotation timing
 		!	***************
 			nrot_p = int( ut/planet_per )
-			!rot_hrs = ut - planet_per*nrot_p
-			rot_hrs = moon_init_rot
+			rot_hrs = ut - planet_per*nrot_p
 			rot_angle = 2.*pi*rot_hrs/planet_per
 			sin_rot = sin(rot_angle)
 			cos_rot = cos(rot_angle)
@@ -1142,11 +1254,6 @@ program multifluid
 		    !
 		    write(*,*)'Initial torus_inj_dist, rot_angle: ',torus_inj_dist, rot_angle
 		    !
-		    !	Scale lengths for plasma sheet population
-		    !
-		    sheet_den=0.25
-		    alpha_s=4.
-			!
 		!
         do box=1,n_grids
 			dx = ( grid_maxvals(1,box) - grid_minvals(1,box) ) / ( nx - 1. )
@@ -1183,7 +1290,7 @@ program multifluid
                         !
                         !	Zero interior magnetic field so alfven speed small
                         !
-                        if (ar.lt.r_inner-1.5) then
+                        if (ar.lt.zero_bndry) then
                             bx0(i,j,k,box)=0.
                             by0(i,j,k,box)=0.
                             bz0(i,j,k,box)=0.
@@ -1281,14 +1388,13 @@ program multifluid
                         !	Test for boundary point of planets surface or
                         !		interior to planet
                         !
-                        if((ar.le.r_inner+.6).and.(box.le.mbndry)) then
+                        if((ar.le.srf_bndry).and.(box.le.mbndry)) then
                             !
-                            if(ar.lt.r_inner-1.5) then
+                            if(ar.lt.zero_bndry) then
                                 numzero(box)=numzero(box)+1
                                 ijzero(box,1,numzero(box))=i
                                 ijzero(box,2,numzero(box))=j
                                 ijzero(box,3,numzero(box))=k
-                                !
                                 !
                                 parm_zero(box,1,numzero(box))=qrho(i,j,k,box)
                                 parm_zero(box,2,numzero(box))=hrho(i,j,k,box)
@@ -1298,7 +1404,7 @@ program multifluid
                                 parm_zero(box,6,numzero(box))=opresx(i,j,k,box)
                                 parm_zero(box,7,numzero(box))=epres(i,j,k,box)
                                 !
-                            else  if(ar.lt.r_inner-.5) then
+                            else if(ar.lt.mid_bndry) then
                                 nummid(box)=nummid(box)+1
                                 ijmid(box,1,nummid(box))=i
                                 ijmid(box,2,nummid(box))=j
@@ -1334,6 +1440,7 @@ program multifluid
         enddo	! end boxes loop
         !
         write(*,*) 'Interior and zero points:'
+		write(*,*) 'box ','srf ','mid ','zero'
         do box=1,mbndry
             write(*,*) box,numsrf(box),nummid(box),numzero(box)
         enddo
@@ -2260,7 +2367,7 @@ program multifluid
                     t_old(box)=t_new(box)
                     t_new(box)=t_old(box)+t_step(box)
                     !
-                    write(6,*)'lores t step. box/old/new: ',box, t_old(box),t_new(box)
+                    write(6,*)'lores t step. box/t/old/new: ',box, t, t_old(box),t_new(box)
                     !
                     delt = t_step(box)
                     delt2=delt/2.
@@ -2523,6 +2630,7 @@ program multifluid
                             rhop,svxp,svyp,svzp,svelx,spress, &
                             ti_te,rho_frac,nx,ny,nz,n_grids)
                     endif
+					!
                     call set_rho(wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                         wrkqpresxy,wrkqpresxz,wrkqpresyz,rmassq, &
                         wrkhrho,wrkhpresx,wrkhpresy,wrkhpresz, &
@@ -3180,7 +3288,7 @@ program multifluid
         !
         if(t.ge.tgraph) then
             !
-            !	Plot plasma propeties
+            !	Plot plasma properties
             !
             !	Calculate size of plotting stuff and ensure no distortions
             !		over desired scales
@@ -3205,17 +3313,10 @@ program multifluid
 		!
         if(t.ge.tinj.and.ringo) then
             !
-			!	?[]?	MJS 10/16/17 needs work converting to soft-coded inputs
-			!			to make relevant to Jupiter
             !	Inject torus plasma
             !
-            !	Calculate size of plotting stuff and ensure no distortions
-            !		over desired scales
-            !
-            write(*,*) 'injecting plasma torus ...'
+            write(*,*) 'Injecting plasma torus, tinj:', tinj
 			!
-            !	Check for Enceladus plasma torus additions
-            !
             box=1
             dx = ( grid_maxvals(1,box) - grid_minvals(1,box) ) / (nx-1.)
             dy = ( grid_maxvals(2,box) - grid_minvals(2,box) ) / (ny-1.)
@@ -3239,23 +3340,24 @@ program multifluid
                         rx=ax*re_equiv
                         ry=ay*re_equiv
                         rd=sqrt(rx**2+ry**2)
+						ar=sqrt( (ax+xdip)**2 + (ay+ydip)**2 + (az+zdip)**2 )	!	Radial distance from planet center
                         !
                         rvy=rx*v_rot
                         rvx=-ry*v_rot
                         rvz=0.
                         corotate=sqrt(rvx**2+rvy**2)
                         !
-                        ar_encel=sqrt(ax**2+ay**2)*re_equiv
-                        dr_encel=abs(ar_encel -torus_inj_dist)
+                        ar_tmid=sqrt(ax**2+ay**2)*re_equiv
+                        dr_tmid=abs(ar_tmid - torus_inj_dist)
   						!
                         ! MAT - Corrected, according to 
                         !   doi:10.1029/2009JE003372
                         !   and
                         !   doi:10.1029/JA091iA08p08749
                         !
-                        if(abs(dr_encel.lt.2.*torus_rad)) then
-                            ! scale height in R_Saturns
-                            rscale=exp(-((dr_encel)/(0.5*torus_rad))**2) 
+                        if( (abs(dr_tmid).lt.2.*torus_rad) .and. (ar.gt.srf_bndry) ) then
+                            ! scale height in # planet_rad
+                            rscale=exp(-((dr_tmid)/(0.5*torus_rad))**2) 
                             zscale=exp(-((az*re_equiv)/(0.5*torus_rad))**2)
                             abtot=(bsx(i,j,k)**2+bsy(i,j,k)**2)/bsz(i,j,k)**2
                             dscale=amax1(0.,1.-10.*abtot)
@@ -3323,8 +3425,8 @@ program multifluid
             tot_q=tot_q*volume/atime*rho_equiv*1.e6/rmassq
             tot_h=tot_h*volume/atime*rho_equiv*1.e6/rmassh
             tot_o=tot_o*volume/atime*rho_equiv*1.e6/rmasso
-            write(*,*)'tot torus ions/s',ut,tot_q,tot_h,tot_o
-            write(10,*)'tot torus ions/s',ut,tot_q,tot_h,tot_o
+            write(*,*)'tot torus ions/s q,h,o',ut,tot_q,tot_h,tot_o
+            write(10,*)'tot torus ions/s q,h,o',ut,tot_q,tot_h,tot_o
             !
             tot_q=tot_q*proton_mass*rmassq
             tot_h=tot_h*proton_mass*rmassh
