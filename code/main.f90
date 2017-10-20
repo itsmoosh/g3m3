@@ -529,6 +529,8 @@ program multifluid
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	!
 	write(*,*) '-'
+	call system('date +"START: %T-%Y-%m-%d"')
+	write(*,*) '-'
 	!
 	!	*************
 	!	Grab git hash
@@ -3562,4 +3564,7 @@ program multifluid
 	write(*,*) '@@@@@@@@@@@@@@@@@@@@@'
 	write(*,*) 'Run complete! t =', t
 	write(*,*) '@@@@@@@@@@@@@@@@@@@@@'
+	write(*,*) '-'
+	call system('date +"FINISH: %T-%Y-%m-%d"')
+	write(*,*) '-'
 end
