@@ -37,6 +37,7 @@ subroutine concross(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
     character*12 label,magnif
     character*20 title
     integer vpl,vpr,vpb,vpt,lind(14)
+    integer box
     logical add_dip,start
     !
     ilab=0

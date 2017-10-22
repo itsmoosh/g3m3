@@ -12,6 +12,7 @@ subroutine convect(vx,vy,vz,nx,ny,nz,box,radstrt, &
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
     !
+    integer box
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &
     grd_ymin(n_grids),grd_ymax(n_grids), &
     grd_zmin(n_grids),grd_zmax(n_grids)

@@ -14,6 +14,7 @@ subroutine cappot(chrg,pott,nx,ny,nz,n_grids,box,radstrt, &
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
     !
+    integer box
     dimension chrg(nx,ny,nz),pott(nx,ny,nz)
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &
     grd_ymin(n_grids),grd_ymax(n_grids), &

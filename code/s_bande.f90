@@ -15,6 +15,7 @@ subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
     qrho(nx,ny,nz,n_grids),hrho(nx,ny,nz,n_grids),orho(nx,ny,nz,n_grids), &
     epres(nx,ny,nz,n_grids),btot(nx,ny,nz)
     dimension rst(nx,ny,nz,mbndry)
+    integer box
     integer ijmid(mbndry,3,mmid),ijzero(mbndry,3,mzero)
     integer nummid(mbndry),numzero(mbndry)
     !

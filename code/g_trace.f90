@@ -28,6 +28,7 @@ subroutine trace(bx,by,bz,n1,n2,n3,box,add_dip, &
     !                           st.-petersburg
     !                           russia
     !
+    integer box
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
     dimension bx(n1,n2,n3),by(n1,n2,n3),bz(n1,n2,n3), &

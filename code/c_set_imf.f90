@@ -14,6 +14,7 @@ subroutine set_imf(bx,by,bz,bx0,by0,bz0,bxp,byp,bzp, &
 	!		as we are trying to use spacecraft data as physical
 	!		inputs to set the IMF.
     !
+    integer box
     dimension bx(nx,ny,nz,n_grids),bx0(nx,ny,nz,n_grids),bxp(ny,nz), &
         by(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids),byp(ny,nz), &
         bz(nx,ny,nz,n_grids),bz0(nx,ny,nz,n_grids),bzp(ny,nz), &

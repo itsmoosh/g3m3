@@ -12,7 +12,7 @@ subroutine contop(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
     !
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
-     common /conre4/ isizel,isizem,isizep,nrep, &
+    common /conre4/ isizel,isizem,isizep,nrep, &
     ncrt,ilab,nulbll,ioffd, & 
     ext,ioffm,isolid ,nla, &
     nlm,xlt,ybt,side 
@@ -35,6 +35,7 @@ subroutine contop(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
     character*12 label,magnif
     character*20 title
     integer vpl,vpr,vpb,vpt,lind(14)
+    integer box
     logical add_dip,start
     !
     ilab=0

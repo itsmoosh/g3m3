@@ -4,6 +4,7 @@ subroutine space_charge(charge,efldx,efldy,efldz, &
     !
     !      calculates the space-charge fields in the plasma
     !
+    integer box
     dimension bx0(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids), &
     bz0(nx,ny,nz,n_grids),charge(nx,ny,nz), &
     efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz), &

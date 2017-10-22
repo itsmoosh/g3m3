@@ -24,6 +24,7 @@ subroutine cnrccf(zdat,kzdt,mzdt,nzdt,flow,fhgh,finc,nset,nhgh, &
     !     a subset of these will actually be used.  see routine dfclrs for
     !     the value of maxcol.
     !
+    integer box
     dimension zdat(kzdt,*)
     !
     ! define some needed dimensions.

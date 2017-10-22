@@ -5,6 +5,7 @@ subroutine limcraft(xcraft,ncraft,re_equiv,n_grids, &
     !      tests to see whether spacecraft is in the system and
     !           resets their position if not
     !
+    integer box
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &
         grd_ymin(n_grids),grd_ymax(n_grids), &
         grd_zmin(n_grids),grd_zmax(n_grids)

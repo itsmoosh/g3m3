@@ -6,6 +6,7 @@ subroutine intpol(bx,by,bz,n1,n2,n3,box,add_dip, &
     !     to the actual point ax,ay,az and then calculates the
     !     direction for the increments in r1,r2,r3
     !
+    integer box
     dimension bx(n1,n2,n3),by(n1,n2,n3),bz(n1,n2,n3)
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &
     grd_ymin(n_grids),grd_ymax(n_grids), &

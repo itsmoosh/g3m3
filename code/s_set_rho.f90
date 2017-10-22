@@ -9,6 +9,7 @@ subroutine set_rho(qrho,qpresx,qpresy,qpresz, &
     !    checks for minimum rho and negative pressure
     !     and resets value if necessary
     !
+    integer box
     dimension qrho(nx,ny,nz,n_grids),qpresx(nx,ny,nz,n_grids), &
     qpresy(nx,ny,nz,n_grids),qpresz(nx,ny,nz,n_grids), &
     qpresxy(nx,ny,nz,n_grids),qpresxz(nx,ny,nz,n_grids), &

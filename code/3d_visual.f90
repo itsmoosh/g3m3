@@ -13,6 +13,7 @@ subroutine visual( &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
     grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv)
     !
+    integer box
     real grd_xmin(n_grids),grd_xmax(n_grids),grd_ymin(n_grids),grd_ymax(n_grids), &
     grd_zmin(n_grids),grd_zmax(n_grids),xspac(n_grids)
     real bx(nx,ny,nz,n_grids),by(nx,ny,nz,n_grids),bz(nx,ny,nz,n_grids), &

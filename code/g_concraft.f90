@@ -16,6 +16,8 @@ subroutine concraft(stuff,cross,nx,ny,nz,box, &
     !
     !     dimension of work array show be ny-2,nz-2
     !          (do not plot edge arrays)
+	!
+    integer box
     logical start
     !
     common /conre4/ isizel,isizem,isizep,nrep, &
@@ -154,6 +156,8 @@ subroutine concraft_fix(stuff,cross,nx,ny,nz,box, &
     !
     !     dimension of work array show be ny-2,nz-2
     !          (do not plot edge arrays)
+	!
+    integer box
     logical start
     !
     common /conre4/ isizel,isizem,isizep,nrep, &

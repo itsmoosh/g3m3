@@ -19,6 +19,7 @@ subroutine mak_dip_all(bx0,by0,bz0,nx,ny,nz,n_grids, &
     dimension bx0(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids), &
         bz0(nx,ny,nz,n_grids)
     integer ijzero(mbndry,3,mzero),numzero(mbndry)
+    integer box
     !
     !
     sin_rot=sin(rot_angle)
@@ -135,6 +136,7 @@ subroutine mak_dip_grd(bx0,by0,bz0,nx,ny,nz,n_grids, &
     dimension bx0(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids), &
         bz0(nx,ny,nz,n_grids)
     integer ijzero(mbndry,3,mzero),numzero(mbndry)
+    integer box
     !
     sin_rot=sin(rot_angle)
     cos_rot=cos(rot_angle)
@@ -255,6 +257,7 @@ subroutine mak_dip_moon(bx0,by0,bz0,nx,ny,nz,n_grids, &
     dimension bx0(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids), &
         bz0(nx,ny,nz,n_grids)
     integer ijzero(mbndry,3,mzero),numzero(mbndry)
+    integer box
     !
     sin_rot=sin(rot_angle)
     cos_rot=cos(rot_angle)

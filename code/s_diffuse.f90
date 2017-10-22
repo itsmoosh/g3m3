@@ -9,6 +9,7 @@ subroutine diffuse(qrho,qpres,qpx,qpy,qpz, &
     !
     !     apply straight artifical diffusion:
     !
+    integer box
     dimension qrho(nx,ny,nz,n_grids),qpres(nx,ny,nz,n_grids), &
     qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids),qpz(nx,ny,nz,n_grids), &
     hrho(nx,ny,nz,n_grids),hpres(nx,ny,nz,n_grids), &

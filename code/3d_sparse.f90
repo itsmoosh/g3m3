@@ -28,6 +28,7 @@ recursive subroutine sparse(abd,nband,n,b,x,ipvt,rsq, &
     real g(n),h(n),xi(n),xj(n)
     logical,optional :: recurse
     integer, optional :: rirst
+    integer box
     !
     !      criterion for sum-squared residuals
     !       and number of restarts attempted internally

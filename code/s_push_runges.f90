@@ -10,6 +10,7 @@ subroutine push_bfld(bx,by,bz,oldbx,oldby,oldbz, &
     !
     !      standard runge-kutta time step
     !
+    integer box
     dimension bx(nx,ny,nz,n_grids),by(nx,ny,nz,n_grids),bz(nx,ny,nz,n_grids), &
     oldbx(nx,ny,nz,n_grids),oldby(nx,ny,nz,n_grids),oldbz(nx,ny,nz,n_grids), &
     efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz)
@@ -64,6 +65,7 @@ subroutine push_elec(epres,oldepres,wrkepres,evx,evy,evz, &
     !
     !      evolves the electron pressure equation
     !
+    integer box
     dimension epres(nx,ny,nz,n_grids),oldepres(nx,ny,nz,n_grids), &
     wrkepres(nx,ny,nz,n_grids)
     !
@@ -133,6 +135,7 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
     !
     !      standard runge-kutta push for ion equations
     !
+    integer box
     dimension bsx(nx,ny,nz),bsy(nx,ny,nz),bsz(nx,ny,nz), &
     efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz), &
     qvx(nx,ny,nz),qvy(nx,ny,nz),qvz(nx,ny,nz), &

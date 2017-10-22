@@ -21,6 +21,7 @@ subroutine conflow(stuff,vx,vy,vz,nx,ny,nz,n_grids,mm,box, &
     character*12 label,magnif
     character*20 title
     integer vpl,vpr,vpb,vpt,lind(14)
+    integer box
     !
     !     skip parameters for field lines and arrows
     !

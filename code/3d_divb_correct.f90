@@ -42,6 +42,7 @@ subroutine divb_correct(bx,by,bz,dbx,dby,dbz,poten, &
     !
     real b(ntot),x(ntot),g(ntot),h(ntot),xi(ntot),xj(ntot)
     integer ipvt(nband)
+    integer box
     !
     real, allocatable, dimension(:,:) :: abd
     allocate(abd(7,nx*ny*nz))
@@ -246,6 +247,7 @@ subroutine divb_correct_n(bx,by,bz,dbx,dby,dbz,poten, &
     !
     real b(ntot),x(ntot),g(ntot),h(ntot),xi(ntot),xj(ntot)
     integer ipvt(nband)
+    integer box
     !
     !      write(*,*)'calling divb',nband,ntot,nx,ny,nz,n_grids,box
     !
@@ -452,6 +454,7 @@ subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
     !
     real b(ntot),x(ntot),g(ntot),h(ntot),xi(ntot),xj(ntot)
     integer ipvt(nband)
+    integer box
     !
     write(*,*)'Calling divb: nband, ntot, nx, ny, nz, n_grids, box'
 	write(*,*) nband,ntot,nx,ny,nz,n_grids,box

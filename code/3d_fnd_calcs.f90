@@ -12,6 +12,7 @@ subroutine fnd_fld(bx,btx,nx,ny,nz,n_grids,box)
     !     calculates the total dynamic magnetic field only
     !        dipole field added separately by by setting add_dip=.true.
     !
+    integer box
     dimension bx(nx,ny,nz,n_grids),btx(nx,ny,nz)
     !
     !$omp  parallel do
@@ -34,6 +35,7 @@ subroutine fnd_vel(px,py,pz,rho,vx,vy,vz,nx,ny,nz,n_grids,box)
     !
     !     converts momentum into velocity for graphics
     !
+    integer box
     dimension px(nx,ny,nz,n_grids),py(nx,ny,nz,n_grids), &
         pz(nx,ny,nz,n_grids),rho(nx,ny,nz,n_grids), &
         vx(nx,ny,nz),vy(nx,ny,nz),vz(nx,ny,nz)
@@ -63,6 +65,7 @@ subroutine fnd_vtot(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
     !
     !     converts momentum into velocity for graphics
     !
+    integer box
     dimension qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids), &
         qpz(nx,ny,nz,n_grids),qrho(nx,ny,nz,n_grids), &
         hpx(nx,ny,nz,n_grids),hpy(nx,ny,nz,n_grids), &
@@ -105,6 +108,7 @@ subroutine fnd_evel(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
     !
     !     converts momentum into velocity for graphics
     !
+    integer box
     dimension qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids), &
         qpz(nx,ny,nz,n_grids),qrho(nx,ny,nz,n_grids), &
         hpx(nx,ny,nz,n_grids),hpy(nx,ny,nz,n_grids), &
@@ -156,6 +160,7 @@ subroutine fnd_prss(px,py,pz,rho,erg,afld,nx,ny,nz,n_grids, &
     !
     !     now using pressure equation rather than an erg equation
     !
+    integer box
     dimension px(nx,ny,nz,n_grids),py(nx,ny,nz,n_grids), &
         pz(nx,ny,nz,n_grids),rho(nx,ny,nz,n_grids), &
         erg(nx,ny,nz,n_grids),afld(nx,ny,nz)

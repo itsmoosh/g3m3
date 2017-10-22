@@ -12,6 +12,7 @@ subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,n_grids,box,chipx, &
     !           px is the final product
     !     wrk arrays assumed to have dimension larger than nx,ny,nz
     !
+    integer box
     dimension px(nx,ny,nz,n_grids),oldpx(nx,ny,nz,n_grids), &
     wrkpx(nx,ny,nz,n_grids), &
     tempx(nx,ny,nz),tempy(nx,ny,nz),tempz(nx,ny,nz)
@@ -245,6 +246,7 @@ subroutine fcsmooth_2d(px,oldpx,wrkpx,nx,ny,nz,n_grids,box,chipx, &
     !           px is the final product
     !     wrk arrays assumed to have dimension larger than nx,ny,nz
     !
+    integer box
     dimension px(nx,ny,nz,n_grids),oldpx(nx,ny,nz,n_grids), &
     wrkpx(nx,ny,nz,n_grids), &
     delta(nx,ny,nz),delta1(nx,ny,nz),fn(nx,ny,nz)

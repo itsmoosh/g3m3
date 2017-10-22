@@ -22,6 +22,7 @@ subroutine bndry_corer( &
     !     this routine applies boundary conditions to all grid types
     !     of the system and at any irregular boundaries
     !
+    integer box
     dimension &
     bx(nx,ny,nz,n_grids),by(nx,ny,nz,n_grids),bz(nx,ny,nz,n_grids), &
     qrho(nx,ny,nz,n_grids),qpx(nx,ny,nz,n_grids), &
@@ -160,6 +161,7 @@ subroutine bndry_flanks( &
     !     this subroutine applies boundary conditions to all grid types
     !     of the system and at any irregular boundaries
     !
+    integer box
     dimension qrho(nx,ny,nz,n_grids),qpresx(nx,ny,nz,n_grids), &
     qpresy(nx,ny,nz,n_grids),qpresz(nx,ny,nz,n_grids), &
     qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids),qpz(nx,ny,nz,n_grids), &
@@ -366,6 +368,7 @@ subroutine bndry_grd_core( &
     !     this subroutine applies boundary conditions to all grid types
     !     of the system and at any irregular boundaries
     !
+    integer box
     dimension &
     bx(nx,ny,nz,n_grids),by(nx,ny,nz,n_grids),bz(nx,ny,nz,n_grids), &
     qrho(nx,ny,nz,n_grids),qpx(nx,ny,nz,n_grids), &
@@ -678,6 +681,7 @@ subroutine bndry_grds( &
     !     this subroutine applies boundary conditions to all grid types
     !     of the system and at any irregular boundaries
     !
+    integer box
     dimension qrho_n(nx_n,ny_n,nz_n,ngrd_n), &
     qpx_n(nx_n,ny_n,nz_n,ngrd_n), &
     qpy_n(nx_n,ny_n,nz_n,ngrd_n), &
@@ -1000,6 +1004,7 @@ subroutine bndry_inner( &
     !     this subroutine applies boundary conditions around the edges
     !     of the system and at any irregular boundaries
     !
+    integer box
     dimension &
     qrho(nx,ny,nz,n_grids),qpx(nx,ny,nz,n_grids), &
     qpy(nx,ny,nz,n_grids),qpz(nx,ny,nz,n_grids), &
@@ -1271,6 +1276,7 @@ subroutine bndry_moon(qrho,qpresx,qpresy,qpresz, &
     !     this subroutine applies boundary conditions around the edges
     !     of the system and at any irregular boundaries
     !
+    integer box
     dimension qrho(nx,ny,nz,n_grids),qpresx(nx,ny,nz,n_grids), &
     qpresy(nx,ny,nz,n_grids),qpresz(nx,ny,nz,n_grids), &
     qpresxy(nx,ny,nz,n_grids),qpresxz(nx,ny,nz,n_grids), &
@@ -1454,6 +1460,7 @@ subroutine bndry_outer( &
     !     this subroutine applies boundary conditions around the edges
     !     of the system and at any irregular boundaries
     !
+    integer box
     dimension &
     qrho(nx,ny,nz,n_grids),qpx(nx,ny,nz,n_grids), &
     qpy(nx,ny,nz,n_grids),qpz(nx,ny,nz,n_grids), &

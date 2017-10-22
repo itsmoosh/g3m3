@@ -4,6 +4,7 @@ subroutine calcur(bx,by,bz,nx,ny,nz,n_grids,box,curx,cury,curz, &
     !     this calculates the current associated with the perturbed b field
     !          i.e. curz= dby/dx - dbx/dy
     !
+    integer box
     dimension bx(nx,ny,nz,n_grids),by(nx,ny,nz,n_grids),bz(nx,ny,nz,n_grids), &
     curx(nx,ny,nz),cury(nx,ny,nz),curz(nx,ny,nz)
     !

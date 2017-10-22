@@ -14,6 +14,7 @@ subroutine conplane(stuff,cross,nx,ny,nz,box, &
     !                  be in simulation units
     !        ncraft is the number of spacecraft to plot
     !
+    integer box
     logical start
     !
     common /conre4/ isizel,isizem,isizep,nrep, &

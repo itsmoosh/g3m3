@@ -15,6 +15,7 @@ subroutine set_bndry_moon(rmassq,rmassh,rmasso, &
     !
     !    photoionization ionosphere
     !
+    integer box
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &
     grd_ymin(n_grids),grd_ymax(n_grids), &
     grd_zmin(n_grids),grd_zmax(n_grids)
@@ -164,6 +165,7 @@ subroutine set_bndry_moon_ram(rmassq,rmassh,rmasso, &
     !
     !      sputtered or ram produced ionosphere
     !
+    integer box
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &
     grd_ymin(n_grids),grd_ymax(n_grids), &
     grd_zmin(n_grids),grd_zmax(n_grids)

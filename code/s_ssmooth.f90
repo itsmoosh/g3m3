@@ -2,6 +2,7 @@ subroutine ssmooth(px,wrkpx,nx,ny,nz,n_grids,box,chipx)
     !
     !     applies straight diffusion
     !
+    integer box
     dimension px(nx,ny,nz,n_grids),wrkpx(nx,ny,nz,n_grids)
     !
     !     write(*,*) 'ssmooth: nx, ny, nz, n_grids, box, chipx'

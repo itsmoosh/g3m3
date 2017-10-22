@@ -14,6 +14,7 @@ subroutine set_resist(rst,nx,ny,nz,mbndry,resist, &
     integer ijsrf(mbndry,3,msrf),ijmid(mbndry,3,mmid), &
         ijzero(mbndry,3,mzero)
     integer numsrf(mbndry),nummid(mbndry),numzero(mbndry)
+    integer box
     !
     !     resistivity characteristics
     !        initialize

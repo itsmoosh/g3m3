@@ -8,6 +8,7 @@ subroutine corer(rho,nx,ny,nz,n_grids,box,grd_xmin,grd_xmax, &
     !
     !      box is the coring subject grid index
     !
+    integer box
     dimension rho(nx,ny,nz,n_grids)
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &
     grd_ymin(n_grids),grd_ymax(n_grids), &
@@ -71,6 +72,7 @@ subroutine corer_grds(rho,nx,ny,nz,n_grids,main_ngrd, &
     grd_xmin_n,grd_xmax_n,grd_ymin_n,grd_ymax_n, &
     grd_zmin_n,grd_zmax_n)
     !
+    integer box
     dimension rho(nx,ny,nz,n_grids),rho_n(nx_n,ny_n,nz_n,ngrd_n)
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &
     grd_ymin(n_grids),grd_ymax(n_grids), &

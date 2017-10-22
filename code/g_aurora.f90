@@ -16,6 +16,7 @@ subroutine aurora(stuff,nx,ny,nz,box,radstrt,re_equiv,iside, &
     !        add_two adds two current densities to produce
     !                 a total auroral map
     !
+    integer box
     common /space/sdata(91,91),tdata(91,91), &
     work(91,91),clat(91,91)
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &

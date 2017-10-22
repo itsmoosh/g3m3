@@ -4,6 +4,7 @@ subroutine csmooth(curx,cury,curz,fldx,fldy,fldz, &
     !     force smoothing of surface currents to see if we can
     !             get better graphics
     !
+    integer box
     dimension curx(nx,ny,nz),cury(nx,ny,nz),curz(nx,ny,nz), &
     fldx(nx,ny,nz),fldy(nx,ny,nz),fldz(nx,ny,nz)
     !

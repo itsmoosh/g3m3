@@ -15,7 +15,7 @@ subroutine divb_cor(bx,by,bz,px,py,pz,rho,ppres, &
 	!
 	real r_max, r_min, rad_lim
 	real dx, dy, dz, dxt, dyt, dzt
-	integer i, j, k
+	integer i, j, k, box
 	real ai, aj, ak, ar, arho
     !
     !     set limit of x integration depending on when you

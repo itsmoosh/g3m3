@@ -22,6 +22,7 @@ subroutine conlog(stuff,vx,vy,vz,nx,ny,nz,n_grids,mm,box, &
     character*12 label,magnif
     character*20 title
     integer vpl,vpr,vpb,vpt,lind(18)
+    integer box
     !
     !     skip parameters for field lines and arrows
     !

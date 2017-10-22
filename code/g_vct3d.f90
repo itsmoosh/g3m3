@@ -14,9 +14,10 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,box,xmin,xmax,ymin, &
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &
     grd_ymin(n_grids),grd_ymax(n_grids), &
     grd_zmin(n_grids),grd_zmax(n_grids)
-     dimension vx(nx,ny,nz),vy(nx,ny,nz),vz(nx,ny,nz)
+    dimension vx(nx,ny,nz),vy(nx,ny,nz),vz(nx,ny,nz)
     real eye(3)
     integer vpl,vpr,vpb,vpt
+    integer box
     character*4 wd1,wd2,wd3
     character*12 label
     character*15 title

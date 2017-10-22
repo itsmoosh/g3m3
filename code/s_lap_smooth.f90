@@ -10,6 +10,7 @@ subroutine lap_bfld(bx,by,bz,wrkbx,wrkby,wrkbz,vx,vy,vz, &
     !
     !     apply the lapidus smoothing technique for particular ion component
     !
+    integer box
     dimension bx(nx,ny,nz,n_grids),by(nx,ny,nz,n_grids),bz(nx,ny,nz,n_grids), &
     wrkbx(nx,ny,nz,n_grids),wrkby(nx,ny,nz,n_grids), &
     wrkbz(nx,ny,nz,n_grids), &
@@ -79,6 +80,7 @@ subroutine lap_elec(ppres,wrkppres,vx,vy,vz, &
     !
     !     apply the lapidus smoothing technique for particular ion component
     !
+    integer box
     dimension ppres(nx,ny,nz,n_grids),wrkppres(nx,ny,nz,n_grids), &
     vx(nx,ny,nz),vy(nx,ny,nz),vz(nx,ny,nz)
     !
@@ -137,6 +139,7 @@ subroutine lap_plasma(rho,px,py,pz, &
     !
     !     apply the lapidus smoothing technique for particular ion component
     !
+    integer box
     dimension rho(nx,ny,nz,n_grids),presx(nx,ny,nz,n_grids), &
     presy(nx,ny,nz,n_grids),presz(nx,ny,nz,n_grids), &
     px(nx,ny,nz,n_grids),py(nx,ny,nz,n_grids),pz(nx,ny,nz,n_grids), &
@@ -285,6 +288,7 @@ subroutine lap_test(qrho,qpres,qpx,qpy,qpz, &
     nx,ny,nz,n_grids,box,chirho,chipxyz,chierg,delt, &
     rmassq,rmassh,rmasso)
     !
+    integer box
     dimension qrho(nx,ny,nz,n_grids),qpres(nx,ny,nz,n_grids), &
     qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids),qpz(nx,ny,nz,n_grids), &
     hrho(nx,ny,nz,n_grids),hpres(nx,ny,nz,n_grids), &
@@ -300,6 +304,6 @@ subroutine lap_test(qrho,qpres,qpx,qpy,qpz, &
     wrkopx(nx,ny,nz,n_grids),wrkopy(nx,ny,nz,n_grids), &
     wrkopz(nx,ny,nz,n_grids)
     !
-    write(6,*)'test lap entered'
+    write(*,*) 'Test lap entered'
     return
 end

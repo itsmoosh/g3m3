@@ -26,6 +26,7 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,n_grids,box, &
     character*12 label,magnif
     character*20 title
     integer vpl,vpr,vpb,vpt,lind(14)
+    integer box
     logical add_dip,roc
     !
     my2=my/2+1

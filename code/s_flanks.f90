@@ -8,6 +8,7 @@ subroutine flanks(wrkrho,rho,oldrho,nx,ny,nz,n_grids,box, &
     t_new,t_old,t,work, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
+    integer box
     dimension rho(nx,ny,nz,n_grids),oldrho(nx,ny,nz,n_grids), &
     wrkrho(nx,ny,nz,n_grids),work(nx,ny,nz)
     dimension t_new(n_grids),t_old(n_grids)
@@ -319,6 +320,7 @@ subroutine flanks_grds( &
     grd_xmin_n,grd_xmax_n,grd_ymin_n, &
     grd_ymax_n,grd_zmin_n,grd_zmax_n)
     !
+    integer box
     dimension rho(nx,ny,nz,n_grids),oldrho(nx,ny,nz,n_grids), &
     rho_n(nx_n,ny_n,nz_n,ngrd_n), &
     work(nx,ny,nz)
@@ -637,6 +639,7 @@ end
 subroutine flanks_synced(rho,nx,ny,nz,n_grids,box, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
+    integer box
     dimension rho(nx,ny,nz,n_grids)
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &
     grd_ymin(n_grids),grd_ymax(n_grids), &

@@ -9,6 +9,7 @@ subroutine crafdatv(bx,by,bz, &
     !       this subroutine will cut up array into a regular space
     !       sub-grid and then write to binary file 13
     !
+    integer box
     dimension bx(nx,ny,nz),by(nx,ny,nz), &
     bz(nx,ny,nz),epres(nx,ny,nz,n_grids), &
     qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids),qpz(nx,ny,nz,n_grids), &

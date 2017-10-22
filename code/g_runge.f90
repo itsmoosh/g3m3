@@ -14,6 +14,7 @@ subroutine rungea(bx,by,bz,press,rho,nx,ny,nz, &
     !         to trace stream functions of current and magnetic field
     !         xi,yi,zi, and find maximum temperature along them
     !
+    integer box
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
     dimension bx(nx,ny,nz),by(nx,ny,nz),bz(nx,ny,nz), &
@@ -153,6 +154,7 @@ subroutine rungeb(efldx,efldy,efldz,bx,by,bz,nx,ny,nz, &
     !         to trace stream functions of current and magnetic field
     !         xi,yi,zi, and integrates the field aligned potential drop
     !
+    integer box
     dimension bx(nx,ny,nz),by(nx,ny,nz),bz(nx,ny,nz), &
     efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz)
     real xray(1000),yray(1000),zray(1000)
@@ -315,8 +317,9 @@ subroutine rungem(bx,by,bz,nx,ny,nz,box,rx, &
     !         xi,yi,zi, until it hits boundary or maximum number
     !         of points is reached
     !
+    integer box
     dimension bx(nx,ny,nz),by(nx,ny,nz),bz(nx,ny,nz)
-    dimension  xray(maxpts),yray(maxpts),zray(maxpts)
+    dimension xray(maxpts),yray(maxpts),zray(maxpts)
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &
     grd_ymin(n_grids),grd_ymax(n_grids), &
     grd_zmin(n_grids),grd_zmax(n_grids)

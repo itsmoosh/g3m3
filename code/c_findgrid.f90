@@ -6,6 +6,7 @@ subroutine findgrid(xyz,n_grids,grid_minvals,grid_maxvals,num_pts,craft_gridpt)
     real, intent(in) :: xyz(3), grid_minvals(3,n_grids), grid_maxvals(3,n_grids)
 	!
 	integer, intent(out) :: craft_gridpt(4)	!	craft_gridpt contains: x_index,y_index,z_index,box_num
+    integer box
 	integer axis
 	real delta_pos, grid_spacing
 	!	delta_pos is the distance above the minval for a given axis. 

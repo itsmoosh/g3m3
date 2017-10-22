@@ -5,6 +5,7 @@ subroutine step(bx,by,bz,n1,n2,n3,box,add_dip,x,y,z,ds,errin,n_grids, &
     !     ds is step size,
     !     errin is permissible error value.
     !
+    integer box
     dimension bx(n1,n2,n3),by(n1,n2,n3),bz(n1,n2,n3)
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &
     grd_ymin(n_grids),grd_ymax(n_grids), &

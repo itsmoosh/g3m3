@@ -8,6 +8,7 @@ subroutine totfld(bx,bx0,btx,nx,ny,nz,n_grids,box)
     !     calculates the total magnetic field from the perturbed and
     !        stationary magnetic field
     !
+    integer box
     dimension bx(nx,ny,nz,n_grids),bx0(nx,ny,nz,n_grids),btx(nx,ny,nz)
     !
     !$omp parallel do

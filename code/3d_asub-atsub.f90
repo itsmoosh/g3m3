@@ -10,7 +10,7 @@ subroutine asub(abd,nband,n,ipvt,x,xi)
     !
     real abd(nband,n),x(n),xi(n)
     integer ipvt(nband)
-    
+    integer box
     !
     !     initialize product
     !
@@ -39,6 +39,7 @@ subroutine atsub(abd,nband,n,ipvt,x,xi)
     !
     real abd(nband,n),x(n),xi(n)
     integer ipvt(nband)
+    integer box
     !
     !     initialize product
     !

@@ -33,6 +33,7 @@ subroutine flux_correct(qrho,qpresx,qpresy,qpresz, &
     !
     !     apply flux correction smoothing technique
     !
+    integer box
     dimension qrho(nx,ny,nz,n_grids),qpresx(nx,ny,nz,n_grids), &
     qpresy(nx,ny,nz,n_grids),qpresz(nx,ny,nz,n_grids), &
     qpresxy(nx,ny,nz,n_grids),qpresxz(nx,ny,nz,n_grids), &

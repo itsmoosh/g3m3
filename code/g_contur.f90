@@ -20,6 +20,7 @@ subroutine contur(stuff,nx,ny,nz,n_grids,box,xmin,xmax, &
     character*12 label,magnif
     character*20 title
     integer vpl,vpr,vpb,vpt,lind(14)
+    integer box
     !
     !      dimension for plotted array
     !

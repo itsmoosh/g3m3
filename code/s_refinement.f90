@@ -5,6 +5,7 @@ subroutine refinement(rho,nx,ny,nz,n_grids,main_grid, &
     grd_xmin_n,grd_xmax_n,grd_ymin_n,grd_ymax_n, &
     grd_zmin_n,grd_zmax_n)
     !
+    integer box, box_n
     dimension rho(nx,ny,nz,n_grids),rho_n(nx_n,ny_n,nz_n,ngrd_n)
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &
     grd_ymin(n_grids),grd_ymax(n_grids), &
