@@ -55,7 +55,7 @@ module astrometry
 		real,parameter :: eur_orbit_rad	= 671.079E+03/jupiter_rad	!	Units: jupiter_rad
 		real,parameter :: eur_sid_per	= 3.551810*24.
 		real,parameter :: eur_per		= eur_sid_per * ( 1 + eur_sid_per/jupiter_year )
-		real,parameter :: eur_rad		= 1560.	!	R_Eur defined as 1560. in Galileo spacecraft data. True value: 1565.
+		real,parameter :: eur_rad		= 1560.	!	R_Eur defined as 1560. in Galileo spacecraft data. Accepted value: 1565.
 		real,parameter :: eur_mass		= 479.7E+20
 		real,parameter :: eur_incl		= 0.464*pi/180.
 		real,parameter :: eur_init_rot	= ( atan((-2.379801E-03)/(-3.751687E-03)) + pi - jupiter_init_long ) / (2.0*pi) * eur_per
