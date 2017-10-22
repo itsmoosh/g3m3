@@ -12,9 +12,6 @@
 !         ionospheric: arrays starting with o oxygen,
 !                                           h hydrogen
 !
-!   ?[ and change set33(0.1,1.,0.1,1.0  to
-!               set3(0.,1.,0.,1.
-!   ]?
 !	Warnings: make sure space is compatible with graphics
 !               routines
 !             the arrays ijzero,ijmid  and ijsrf have to
@@ -25,12 +22,16 @@
 !             plasma and magnetic field data must be aligned in time
 !
 !	Grid within grid size nt = division*n_grids
-!	ncts is the size of the data array for the IMF data file
+!	ncts is the size of the data array for the IMF data input file
 !
 !	File indices:
-!		1-29	Top-level I/O, fluid files, primary output data, etc
+!		1-9		Top-level I/O
+!		10-20	Fluid files
+!		21-29	Primary output data
 !		30-59	Spacecraft position/trajectory input files
 !		60-89	Spacecraft data recording
+!		100		git hash file
+!		101		dummy craft file
 !
 program multifluid
 	!
@@ -59,7 +60,7 @@ program multifluid
 		real,parameter	:: sheet_den=0.25
 		real,parameter	:: alpha_s=4.
 		!
-		integer,parameter :: num_quants = 7	! Number of quantities to zero inside inner boundary
+		integer,parameter :: num_zqt = 7	! Number of quantities to zero inside inner boundary
 		integer mzero	!	Number of grid points to zero inside innermost boundary
 		integer mmid	!	Number of grid points in 'mid' region between inner boundary and zero region
 		integer msrf	!	Number of grid points on inner boundary surface
@@ -115,6 +116,7 @@ program multifluid
 		real rho_iono
 		real vt
 		real abtot
+		real scale
 		!
 		integer nrot_p, nrot_m	!	Number of full rotations for planet and moon
 		real rot_hrs, rot_hrs_m	!	Number of hours into current local day/lunar orbit
@@ -130,6 +132,7 @@ program multifluid
 		real tmax, stepsz, tsave
 		integer ntgraph, ntinj
 		logical start, isotropic
+		character*8 run_name
 		! group 'planet'
 		character*10 bodyname, moonname
 		real xdip, ydip, zdip, r_inner, torus_rad, &
@@ -192,18 +195,39 @@ program multifluid
 	!	Spacecraft file I/O
 	!	*******************
 		!	File indices:
-		!		1-29	Top-level I/O, fluid files, primary output data, etc
+		!		1-9		Top-level I/O
+		!		10-20	Fluid files
+		!		21-29	Primary output data
 		!		30-59	Spacecraft position/trajectory input files
 		!		60-89	Spacecraft data recording
 		!		100		Git hash file
 		!		101		Dummy craft file
-		integer,parameter :: scin=30, scout=60, git_f=100, dummy_f=101
-		character,parameter :: tab=char(9)
-		character*120,parameter :: dat_header='time'//tab//'xpos'//tab// &
-		'ypos'//tab//'zpos'//tab//'Bxval'//tab//'Byval'//tab//'Bzval'//tab//'temp'
-		character*80,parameter :: flux_header='main grid'//tab//'UT'//tab// &
-		'box'//tab//'qflux'//tab//'hflux'//tab//'oflux'
-		character*12,parameter :: git_hash_file='git_hash.txt'
+		integer,parameter :: input_f=1
+		integer,parameter :: inp_o_f=2
+		integer,parameter :: fluxs_f=21
+		integer,parameter :: speed_f=22
+		integer,parameter :: concs_f=23
+		integer :: fluid_f=10
+		integer :: offset_f=-10
+		integer,parameter :: scin=30
+		integer,parameter :: scout=60
+		integer,parameter :: git_f=100
+		integer,parameter :: dummy_f=101
+		!
+		character*5,parameter	:: fname_input='input'
+		character*10,parameter	:: fname_fluxs='fluxes.dat'
+		character*10,parameter	:: fname_speed='speeds.dat'
+		character*8,parameter	:: fname_concs='conc.dat'
+		character*7,parameter	:: fluid_pre='fluid'
+		character*11,parameter	:: fname_restart='fluid_start'
+		character*7		:: fname_reload=fluid_pre//'00'
+		character*18	:: fname_inp_o='input_out_'
+		character*7		:: fname_fluid=''
+		!
+		character,parameter		:: tab=char(9)
+		character*120,parameter	:: dat_header='time'//tab//'xpos'//tab//'ypos'//tab//'zpos'//tab//'Bxval'//tab//'Byval'//tab//'Bzval'//tab//'temp'
+		character*80,parameter	:: flux_header='main grid'//tab//'UT'//tab//'box'//tab//'qflux'//tab//'hflux'//tab//'oflux'
+		character*12,parameter	:: git_hash_file='git_hash.txt'
 		!
 	!
     !	************************************
@@ -409,7 +433,7 @@ program multifluid
 	!		ntimes(:,2) holds the number of (x,y,z,t) points we have for each aux craft
 	!		craft_gridpt(1:3) holds the xyz grid indices of the nearest grid point for a given craft. Default craft must be placed exactly on a grid point.
 	!			craft_gridpt(4) holds the box number for the smallest box our craft.
-	!		fname is a path to file, relative to the multifluid directory
+	!		fname_scdat is a path to file, relative to the multifluid directory
 	!		recording is a flag, true by default, which is set to false when a spacecraft has recorded data for its entire trajectory
 	!					
 	!		cname, num_vals, and rot_closest are craft name, number of measurements, and rot_hrs at closest approach. These values are read from .craft files via a namelist and output as header information in spacecraft data files.
@@ -419,7 +443,7 @@ program multifluid
 	character*32, parameter	:: craft_data='data/spacecraft_data/'
 	character*11, parameter :: dummy_craft='dummy.craft'
 	character*120	junkline
-	character*120	fname
+	character*120	fname_scdat
 	character*8		numstring
 	!
 	integer, parameter	:: deflt_rec_skp=20
@@ -451,7 +475,7 @@ program multifluid
 	!	**********************
 	!	Namelists for file I/O
 	!	**********************
-		namelist/option/tmax,ntgraph,stepsz,start,tsave,ntinj,isotropic
+		namelist/option/tmax,ntgraph,stepsz,start,tsave,ntinj,isotropic,run_name
 		namelist/planet/bodyname,moonname,xdip,ydip,zdip,r_inner,torus_rad, &
 		tilt1,tilt2,tilting,rmassq,rmassh,rmasso
 		namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
@@ -565,14 +589,13 @@ program multifluid
     !	Open input and output data files
 	!	********************************
     !
-    open(1,file='input',status='old',form='formatted')
-    open(2,file='input_out',status='unknown',form='formatted')
-    open(3,file='fluxes.dat',status='unknown',form='formatted')
-    open(6,file='speeds.dat',status='unknown',form='formatted')
-    !open(7,file='grid.dat',status='unknown',form='formatted')
-    !open(8,file='cur.dat',status='unknown',form='unformatted')
-    !open(9,file='pot.dat',status='unknown',form='unformatted')
-    open(10,file='conc.dat',status='unknown',form='formatted')
+    open(input_f,file='input',status='old',form='formatted')
+    open(fluxs_f,file='fluxes.dat',status='unknown',form='formatted')
+    open(speed_f,file='speeds.dat',status='unknown',form='formatted')
+    open(concs_f,file='conc.dat',status='unknown',form='formatted')
+    !open(24,file='grid.dat',status='unknown',form='formatted')
+    !open(25,file='cur.dat',status='unknown',form='unformatted')
+    !open(26,file='pot.dat',status='unknown',form='unformatted')
     !
 	!	*****************
     !	Open ncargraphics
@@ -591,17 +614,18 @@ program multifluid
     call gsplci(1)
     call wtstr(.4,.975,'3d mutant code',2,0,0)
     !
-	!	************************************************************
-    !	Read input parameters. We write to output at end of program.
-	!	************************************************************
+	!	*********************
+    !	Read input parameters
+	!	*********************
     !
-    read(1,option)
-    read(1,planet)
-    read(1,speeds)
-    read(1,windy)
-    read(1,lunar)
-    read(1,physical)
-    read(1,smooth)
+    read(input_f,option)
+    read(input_f,planet)
+    read(input_f,speeds)
+    read(input_f,windy)
+    read(input_f,lunar)
+    read(input_f,physical)
+    read(input_f,smooth)
+	
 	!
 	!	***********************************
     !	Write input data to stdout/log file
@@ -614,6 +638,7 @@ program multifluid
     write(*,lunar)
     write(*,physical)
     write(*,smooth)
+	!
 	!
 	write(*,*) 'Grid xmin: ','Grid xmax: ','Grid ymin: ','Grid ymax: ', &
 		'Grid zmin: ','Grid zmax: ','Grid spacing: '
@@ -753,9 +778,9 @@ program multifluid
 		allocate(ijsrf(mbndry,3,msrf), ijmid(mbndry,3,mmid), &
 		ijzero(mbndry,3,mzero), &
 		!
-		parm_srf(mbndry,num_quants,msrf), &
-		parm_mid(mbndry,num_quants,mmid), &
-		parm_zero(mbndry,num_quants,mzero) )
+		parm_srf(mbndry,num_zqt,msrf), &
+		parm_mid(mbndry,num_zqt,mmid), &
+		parm_zero(mbndry,num_zqt,mzero) )
 		!
 		!	Work arrays for runge-kutta and smoothing
 		!
@@ -1031,76 +1056,66 @@ program multifluid
     !	*****************
     !	Check for restart
     !	*****************
-    nchf=11
+	!
     if(.not.start) then
         !
 		!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        !	@			RESTART FROM FLUID FILES			@
+        !	@			RESTART FROM FLUID FILE				@
 		!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         !
         if(reload) then
-            nchf=15
-            open(nchf,file='fluid00',status='unknown',form='unformatted')
+            open(fluid_f,file=fname_reload,status='unknown',form='unformatted')
         else
-            open(11,file='fluid11',status='unknown',form='unformatted')
-            open(12,file='fluid12',status='unknown',form='unformatted')
-            read(nchf) t
-            rewind nchf
-            inchf=23-nchf
-            read(inchf) t2
-            rewind inchf
-            !
-            if(t.lt.t2) then
-                close(nchf)
-                nchf=inchf
-            else
-                close(inchf)
-            endif
+			!	Restart fluid file typically named fluid_start
+            open(fluid_f,file=fname_restart,status='unknown',form='unformatted')
         endif
         !
 		!	*****************
         !	Read restart data
 		!	*****************
-		    read(nchf)t
-		    read(nchf)qrho
-		    read(nchf)qpx
-		    read(nchf)qpy
-		    read(nchf)qpz
-		    read(nchf)qpresx
-		    read(nchf)qpresy
-		    read(nchf)qpresz
-		    read(nchf)qpresxy
-		    read(nchf)qpresxz
-		    read(nchf)qpresyz
-		    read(nchf)hrho
-		    read(nchf)hpx
-		    read(nchf)hpy
-		    read(nchf)hpz
-		    read(nchf)hpresx
-		    read(nchf)hpresy
-		    read(nchf)hpresz
-		    read(nchf)hpresxy
-		    read(nchf)hpresxz
-		    read(nchf)hpresyz
-		    read(nchf)orho
-		    read(nchf)opx
-		    read(nchf)opy
-		    read(nchf)opz
-		    read(nchf)opresx
-		    read(nchf)opresy
-		    read(nchf)opresz
-		    read(nchf)opresxy
-		    read(nchf)opresxz
-		    read(nchf)opresyz
-		    read(nchf)bx
-		    read(nchf)by
-		    read(nchf)bz
-		    read(nchf)epres
-		    read(nchf)bx0
-		    read(nchf)by0
-		    read(nchf)bz0
-		    read(nchf)parm_srf,parm_mid,parm_zero,ijzero,numzero,ijmid,nummid,ijsrf,numsrf
-		close(nchf)
+		    read(fluid_f)t
+		    read(fluid_f)qrho
+		    read(fluid_f)qpx
+		    read(fluid_f)qpy
+		    read(fluid_f)qpz
+		    read(fluid_f)qpresx
+		    read(fluid_f)qpresy
+		    read(fluid_f)qpresz
+		    read(fluid_f)qpresxy
+		    read(fluid_f)qpresxz
+		    read(fluid_f)qpresyz
+		    read(fluid_f)hrho
+		    read(fluid_f)hpx
+		    read(fluid_f)hpy
+		    read(fluid_f)hpz
+		    read(fluid_f)hpresx
+		    read(fluid_f)hpresy
+		    read(fluid_f)hpresz
+		    read(fluid_f)hpresxy
+		    read(fluid_f)hpresxz
+		    read(fluid_f)hpresyz
+		    read(fluid_f)orho
+		    read(fluid_f)opx
+		    read(fluid_f)opy
+		    read(fluid_f)opz
+		    read(fluid_f)opresx
+		    read(fluid_f)opresy
+		    read(fluid_f)opresz
+		    read(fluid_f)opresxy
+		    read(fluid_f)opresxz
+		    read(fluid_f)opresyz
+		    read(fluid_f)bx
+		    read(fluid_f)by
+		    read(fluid_f)bz
+		    read(fluid_f)epres
+		    read(fluid_f)bx0
+		    read(fluid_f)by0
+		    read(fluid_f)bz0
+		    read(fluid_f)parm_srf,parm_mid,parm_zero,ijzero,numzero,ijmid,nummid,ijsrf,numsrf
+		close(fluid_f)
+		!
+        write(*,*) 'Restart from file: ' fname_restart
+        fluid_f = fluid_f + 1
         !
 		!###########################################
 		ut=utstart	!	utstart read from input file
@@ -1188,7 +1203,6 @@ program multifluid
         tgraph = t + deltg
         tinj = t + deltinj
         tdiv = t
-        nchf = 11
         !
         !	Initialize plasma resistivity
         !
@@ -1211,10 +1225,6 @@ program multifluid
             grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
             grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
         !
-        write(*,79) nchf
-        79 format('  Restart from fluid_',i2)
-        rewind nchf
-        nchf=11
     else
         !
 		!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -1757,19 +1767,19 @@ program multifluid
         !	Open and go to end of .dat files for each craft
         !
         do n=1,ncraft
-			fname=trim(craft_data)//trim(craftnames(n))//'.dat'
-			inquire(file=fname, exist=dat_exists)
+			fname_scdat=trim(craft_data)//trim(craftnames(n))//'.dat'
+			inquire(file=fname_scdat, exist=dat_exists)
 			craftstat=0
 			!	Open .dat files for each craft. Files will be closed automatically when process completes or dies.
 	    	if(.not.dat_exists) then
-				open(scout+n,file=fname,iostat=craftstat,status='unknown',form='formatted')
+				open(scout+n,file=fname_scdat,iostat=craftstat,status='unknown',form='formatted')
 				write(scout+n,crafthead)
 				write(scout+n,*) dat_header
 				zcraft(:,n) = craftpos(:,n,2)	!	If we haven't created a .dat file for this spacecraft yet, 
 				xcraft(:,n) = craftpos(:,n,1)		!		its next recording should be at the first position in its xyz sequence
 				ntimes(n,1) = 0
 			else
-				call system ('wc -l '//fname//' > '//trim(craft_data)//'dat_working.txt')
+				call system ('wc -l '//fname_scdat//' > '//trim(craft_data)//'dat_working.txt')
 				open(scout,file=trim(craft_data)//'dat_working.txt',status='unknown',form='formatted')
 					read(scout,*) ntimes(n,1), junkline
 					ntimes(n,1) = ntimes(n,1) - nheadlines	!	Subtract header lines
@@ -1779,7 +1789,7 @@ program multifluid
 					recording(n) = .false.
 					write(*,*) 'Spacecraft ',craftnames(n),' was already finished recording before start.'
 				else
-					open(scout+n,file=fname,iostat=craftstat,status='unknown',form='formatted')
+					open(scout+n,file=fname_scdat,iostat=craftstat,status='unknown',form='formatted')
 					do m=1, (ntimes(n,1) + nheadlines)	!	Step through the file until the end, so we are ready to write new measurements. We have to skip past header lines, too.
 						read(scout+n,*) junkline
 					enddo
@@ -2047,7 +2057,7 @@ program multifluid
 		zmoon=0
         !
 		!	Write to fluxes.dat file
-        write(3,*) flux_header
+        write(fluxs_f,*) flux_header
         do box=n_grids,1,-1
             scale=rho_equiv*v_equiv*1.e5* &
             (xspac(box)*planet_rad*re_equiv*1.e5)**2
@@ -2057,8 +2067,8 @@ program multifluid
                 rmassq,rmassh,rmasso, &
                 scale,qflux_in,qflux_out,hflux_in,hflux_out, &
                 oflux_in,oflux_out)
-            write(3,*)ut,box,qflux_in,hflux_in,oflux_in,'grid_in'
-            write(3,*)ut,box,qflux_out,hflux_out,oflux_out,'grid_out'
+            write(fluxs_f,*)ut,box,qflux_in,hflux_in,oflux_in,'grid_in'
+            write(fluxs_f,*)ut,box,qflux_out,hflux_out,oflux_out,'grid_out'
         enddo
         !
         !     ?[write out data if necessary - only using coarse gridding
@@ -2369,7 +2379,7 @@ program multifluid
                     t_old(box)=t_new(box)
                     t_new(box)=t_old(box)+t_step(box)
                     !
-                    write(6,*)'lores t step. box/t/old/new: ',box, t, t_old(box),t_new(box)
+                    write(speed_f,*)'lores t step. box/t/old/new: ',box, t, t_old(box),t_new(box)
                     !
                     delt = t_step(box)
                     delt2=delt/2.
@@ -3423,18 +3433,19 @@ program multifluid
             atime=deltinj*t_equiv
             proton_mass=1.67e-27
             write(*,*)'ut,volume,t_equiv,atime',ut,volume,t_equiv,atime
+            write(concs_f,*)'ut,volume,t_equiv,atime',ut,volume,t_equiv,atime
             !
             tot_q=tot_q*volume/atime*rho_equiv*1.e6/rmassq
             tot_h=tot_h*volume/atime*rho_equiv*1.e6/rmassh
             tot_o=tot_o*volume/atime*rho_equiv*1.e6/rmasso
             write(*,*)'tot torus ions/s q,h,o',ut,tot_q,tot_h,tot_o
-            write(10,*)'tot torus ions/s q,h,o',ut,tot_q,tot_h,tot_o
+            write(concs_f,*)'tot torus ions/s q,h,o',ut,tot_q,tot_h,tot_o
             !
             tot_q=tot_q*proton_mass*rmassq
             tot_h=tot_h*proton_mass*rmassh
             tot_o=tot_o*proton_mass*rmasso
             write(*,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
-            write(10,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
+            write(concs_f,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
             !
             tinj=tinj+deltinj
 			!
@@ -3446,63 +3457,60 @@ program multifluid
 			write(*,*) 'Writing to fluid file. t =', t
 			write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
 			write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
-            if(nchf.eq.11) &
-                open(11,file='fluid11',status='unknown',form='unformatted')
-            if(nchf.eq.12) &
-                open(12,file='fluid12',status='unknown',form='unformatted')
-            if(nchf.eq.13) &
-                open(13,file='fluid13',status='unknown',form='unformatted')
-            if(nchf.eq.14) &
-                open(14,file='fluid14',status='unknown',form='unformatted')
-            if(nchf.eq.15) &
-                open(15,file='fluid15',status='unknown',form='unformatted')
-            !
-            !	Write restart data
-            !
-            write(nchf)t
-            write(nchf)qrho
-            write(nchf)qpx
-            write(nchf)qpy
-            write(nchf)qpz
-            write(nchf)qpresx
-            write(nchf)qpresy
-            write(nchf)qpresz
-            write(nchf)qpresxy
-            write(nchf)qpresxz
-            write(nchf)qpresyz
-            write(nchf)hrho
-            write(nchf)hpx
-            write(nchf)hpy
-            write(nchf)hpz
-            write(nchf)hpresx
-            write(nchf)hpresy
-            write(nchf)hpresz
-            write(nchf)hpresxy
-            write(nchf)hpresxz
-            write(nchf)hpresyz
-            write(nchf)orho
-            write(nchf)opx
-            write(nchf)opy
-            write(nchf)opz
-            write(nchf)opresx
-            write(nchf)opresy
-            write(nchf)opresz
-            write(nchf)opresxy
-            write(nchf)opresxz
-            write(nchf)opresyz
-            write(nchf)bx
-            write(nchf)by
-            write(nchf)bz
-            write(nchf)epres
-            write(nchf)bx0
-            write(nchf)by0
-            write(nchf)bz0
-            write(nchf)parm_srf,parm_mid,parm_zero, &
-                ijzero,numzero,ijmid,nummid,ijsrf,numsrf
-            close(nchf)
 			!
-            nchf=nchf+1
-            if(nchf.gt.15)nchf=11
+			write(fname_fluid,'(a5,i2.2)') fluid_pre, fluid_f + offset_f
+			open(fluid_f,file=fname_fluid,status='unknown',form='unformatted')
+		        !
+		        !	Write restart data
+		        !
+		        write(fluid_f)t
+		        write(fluid_f)qrho
+		        write(fluid_f)qpx
+		        write(fluid_f)qpy
+		        write(fluid_f)qpz
+		        write(fluid_f)qpresx
+		        write(fluid_f)qpresy
+		        write(fluid_f)qpresz
+		        write(fluid_f)qpresxy
+		        write(fluid_f)qpresxz
+		        write(fluid_f)qpresyz
+		        write(fluid_f)hrho
+		        write(fluid_f)hpx
+		        write(fluid_f)hpy
+		        write(fluid_f)hpz
+		        write(fluid_f)hpresx
+		        write(fluid_f)hpresy
+		        write(fluid_f)hpresz
+		        write(fluid_f)hpresxy
+		        write(fluid_f)hpresxz
+		        write(fluid_f)hpresyz
+		        write(fluid_f)orho
+		        write(fluid_f)opx
+		        write(fluid_f)opy
+		        write(fluid_f)opz
+		        write(fluid_f)opresx
+		        write(fluid_f)opresy
+		        write(fluid_f)opresz
+		        write(fluid_f)opresxy
+		        write(fluid_f)opresxz
+		        write(fluid_f)opresyz
+		        write(fluid_f)bx
+		        write(fluid_f)by
+		        write(fluid_f)bz
+		        write(fluid_f)epres
+		        write(fluid_f)bx0
+		        write(fluid_f)by0
+		        write(fluid_f)bz0
+		        write(fluid_f)parm_srf,parm_mid,parm_zero, &
+		            ijzero,numzero,ijmid,nummid,ijsrf,numsrf
+            close(fluid_f)
+			!
+            fluid_f = fluid_f + 1
+            if(fluid_f.gt.20) then
+				fluid_f = 11
+				offset_f = offset_f + 10
+				if(offset_f.gt.89) tmax = t-1.	!	Prevent overwriting fluid files if we run long enough to write 100 files
+			endif
             ts1=ts1+tsave
             !
             if(divb_lores) then
@@ -3552,14 +3560,17 @@ program multifluid
     call clsgks
 	!
 	utstart = ut
-	write(2,option)
-    write(2,planet)
-    write(2,speeds)
-    write(2,windy)
-    write(2,lunar)
-    write(2,physical)
-    write(2,smooth)
-	close(2)
+	!
+	fname_inp_o = trim(fname_inp_o) // trim(run_name)
+    open(inp_o_f,file=trim(fname_inp_o),status='unknown',form='formatted')
+		write(inp_o_f,option)
+		write(inp_o_f,planet)
+		write(inp_o_f,speeds)
+		write(inp_o_f,windy)
+		write(inp_o_f,lunar)
+		write(inp_o_f,physical)
+		write(inp_o_f,smooth)
+	close(inp_o_f)
 	!
 	write(*,*) '@@@@@@@@@@@@@@@@@@@@@'
 	write(*,*) 'Run complete! t =', t
