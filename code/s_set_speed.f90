@@ -417,6 +417,13 @@ subroutine set_speed_agrd( &
     bx0(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids),bz0(nx,ny,nz,n_grids), &
     bsx(nx,ny,nz),bsy(nx,ny,nz),bsz(nx,ny,nz),btot(nx,ny,nz)
     !
+	integer fluxs_f
+	integer speed_f
+	integer concs_f
+	integer grdpt_f
+	integer recdt_f
+	common /output_f/fluxs_f, speed_f, concs_f, grdpt_f, recdt_f
+	!
     common /gridding/grd_xmin(9),grd_xmax(9),grd_ymin(9),grd_ymax(9), &
     grd_zmin(9),grd_zmax(9),xspac(9),ncore(9),nbndry(9), &
     rx,ry,rz,xdip,ydip,zdip,r_inner,b0, &
@@ -729,7 +736,7 @@ subroutine set_speed_agrd( &
     !
     pmax=sqrt(pxmax**2+pymax**2+pzmax**2)
     !
-    write(6,195)box,csmax,alfmax,pxmax,pymax,pzmax
+    write(speed_f,195)box,csmax,alfmax,pxmax,pymax,pzmax
     195 format(1x,i2,5(1x,1pe12.5))
     !
     fastest=amax1(fastest,sqrt(pxmax**2+pymax**2+pzmax**2 &

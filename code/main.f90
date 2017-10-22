@@ -118,10 +118,10 @@ program multifluid
 		real abtot
 		real scale
 		!
-		integer nrot_p, nrot_m	!	Number of full rotations for planet and moon
-		real rot_hrs, rot_hrs_m	!	Number of hours into current local day/lunar orbit
-		real rot_angle, rot_angle_m
-		real sin_rot, cos_rot, sin_rot_m, cos_rot_m
+		integer nrot_planet, nrot_moon	!	Number of full rotations for planet and moon
+		real rot_hrs, rot_hrs_moon	!	Number of hours into current local day/lunar orbit
+		real rot_angle, rot_angle_moon
+		real sin_rot, cos_rot, sin_rot_moon, cos_rot_moon
 		!
     !
 	!
@@ -131,7 +131,7 @@ program multifluid
 		! group 'option':
 		real tmax, stepsz, tsave
 		integer ntgraph, ntinj
-		logical start, isotropic
+		logical start, isotropic, write_dat
 		character*8 run_name
 		! group 'planet'
 		character*10 bodyname, moonname
@@ -204,9 +204,11 @@ program multifluid
 		!		101		Dummy craft file
 		integer,parameter :: input_f=1
 		integer,parameter :: inp_o_f=2
-		integer,parameter :: fluxs_f=21
-		integer,parameter :: speed_f=22
-		integer,parameter :: concs_f=23
+		integer :: fluxs_f=21
+		integer :: speed_f=22
+		integer :: concs_f=23
+		integer :: grdpt_f=24
+		integer :: recdt_f=29
 		integer :: fluid_f=10
 		integer :: offset_f=-10
 		integer,parameter :: scin=30
@@ -215,13 +217,13 @@ program multifluid
 		integer,parameter :: dummy_f=101
 		!
 		character*5,parameter	:: fname_input='input'
+		character*9,parameter	:: fname_inp_o='input_out'
 		character*10,parameter	:: fname_fluxs='fluxes.dat'
 		character*10,parameter	:: fname_speed='speeds.dat'
 		character*8,parameter	:: fname_concs='conc.dat'
 		character*7,parameter	:: fluid_pre='fluid'
 		character*11,parameter	:: fname_restart='fluid_start'
 		character*7		:: fname_reload=fluid_pre//'00'
-		character*18	:: fname_inp_o='input_out_'
 		character*7		:: fname_fluid=''
 		!
 		character,parameter		:: tab=char(9)
@@ -346,7 +348,7 @@ program multifluid
 		integer mating_index, next_box	!	For checking grid mating
 		real grid_diff	!	For checking grid mating
 		!
-		logical add_dip, save_dat, write_dat, &
+		logical add_dip, save_dat, &
 		yes_step, yes_step_n, grid_reset
 		!
 	!
@@ -436,7 +438,7 @@ program multifluid
 	!		fname_scdat is a path to file, relative to the multifluid directory
 	!		recording is a flag, true by default, which is set to false when a spacecraft has recorded data for its entire trajectory
 	!					
-	!		cname, num_vals, and rot_closest are craft name, number of measurements, and rot_hrs at closest approach. These values are read from .craft files via a namelist and output as header information in spacecraft data files.
+	!		cname, num_vals, and rot_closest are craft name, number of measurements, and rot_hrs_moon at closest approach. These values are read from .craft files via a namelist and output as header information in spacecraft data files.
 	!		Spacecraft data recording has a variable number of header lines. A dummy_craft file is created to print a header and count the number of lines to skip when seeking to the end of these files. The number of header lines is stored in nheadlines.
     !
 	character*32, parameter	:: craft_info='spacecraft_info/'
@@ -475,7 +477,8 @@ program multifluid
 	!	**********************
 	!	Namelists for file I/O
 	!	**********************
-		namelist/option/tmax,ntgraph,stepsz,start,tsave,ntinj,isotropic,run_name
+		namelist/option/tmax,ntgraph,stepsz,start,tsave,ntinj,isotropic, &
+		run_name,write_dat
 		namelist/planet/bodyname,moonname,xdip,ydip,zdip,r_inner,torus_rad, &
 		tilt1,tilt2,tilting,rmassq,rmassh,rmasso
 		namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
@@ -541,6 +544,8 @@ program multifluid
 		planet_xdip, planet_ydip, planet_zdip, torus_dist, &
 		moon_orbit_rad, moon_per, moon_rad, moon_mass, moon_incl, &
 		moon_init_rot
+		!
+		common /output_f/fluxs_f, speed_f, concs_f, grdpt_f, recdt_f
 	!
 	!
 	!
@@ -593,9 +598,10 @@ program multifluid
     open(fluxs_f,file='fluxes.dat',status='unknown',form='formatted')
     open(speed_f,file='speeds.dat',status='unknown',form='formatted')
     open(concs_f,file='conc.dat',status='unknown',form='formatted')
-    !open(24,file='grid.dat',status='unknown',form='formatted')
+    !open(grdpt_f,file='grid.dat',status='unknown',form='formatted')
     !open(25,file='cur.dat',status='unknown',form='unformatted')
     !open(26,file='pot.dat',status='unknown',form='unformatted')
+	if(write_dat) open(recdt_f,file='record.dat',status='unknown',form='formatted')
     !
 	!	*****************
     !	Open ncargraphics
@@ -1051,7 +1057,6 @@ program multifluid
     deltg = tmax / float(ntgraph)
     deltinj = tmax / float(ntinj)
     delt = stepsz
-	write_dat = .true.
     !
     !	*****************
     !	Check for restart
@@ -1114,7 +1119,7 @@ program multifluid
 		    read(fluid_f)parm_srf,parm_mid,parm_zero,ijzero,numzero,ijmid,nummid,ijsrf,numsrf
 		close(fluid_f)
 		!
-        write(*,*) 'Restart from file: ' fname_restart
+        write(*,*) 'Restart from file: ', fname_restart
         fluid_f = fluid_f + 1
         !
 		!###########################################
@@ -1124,17 +1129,21 @@ program multifluid
 		!	***************
 		!	Rotation timing
 		!	***************
-			nrot_p = int( ut/planet_per )
-			rot_hrs = ut - planet_per*nrot_p
+			nrot_planet = int( ut/planet_per )
+			rot_hrs = ut - planet_per*nrot_planet
 			rot_angle = 2.*pi*rot_hrs/planet_per
-			nrot_m = int( ut/moon_per )
-			rot_hrs_m = ut - moon_per*nrot_m
-			rot_angle_m = 2.*pi*rot_hrs_m/moon_per + moon_init_rot
+			sin_rot = sin(rot_angle)
+			cos_rot = cos(rot_angle)
 			!
-			xmoon = moon_orbit_rad * cos(rot_angle_m)
-			ymoon = moon_orbit_rad * sin(rot_angle_m)
+			nrot_moon = int( ut/moon_per )
+			rot_hrs_moon = ut - moon_per*nrot_moon
+			rot_angle_moon = 2.*pi*rot_hrs_moon/moon_per + moon_init_rot
+			sin_rot_moon = sin(rot_angle_moon)
+			cos_rot_moon = cos(rot_angle_moon)
+			!
+			xmoon = moon_orbit_rad * cos_rot_moon
+			ymoon = moon_orbit_rad * sin_rot_moon
 			zmoon = 0.
-			!
 		!
         !	Check for div b errors
         !
@@ -1240,20 +1249,21 @@ program multifluid
 		!	***************
 		!	Rotation timing
 		!	***************
-			nrot_p = int( ut/planet_per )
-			rot_hrs = ut - planet_per*nrot_p
+			nrot_planet = int( ut/planet_per )
+			rot_hrs = ut - planet_per*nrot_planet
 			rot_angle = 2.*pi*rot_hrs/planet_per
 			sin_rot = sin(rot_angle)
 			cos_rot = cos(rot_angle)
 			!
-			nrot_m = int( ut/moon_per )
-			rot_hrs_m = ut - moon_per*nrot_m
-			rot_angle_m = moon_init_rot
+			nrot_moon = int( ut/moon_per )
+			rot_hrs_moon = ut - moon_per*nrot_moon
+			rot_angle_moon = 2.*pi*rot_hrs_moon/moon_per + moon_init_rot
+			sin_rot_moon = sin(rot_angle_moon)
+			cos_rot_moon = cos(rot_angle_moon)
 			!
-			xmoon = moon_orbit_rad * cos(rot_angle_m)
-			ymoon = moon_orbit_rad * sin(rot_angle_m)
+			xmoon = moon_orbit_rad * cos_rot_moon
+			ymoon = moon_orbit_rad * sin_rot_moon
 			zmoon = 0.
-			!
 		!
 		!	**************
         !	Ambient plasma
@@ -2049,12 +2059,22 @@ program multifluid
         !201 format(1x,'t=',1pe12.5,' dt=',1pe12.5,' ut=', &
         !    1pe12.5,' wind time',1pe12.5)
         !
-        nrot=ut/planet_per
-        rot_hrs=ut-nrot*planet_per
-        rot_angle=2.*pi*rot_hrs/planet_per
-		xmoon=cos(rot_angle)	!	?[]? Needs to be re-examined. MJS 09/26/17
-		ymoon=sin(rot_angle)
-		zmoon=0
+		!	Increment planet rotation and moon orbit
+		nrot_planet = int( ut/planet_per )
+		rot_hrs = ut - planet_per*nrot_planet
+		rot_angle = 2.*pi*rot_hrs/planet_per
+		sin_rot = sin(rot_angle)
+		cos_rot = cos(rot_angle)
+		!
+		nrot_moon = int( ut/moon_per )
+		rot_hrs_moon = ut - moon_per*nrot_moon
+		rot_angle_moon = 2.*pi*rot_hrs_moon/moon_per + moon_init_rot
+		sin_rot_moon = sin(rot_angle_moon)
+		cos_rot_moon = cos(rot_angle_moon)
+		!
+		xmoon = moon_orbit_rad * cos_rot_moon
+		ymoon = moon_orbit_rad * sin_rot_moon
+		zmoon = 0.
         !
 		!	Write to fluxes.dat file
         write(fluxs_f,*) flux_header
@@ -2376,13 +2396,13 @@ program multifluid
                 !	Time step grid
                 !
                 if(yes_step) then
-                    t_old(box)=t_new(box)
-                    t_new(box)=t_old(box)+t_step(box)
+                    t_old(box) = t_new(box)
+                    t_new(box) = t_old(box) + t_step(box)
                     !
                     write(speed_f,*)'lores t step. box/t/old/new: ',box, t, t_old(box),t_new(box)
                     !
                     delt = t_step(box)
-                    delt2=delt/2.
+                    delt2 = delt/2.
                     !
                     if(tilting) then
                         atilt=old_tilt+(t_old(box)+delt2)*dtilt
@@ -3458,7 +3478,7 @@ program multifluid
 			write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
 			write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
 			!
-			write(fname_fluid,'(a5,i2.2)') fluid_pre, fluid_f + offset_f
+			write(fname_fluid,'(a5,i2.2)') fluid_pre, fluid_f+offset_f
 			open(fluid_f,file=fname_fluid,status='unknown',form='unformatted')
 		        !
 		        !	Write restart data
@@ -3559,9 +3579,13 @@ program multifluid
     enddo	!end do while(t.lt.tmax)
     call clsgks
 	!
+	write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+	write(*,*) 'Run complete! t =', t, 'ut = ', ut
+	write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+	!
 	utstart = ut
 	!
-	fname_inp_o = trim(fname_inp_o) // trim(run_name)
+	write(*,*) 'Writing input parameters to ',fname_inp_o
     open(inp_o_f,file=trim(fname_inp_o),status='unknown',form='formatted')
 		write(inp_o_f,option)
 		write(inp_o_f,planet)
@@ -3572,9 +3596,6 @@ program multifluid
 		write(inp_o_f,smooth)
 	close(inp_o_f)
 	!
-	write(*,*) '@@@@@@@@@@@@@@@@@@@@@'
-	write(*,*) 'Run complete! t =', t
-	write(*,*) '@@@@@@@@@@@@@@@@@@@@@'
 	write(*,*) '-'
 	call system('date +"FINISH: %T-%Y-%m-%d"')
 	write(*,*) '-'

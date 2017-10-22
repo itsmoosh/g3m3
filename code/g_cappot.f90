@@ -25,6 +25,13 @@ subroutine cappot(chrg,pott,nx,ny,nz,n_grids,box,radstrt, &
     character*20 title
     logical write_dat
     !
+	integer fluxs_f
+	integer speed_f
+	integer concs_f
+	integer grdpt_f
+	integer recdt_f
+	common /output_f/fluxs_f, speed_f, concs_f, grdpt_f, recdt_f
+	!
     !     for no line labeling set ilab  to zero
     !
     common /conre4/ isizel,isizem,isizep,nrep, &
@@ -222,12 +229,10 @@ subroutine cappot(chrg,pott,nx,ny,nz,n_grids,box,radstrt, &
     enddo
     !
     !
-    !      output data to bin file if necessary
+    !      output data to data file if necessary
     !
     if(write_dat)then
-        write(9)time,scale,cos_tilt,sin_tilt,radstrt, &
-        b_equiv,v_equiv,re_equiv,rx
-        write(9)charge
+		write(recdt_f,*) time,scale,cos_tilt,sin_tilt,radstrt,b_equiv,v_equiv,re_equiv,rx,charge
     endif
     return
 end

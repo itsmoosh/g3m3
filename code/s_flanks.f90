@@ -332,6 +332,13 @@ subroutine flanks_grds( &
     grd_ymin_n(ngrd_n),grd_ymax_n(ngrd_n), &
     grd_zmin_n(ngrd_n),grd_zmax_n(ngrd_n)
     !
+	integer fluxs_f
+	integer speed_f
+	integer concs_f
+	integer grdpt_f
+	integer recdt_f
+	common /output_f/fluxs_f, speed_f, concs_f, grdpt_f, recdt_f
+	!
     !     box is the suject array index
     !
     !      sets the outer boundaries of fine grid at position ns
@@ -342,7 +349,7 @@ subroutine flanks_grds( &
     t1=(t_new(mb)-t)/(t_new(mb)-t_old(mb))
     t2=1.-t1
     !
-    !     write(6,*)'flanks_grds',mb,t1,t2
+    !     write(grdpt_f,*)'flanks_grds',mb,t1,t2
     !
     delx=(grd_xmax(mb)-grd_xmin(mb))/(nx-1.)
     dely=(grd_ymax(mb)-grd_ymin(mb))/(ny-1.)

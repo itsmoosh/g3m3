@@ -21,7 +21,14 @@ subroutine convect(vx,vy,vz,nx,ny,nz,box,radstrt, &
     character*12 label,magnif
     character*20 title
     logical write_dat
-    !
+	!
+	integer fluxs_f
+	integer speed_f
+	integer concs_f
+	integer grdpt_f
+	integer recdt_f
+	common /output_f/fluxs_f, speed_f, concs_f, grdpt_f, recdt_f
+	!
     !     for no line labeling set ilab  to zero
     !
     common /conre4/ isizel,isizem,isizep,nrep, &
@@ -230,10 +237,10 @@ subroutine convect(vx,vy,vz,nx,ny,nz,box,radstrt, &
     !     ilab=1
     call conrec(work,mx,mx,my,60.,90.,10.,0,-1,-1012)
     !
-    !      output data to ascii file if necessary
+    !      output data to data file if necessary
     !
     if(write_dat)then
-        write(8)time,avx,avy
+        write(recdt_f,*) time,avx,avy
     endif
     return
 end

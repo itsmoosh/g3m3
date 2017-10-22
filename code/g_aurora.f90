@@ -33,6 +33,13 @@ subroutine aurora(stuff,nx,ny,nz,box,radstrt,re_equiv,iside, &
     !
     !     for no line labeling set ilab  to zero
     !
+	integer fluxs_f
+	integer speed_f
+	integer concs_f
+	integer grdpt_f
+	integer recdt_f
+	common /output_f/fluxs_f, speed_f, concs_f, grdpt_f, recdt_f
+	!
     common /conre4/ isizel,isizem,isizep,nrep, &
     ncrt,ilab,nulbll,ioffd, & 
     ext,ioffm,isolid ,nla, &
@@ -222,10 +229,10 @@ subroutine aurora(stuff,nx,ny,nz,box,radstrt,re_equiv,iside, &
         endif
     endif
     !
-    !      output data to bin file if necessary
+    !      output data to dat file if necessary
     !
     if(write_dat)then
-        write(8)time,work
+        write(recdt_f,*) time, work
     endif
     !
     !
@@ -327,6 +334,13 @@ subroutine aurora_bfld(bx,by,bz,nx,ny,nz,box,rx, &
     character*20 title
     logical add_dip,roc
     !
+	integer fluxs_f
+	integer speed_f
+	integer concs_f
+	integer grdpt_f
+	integer recdt_f
+	common /output_f/fluxs_f, speed_f, concs_f, grdpt_f, recdt_f
+	!
     !      dimension for plotted array
     !
     maxpts=1000
@@ -476,6 +490,13 @@ subroutine auroras(press,rho,bsx,bsy,bsz, &
     character*20 title
     logical save_dat,add_dip,write_dat
     !
+	integer fluxs_f
+	integer speed_f
+	integer concs_f
+	integer grdpt_f
+	integer recdt_f
+	common /output_f/fluxs_f, speed_f, concs_f, grdpt_f, recdt_f
+	!
     !     for no line labeling set ilab  to zero
     !
     common /conre4/ isizel,isizem,isizep,nrep, &
@@ -662,7 +683,7 @@ subroutine auroras(press,rho,bsx,bsy,bsz, &
     !     save data if required
     !
     if(write_dat)then
-        write(8)time,chot
+        write(recdt_f,*) time, chot
     endif
     return
 end
@@ -698,6 +719,13 @@ subroutine aurora_cur(stuff,nx,ny,nz,box,radstrt,re_equiv, &
     character*20 title
     logical save_dat,add_two,write_dat
     !
+	integer fluxs_f
+	integer speed_f
+	integer concs_f
+	integer grdpt_f
+	integer recdt_f
+	common /output_f/fluxs_f, speed_f, concs_f, grdpt_f, recdt_f
+	!
     !     for no line labeling set ilab to zero
     !
     common /conre4/ isizel,isizem,isizep,nrep, &
@@ -838,8 +866,8 @@ subroutine aurora_cur(stuff,nx,ny,nz,box,radstrt,re_equiv, &
     !
     tot_cur=(amp_up-amp_down)/2.
     peak_cur=amax1(peak_cur_up,-peak_cur_down)
-    write(6,*)'totcur',amp_up,amp_down,tot_cur
-    write(6,*)'peak current',peak_cur_up,peak_cur_down,peak_cur
+    write(fluxs_f,*) 'totcur: ', amp_up, amp_down, tot_cur
+    write(fluxs_f,*) 'Peak current: ', peak_cur_up, peak_cur_down, peak_cur
     !
     !
     !     initialize viewport and frame headings
@@ -933,10 +961,10 @@ subroutine aurora_cur(stuff,nx,ny,nz,box,radstrt,re_equiv, &
         endif
     endif
     !
-    !      output data to bin file if necessary
+    !      output data to log file if necessary
     !
     if(write_dat)then
-        write(8)time,work
+        write(recdt_f,*) time, work
     endif
     !
     !
@@ -1209,7 +1237,7 @@ subroutine aurora_pot(efldx,efldy,efldz,bsx,bsy,bsz, &
     !     save data if required
     !
     if(write_dat)then
-        write(8)time,chot
+        write(recdt_f,*) time, chot
     endif
     return
 end

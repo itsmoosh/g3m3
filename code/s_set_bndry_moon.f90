@@ -26,10 +26,17 @@ subroutine set_bndry_moon(rmassq,rmassh,rmasso, &
     real    parm_srf(mbndry,7,msrf),parm_mid(mbndry,7,mmid), &
     parm_zero(mbndry,7,mzero)
     !
-    !      write(6,*)'bndry_moon values',
-    !    +       qden_moon,hden_moon,oden_moon,tempi,gamma,
-    !    +       ti_te_moon,xmoon,ymoon,zmoon,rmoon,offset,alpha_m
-    !      write(6,*)mbndry,msrf,mmid,mzero
+	integer fluxs_f
+	integer speed_f
+	integer concs_f
+	integer grdpt_f
+	integer recdt_f
+	common /output_f/fluxs_f, speed_f, concs_f, grdpt_f, recdt_f
+	!
+    !      write(grdpt_f,*)'bndry_moon values', &
+    !           qden_moon,hden_moon,oden_moon,tempi,gamma, &
+    !           ti_te_moon,xmoon,ymoon,zmoon,rmoon,offset,alpha_m
+    !      write(grdpt_f,*)mbndry,msrf,mmid,mzero
     !
     !      set scale lengths
     !
@@ -142,8 +149,8 @@ subroutine set_bndry_moon(rmassq,rmassh,rmasso, &
         enddo
     enddo
     !
-    !         write(*,*) 'Total pts: ', ntot
-    !         write(*,*) 'moon bndry_m pts: ', box, numsrf(box), nummid(box), numzero(box)
+    !         write(grdpt_f,*) 'Total pts: ', ntot
+    !         write(grdpt_f,*) 'moon bndry_m pts: ', box, numsrf(box), nummid(box), numzero(box)
     !
     return
 end
@@ -176,10 +183,17 @@ subroutine set_bndry_moon_ram(rmassq,rmassh,rmasso, &
     real    parm_srf(mbndry,7,msrf),parm_mid(mbndry,7,mmid), &
     parm_zero(mbndry,7,mzero)
     !
-    !      write(6,*)'bndry_moon values',
-    !    +       qden_moon,hden_moon,oden_moon,tempi,gamma,
-    !    +       ti_te_moon,xmoon,ymoon,zmoon,rmoon,offset,alpha_m
-    !      write(6,*)mbndry,msrf,mmid,mzero
+	integer fluxs_f
+	integer speed_f
+	integer concs_f
+	integer grdpt_f
+	integer recdt_f
+	common /output_f/fluxs_f, speed_f, concs_f, grdpt_f, recdt_f
+	!
+    !      write(grdpt_f,*)'bndry_moon values', &
+    !           qden_moon,hden_moon,oden_moon,tempi,gamma, &
+    !           ti_te_moon,xmoon,ymoon,zmoon,rmoon,offset,alpha_m
+    !      write(grdpt_f,*)mbndry,msrf,mmid,mzero
     !
     !      set scale lengths
     !
@@ -297,8 +311,8 @@ subroutine set_bndry_moon_ram(rmassq,rmassh,rmasso, &
         enddo
     enddo
     !
-    !         write(*,*) 'Total pts: ', ntot
-    !         write(*,*) 'moon bndry_m pts: ', box, numsrf(box), nummid(box), numzero(box)
+    !         write(grdpt_f,*) 'Total pts: ', ntot
+    !         write(grdpt_f,*) 'moon bndry_m pts: ', box, numsrf(box), nummid(box), numzero(box)
     !
     return
 end

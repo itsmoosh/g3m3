@@ -78,7 +78,6 @@ subroutine trace(bx,by,bz,n1,n2,n3,box,add_dip, &
     !
     !     not enough points
     !
-    !     write(6,10)
     l=l-1
     return
 end

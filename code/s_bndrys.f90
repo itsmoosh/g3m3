@@ -1038,14 +1038,21 @@ subroutine bndry_inner( &
     real  parm_srf(mbndry,7,msrf),parm_mid(mbndry,7,mmid), &
     parm_zero(mbndry,7,mzero)
     !
+	integer fluxs_f
+	integer speed_f
+	integer concs_f
+	integer grdpt_f
+	integer recdt_f
+	common /output_f/fluxs_f, speed_f, concs_f, grdpt_f, recdt_f
+	!
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
     !
     !     set surface conditions around earth
     !      withinterior temperature as constant
     !
-    !     write(6,*)'inside bndry inner with',mbndry
-    !     write(6,*)  numsrf,nummid,numzero
+    !     write(grdpt_f,*)'inside bndry inner with',mbndry
+    !     write(grdpt_f,*)  numsrf,nummid,numzero
     !
     aheight=r_inner+2.
     !

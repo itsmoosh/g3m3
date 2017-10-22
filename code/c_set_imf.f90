@@ -40,6 +40,13 @@ subroutine set_imf(bx,by,bz,bx0,by0,bz0,bxp,byp,bzp, &
     !
     epres(nx,ny,nz,n_grids)
     !
+	integer fluxs_f
+	integer speed_f
+	integer concs_f
+	integer grdpt_f
+	integer recdt_f
+	common /output_f/fluxs_f, speed_f, concs_f, grdpt_f, recdt_f
+	!
     box=n_grids
     !
     i=1
@@ -89,6 +96,6 @@ subroutine set_imf(bx,by,bz,bx0,by0,bz0,bxp,byp,bzp, &
     enddo
     !
     avz=avz/float(ny*nz)
-    !      write(6,*)'set_imf avz',avz,ny,nz
+    !      write(fluxs_f,*)'set_imf avz',avz,ny,nz
     return
 end

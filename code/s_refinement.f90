@@ -14,6 +14,13 @@ subroutine refinement(rho,nx,ny,nz,n_grids,main_grid, &
     grd_ymin_n(ngrd_n),grd_ymax_n(ngrd_n), &
     grd_zmin_n(ngrd_n),grd_zmax_n(ngrd_n)
     !
+	integer fluxs_f
+	integer speed_f
+	integer concs_f
+	integer grdpt_f
+	integer recdt_f
+	common /output_f/fluxs_f, speed_f, concs_f, grdpt_f, recdt_f
+	!
     !    fills in the core of the coarser (big) grid in position nb
     !       using data from the finer (small) grid in position ns
     !
@@ -74,13 +81,13 @@ subroutine refinement(rho,nx,ny,nz,n_grids,main_grid, &
                 !
                 !       rho_n(i_n,j_n,k_n,box_n)= rho(i,j,k,box)
                 !
-                !       write(24,*)i,j,k,box
+                !       write(grdpt_f,*)i,j,k,box
                 !          rho_max=amax1(rho_max,rho(i,j,k,box))
                 !          rho_n_max=amax1(rho_n_max,rho_n(i_n,j_n,k_n,box_n))
             enddo
         enddo
     enddo
-    !      write(6,*)'refine',rho_max,rho_n_max
+    !      write(fluxs_f,*)'refine',rho_max,rho_n_max
     !
     !      interpolate onto subgrids
     !
