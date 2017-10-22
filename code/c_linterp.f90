@@ -3,6 +3,7 @@ subroutine linterp(xyzt1,xyzt2,time,xyz)
     !   Linearly interpolates between the given spacetime coordinates
 	!		xyzt1 and xyzt2 to find the xyz coordinate for 
 	!		the given input time.
+	!	Be sure to match time units for xyzt1(4), xyzt2(4), and time.
     !
 	real, intent(in) :: xyzt1(4), xyzt2(4), time
 	real, intent(out) :: xyz(3)

@@ -1,4 +1,4 @@
-subroutine cappot(chrg,pott,nx,ny,nz,ngrd,m,radstrt, &
+subroutine cappot(chrg,pott,nx,ny,nz,n_grids,box,radstrt, &
     re_equiv,v_equiv,b_equiv,time,write_dat, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
@@ -15,9 +15,9 @@ subroutine cappot(chrg,pott,nx,ny,nz,ngrd,m,radstrt, &
     sin_tilt,cos_tilt,b0
     !
     dimension chrg(nx,ny,nz),pott(nx,ny,nz)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     !
     character*4 wd1,wd2,wd3
     character*12 label,magnif
@@ -67,12 +67,12 @@ subroutine cappot(chrg,pott,nx,ny,nz,ngrd,m,radstrt, &
     d_equiv=6371.*re_equiv
     scale=(1.e-6)*b_equiv*v_equiv*d_equiv
     !
-    delx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-    dely=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-    delz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
-    ncx=1.-grd_xmin(m)/delx
-    ncy=1.-grd_ymin(m)/dely
-    ncz=1.-grd_zmin(m)/delz
+    delx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+    dely=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+    delz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
+    ncx=1.-grd_xmin(box)/delx
+    ncy=1.-grd_ymin(box)/dely
+    ncz=1.-grd_zmin(box)/delz
     !
     !     find the charge density equal to the div of vxb
     !
@@ -130,17 +130,17 @@ subroutine cappot(chrg,pott,nx,ny,nz,ngrd,m,radstrt, &
                     !
                     !          interpolate data to grid point
                     !
-                    ak=1.+(az-grd_zmin(m))/delz
+                    ak=1.+(az-grd_zmin(box))/delz
                     k1=ak
                     k2=k1+1
                     dz=ak-k1
                     !
-                    aj=1.+(ay-grd_ymin(m))/dely
+                    aj=1.+(ay-grd_ymin(box))/dely
                     j1=aj
                     j2=j1+1
                     dy=aj-j1
                     !
-                    ai=1.+(ax-grd_xmin(m))/delx
+                    ai=1.+(ax-grd_xmin(box))/delx
                     i1=ai
                     i2=i1+1
                     dx=ai-i1

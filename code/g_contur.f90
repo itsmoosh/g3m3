@@ -1,5 +1,5 @@
-subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
-    ymin,ymax,zmin,zmax,time,label,nlevs,ncon,rearth, &
+subroutine contur(stuff,nx,ny,nz,n_grids,box,xmin,xmax, &
+    ymin,ymax,zmin,zmax,time,label,nlevs,ncon,r_inner, &
     t,tt,t2,work,mx,my,mz,mz2,muvwp2, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
@@ -10,10 +10,10 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     !
     dimension t(mx,my,mz),tt(mx,my,mz2),t2(mx,my,mz2), &
     work(muvwp2,muvwp2)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
-    dimension stuff(nx,ny,nz,ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
+    dimension stuff(nx,ny,nz,n_grids)
     !
     real eye(3),tlev(6),tcon(14)
     character*4 llbs(14),wd1,wd2,wd3
@@ -30,9 +30,9 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     !
     !      set up evenly spaced gridding for t to be plotted
     !
-    axmax=amin1(xmax,grd_xmax(m)-.00001)
-    aymax=amin1(ymax,grd_ymax(m)-.00001)
-    azmax=amin1(zmax,grd_zmax(m)-.00001)
+    axmax=amin1(xmax,grd_xmax(box)-.00001)
+    aymax=amin1(ymax,grd_ymax(box)-.00001)
+    azmax=amin1(zmax,grd_zmax(box)-.00001)
     !
     delx=(axmax-xmin)/float(mx-1)
     dely=(aymax-ymin)/float(my-1)
@@ -47,40 +47,40 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     axmax=xmin+delx*(mx-1)
     aymax=ymin+dely*(my-1)
     azmax=zmin+delz*(mz-1)
-    ddx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-    ddy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-    ddz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+    ddx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+    ddy=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+    ddz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
     !
     !      load t stuff
     !
     do k=1,mz
         az=zmin+delz*(k-1)
-        ak=1.+(az-grd_zmin(m))/ddz
+        ak=1.+(az-grd_zmin(box))/ddz
         k1=ak
         k2=k1+1
         dz=ak-k1
         do j=1,my
             ay=ymin+dely*(j-1)
-            aj=1.+(ay-grd_ymin(m))/ddy
+            aj=1.+(ay-grd_ymin(box))/ddy
             j1=aj
             j2=j1+1
             dy=aj-j1
             !
             do i=1,mx
                 ax=xmin+delx*(i-1)
-                ai=1.+(ax-grd_xmin(m))/ddx
+                ai=1.+(ax-grd_xmin(box))/ddx
                 i1=ai
                 i2=i1+1
                 dx=ai-i1
                 !
-                t(i,j,k)=stuff(i1,j1,k1,m)*(1.-dx)*(1.-dy)*(1.-dz) &
-                +stuff(i1,j1,k2,m)*(1.-dx)*(1.-dy)*(dz) &
-                +stuff(i1,j2,k1,m)*(1.-dx)*(dy)*(1.-dz) &
-                +stuff(i1,j2,k2,m)*(1.-dx)*(dy)*(dz) &
-                +stuff(i2,j1,k1,m)*(dx)*(1.-dy)*(1.-dz) &
-                +stuff(i2,j1,k2,m)*(dx)*(1.-dy)*(dz) &
-                +stuff(i2,j2,k1,m)*(dx)*(dy)*(1.-dz) &
-                +stuff(i2,j2,k2,m)*(dx)*(dy)*(dz)
+                t(i,j,k)=stuff(i1,j1,k1,box)*(1.-dx)*(1.-dy)*(1.-dz) &
+                +stuff(i1,j1,k2,box)*(1.-dx)*(1.-dy)*(dz) &
+                +stuff(i1,j2,k1,box)*(1.-dx)*(dy)*(1.-dz) &
+                +stuff(i1,j2,k2,box)*(1.-dx)*(dy)*(dz) &
+                +stuff(i2,j1,k1,box)*(dx)*(1.-dy)*(1.-dz) &
+                +stuff(i2,j1,k2,box)*(dx)*(1.-dy)*(dz) &
+                +stuff(i2,j2,k1,box)*(dx)*(dy)*(1.-dz) &
+                +stuff(i2,j2,k2,box)*(dx)*(dy)*(dz)
                 !
                 radius=sqrt(ax**2+ay**2+az**2)
                 tt(i,j,k)=radius
@@ -210,7 +210,7 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     !     plot earth and grid references
     !
     call gsplci(2)
-    tisom=rearth
+    tisom=r_inner
     call isosrf(tt,mx,mx,my,my,mz,eye,muvwp2,work,tisom,-3, &
     vpl,vpr,vpb,vpt)
     !
@@ -294,7 +294,7 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     !     plot earth and grid references
     !
     call gsplci(2)
-    tisom=rearth
+    tisom=r_inner
     call isosrf(tt,mx,mx,my,my,mz,eye,muvwp2,work,tisom,-3, &
     vpl,vpr,vpb,vpt)
     !
@@ -379,7 +379,7 @@ subroutine contur(stuff,nx,ny,nz,ngrd,m,xmin,xmax, &
     !     plot earth and grid references
     !
     call gsplci(2)
-    tisom=rearth
+    tisom=r_inner
     call isosrf(tt,mx,mx,my,my,mz,eye,muvwp2,work,tisom,-3, &
     vpl,vpr,vpb,vpt)
     !

@@ -1,5 +1,5 @@
-subroutine convect(vx,vy,vz,nx,ny,nz,m,radstrt, &
-    re_equiv,iside,time,label,write_dat,ngrd, &
+subroutine convect(vx,vy,vz,nx,ny,nz,box,radstrt, &
+    re_equiv,iside,time,label,write_dat,n_grids, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !      this subroutine will try to make convection pattern
@@ -12,9 +12,9 @@ subroutine convect(vx,vy,vz,nx,ny,nz,m,radstrt, &
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
     sin_tilt,cos_tilt,b0
     !
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     dimension vx(nx,ny,nz),vy(nx,ny,nz),vz(nx,ny,nz),spv(2)
     character*4 wd1,wd2,wd3
     character*12 label,magnif
@@ -60,9 +60,9 @@ subroutine convect(vx,vy,vz,nx,ny,nz,m,radstrt, &
         enddo
     enddo
     !
-    delx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-    dely=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-    delz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+    delx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+    dely=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+    delz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
     !
     do j=1,my
         do i=1,mx
@@ -95,17 +95,17 @@ subroutine convect(vx,vy,vz,nx,ny,nz,m,radstrt, &
                 !
                 !          interpolate data to grid point
                 !
-                ak=1.+(az-grd_zmin(m))/delz
+                ak=1.+(az-grd_zmin(box))/delz
                 k1=ak
                 k2=k1+1
                 dz=ak-k1
                 !
-                aj=1.+(ay-grd_ymin(m))/dely
+                aj=1.+(ay-grd_ymin(box))/dely
                 j1=aj
                 j2=j1+1
                 dy=aj-j1
                 !
-                ai=1.+(ax-grd_xmin(m))/delx
+                ai=1.+(ax-grd_xmin(box))/delx
                 i1=ai
                 i2=i1+1
                 dx=ai-i1

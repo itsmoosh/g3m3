@@ -5,9 +5,9 @@
 !	rungem
 !
 subroutine rungea(bx,by,bz,press,rho,nx,ny,nz, &
-    m,xi,yi,zi,xmin,xmax,ymin,ymax, &
+    box,xi,yi,zi,xmin,xmax,ymin,ymax, &
     zmin,zmax,add_dip,ergies,rhod,maxpts,dir, &
-    delx,dely,delz,rearth,ngrd, &
+    delx,dely,delz,r_inner,n_grids, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !     this routine uses a fourth order runge-kutta method
@@ -18,9 +18,9 @@ subroutine rungea(bx,by,bz,press,rho,nx,ny,nz, &
     sin_tilt,cos_tilt,b0
     dimension bx(nx,ny,nz),by(nx,ny,nz),bz(nx,ny,nz), &
     press(nx,ny,nz),rho(nx,ny,nz)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     real xray(1000),yray(1000),zray(1000)
     !
     logical add_dip,roc
@@ -41,8 +41,8 @@ subroutine rungea(bx,by,bz,press,rho,nx,ny,nz, &
         ax=xray(n-1)
         ay=yray(n-1)
         az=zray(n-1)
-        call intpol(bx,by,bz,nx,ny,nz,m,add_dip, &
-        ax,ay,az,dx1,dy1,dz1,1.,roc,ngrd, &
+        call intpol(bx,by,bz,nx,ny,nz,box,add_dip, &
+        ax,ay,az,dx1,dy1,dz1,1.,roc,n_grids, &
         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
         !        step 2
@@ -50,8 +50,8 @@ subroutine rungea(bx,by,bz,press,rho,nx,ny,nz, &
         ax=xray(n-1)+tstep*0.5*dx1
         ay=yray(n-1)+tstep*0.5*dy1
         az=zray(n-1)+tstep*0.5*dz1
-        call intpol(bx,by,bz,nx,ny,nz,m,add_dip, &
-        ax,ay,az,dx2,dy2,dz2,1.,roc,ngrd, &
+        call intpol(bx,by,bz,nx,ny,nz,box,add_dip, &
+        ax,ay,az,dx2,dy2,dz2,1.,roc,n_grids, &
         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
         !        step 3
@@ -59,8 +59,8 @@ subroutine rungea(bx,by,bz,press,rho,nx,ny,nz, &
         ax=xray(n-1)+tstep*0.5*dx2
         ay=yray(n-1)+tstep*0.5*dy2
         az=zray(n-1)+tstep*0.5*dz2
-        call intpol(bx,by,bz,nx,ny,nz,m,add_dip, &
-        ax,ay,az,dx3,dy3,dz3,1.,roc,ngrd, &
+        call intpol(bx,by,bz,nx,ny,nz,box,add_dip, &
+        ax,ay,az,dx3,dy3,dz3,1.,roc,n_grids, &
         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
         !        step 4
@@ -68,8 +68,8 @@ subroutine rungea(bx,by,bz,press,rho,nx,ny,nz, &
         ax=xray(n-1)+tstep*dx3
         ay=yray(n-1)+tstep*dy3
         az=zray(n-1)+tstep*dz3
-        call intpol(bx,by,bz,nx,ny,nz,m,add_dip, &
-        ax,ay,az,dx4,dy4,dz4,1.,roc,ngrd, &
+        call intpol(bx,by,bz,nx,ny,nz,box,add_dip, &
+        ax,ay,az,dx4,dy4,dz4,1.,roc,n_grids, &
         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
         !       update new position and wavevector
@@ -86,17 +86,17 @@ subroutine rungea(bx,by,bz,press,rho,nx,ny,nz, &
         !
         !          interpolate data to grid point
         !
-        ak=1.+(az-grd_zmin(m))/delz
+        ak=1.+(az-grd_zmin(box))/delz
         k1=ak
         k2=k1+1
         dz=ak-k1
         !
-        aj=1.+(ay-grd_ymin(m))/dely
+        aj=1.+(ay-grd_ymin(box))/dely
         j1=aj
         j2=j1+1
         dy=aj-j1
         !
-        ai=1.+(ax-grd_xmin(m))/delx
+        ai=1.+(ax-grd_xmin(box))/delx
         i1=ai
         i2=i1+1
         dx=ai-i1
@@ -133,7 +133,7 @@ subroutine rungea(bx,by,bz,press,rho,nx,ny,nz, &
         if((xray(n).lt.xmin).or.(xray(n).gt.xmax).or. &
         (yray(n).lt.ymin).or.(yray(n).gt.ymax).or. &
         (zray(n).lt.zmin).or.(zray(n).gt.zmax).or. &
-        (ar.lt.rearth+1.).or.(radius.gt.4.*rearth).or.(roc)) return
+        (ar.lt.r_inner+1.).or.(radius.gt.4.*r_inner).or.(roc)) return
         !
     enddo
     !
@@ -145,8 +145,8 @@ end
 !
 !
 subroutine rungeb(efldx,efldy,efldz,bx,by,bz,nx,ny,nz, &
-    ngrd,m,rx,xi,yi,zi,xmin,xmax,ymin,ymax, &
-    zmin,zmax,add_dip,potential,maxpts,dir,rearth, &
+    n_grids,box,rx,xi,yi,zi,xmin,xmax,ymin,ymax, &
+    zmin,zmax,add_dip,potential,maxpts,dir,r_inner, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !     this routine uses a fourth order runge-kutta method
@@ -156,17 +156,17 @@ subroutine rungeb(efldx,efldy,efldz,bx,by,bz,nx,ny,nz, &
     dimension bx(nx,ny,nz),by(nx,ny,nz),bz(nx,ny,nz), &
     efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz)
     real xray(1000),yray(1000),zray(1000)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     logical add_dip,roc
     !
     rx2=rx*3.
     potential=0.
     maxpts=1000
-    delx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-    dely=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-    delz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+    delx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+    dely=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+    delz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
     !
     tstep=0.25*dir
     !
@@ -182,8 +182,8 @@ subroutine rungeb(efldx,efldy,efldz,bx,by,bz,nx,ny,nz, &
         ax=xray(n-1)
         ay=yray(n-1)
         az=zray(n-1)
-        call intpol(bx,by,bz,nx,ny,nz,m,add_dip, &
-        ax,ay,az,dx1,dy1,dz1,1.,roc,ngrd, &
+        call intpol(bx,by,bz,nx,ny,nz,box,add_dip, &
+        ax,ay,az,dx1,dy1,dz1,1.,roc,n_grids, &
         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
         !        step 2
@@ -191,8 +191,8 @@ subroutine rungeb(efldx,efldy,efldz,bx,by,bz,nx,ny,nz, &
         ax=xray(n-1)+tstep*0.5*dx1
         ay=yray(n-1)+tstep*0.5*dy1
         az=zray(n-1)+tstep*0.5*dz1
-        call intpol(bx,by,bz,nx,ny,nz,m,add_dip, &
-        ax,ay,az,dx2,dy2,dz2,1.,roc,ngrd, &
+        call intpol(bx,by,bz,nx,ny,nz,box,add_dip, &
+        ax,ay,az,dx2,dy2,dz2,1.,roc,n_grids, &
         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
         !        step 3
@@ -200,8 +200,8 @@ subroutine rungeb(efldx,efldy,efldz,bx,by,bz,nx,ny,nz, &
         ax=xray(n-1)+tstep*0.5*dx2
         ay=yray(n-1)+tstep*0.5*dy2
         az=zray(n-1)+tstep*0.5*dz2
-        call intpol(bx,by,bz,nx,ny,nz,m,add_dip, &
-        ax,ay,az,dx3,dy3,dz3,1.,roc,ngrd, &
+        call intpol(bx,by,bz,nx,ny,nz,box,add_dip, &
+        ax,ay,az,dx3,dy3,dz3,1.,roc,n_grids, &
         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
         !        step 4
@@ -209,8 +209,8 @@ subroutine rungeb(efldx,efldy,efldz,bx,by,bz,nx,ny,nz, &
         ax=xray(n-1)+tstep*dx3
         ay=yray(n-1)+tstep*dy3
         az=zray(n-1)+tstep*dz3
-        call intpol(bx,by,bz,nx,ny,nz,m,add_dip, &
-        ax,ay,az,dx4,dy4,dz4,1.,roc,ngrd, &
+        call intpol(bx,by,bz,nx,ny,nz,box,add_dip, &
+        ax,ay,az,dx4,dy4,dz4,1.,roc,n_grids, &
         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
         !       update new position and wavevector
@@ -235,19 +235,19 @@ subroutine rungeb(efldx,efldy,efldz,bx,by,bz,nx,ny,nz, &
         ay=(yf+yi)/2.
         az=(zf+zi)/2.
         !
-        ak=1.+(az-grd_zmin(m))/delz
+        ak=1.+(az-grd_zmin(box))/delz
         k1=ak
         k2=k1+1
         dz=ak-k1
         ddz=1.-dz
         !
-        aj=1.+(ay-grd_ymin(m))/dely
+        aj=1.+(ay-grd_ymin(box))/dely
         j1=aj
         j2=j1+1
         dy=aj-j1
         ddy=1.-dy
         !
-        ai=1.+(ax-grd_xmin(m))/delx
+        ai=1.+(ax-grd_xmin(box))/delx
         i1=ai
         i2=i1+1
         dx=ai-i1
@@ -293,7 +293,7 @@ subroutine rungeb(efldx,efldy,efldz,bx,by,bz,nx,ny,nz, &
         if((xray(n).lt.xmin).or.(xray(n).gt.xmax).or. &
         (yray(n).lt.ymin).or.(yray(n).gt.ymax).or. &
         (zray(n).lt.zmin).or.(zray(n).gt.zmax).or. &
-        (ar.lt.rearth+rx2).or.(radius.gt.3.*rearth) &
+        (ar.lt.r_inner+rx2).or.(radius.gt.3.*r_inner) &
         .or.(roc)) return
         !
     enddo
@@ -305,9 +305,9 @@ end
 !	********************************************
 !
 !
-subroutine rungem(bx,by,bz,nx,ny,nz,m,rx, &
-    xi,yi,zi,xmin,xmax,ymin,ymax,zmin,zmax,rearth, &
-    add_dip,xray,yray,zray,maxpts,npts,dir,ngrd, &
+subroutine rungem(bx,by,bz,nx,ny,nz,box,rx, &
+    xi,yi,zi,xmin,xmax,ymin,ymax,zmin,zmax,r_inner, &
+    add_dip,xray,yray,zray,maxpts,npts,dir,n_grids, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !     this routine uses a fourth order runge-kutta method
@@ -317,9 +317,9 @@ subroutine rungem(bx,by,bz,nx,ny,nz,m,rx, &
     !
     dimension bx(nx,ny,nz),by(nx,ny,nz),bz(nx,ny,nz)
     dimension  xray(maxpts),yray(maxpts),zray(maxpts)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     !
     !
     logical add_dip,roc
@@ -340,8 +340,8 @@ subroutine rungem(bx,by,bz,nx,ny,nz,m,rx, &
         ax=xray(n-1)
         ay=yray(n-1)
         az=zray(n-1)
-        call intpol(bx,by,bz,nx,ny,nz,m,add_dip, &
-        ax,ay,az,dx1,dy1,dz1,1.,roc,ngrd, &
+        call intpol(bx,by,bz,nx,ny,nz,box,add_dip, &
+        ax,ay,az,dx1,dy1,dz1,1.,roc,n_grids, &
         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
         !        step 2
@@ -349,8 +349,8 @@ subroutine rungem(bx,by,bz,nx,ny,nz,m,rx, &
         ax=xray(n-1)+tstep*0.5*dx1
         ay=yray(n-1)+tstep*0.5*dy1
         az=zray(n-1)+tstep*0.5*dz1
-        call intpol(bx,by,bz,nx,ny,nz,m,add_dip, &
-        ax,ay,az,dx2,dy2,dz2,1.,roc,ngrd, &
+        call intpol(bx,by,bz,nx,ny,nz,box,add_dip, &
+        ax,ay,az,dx2,dy2,dz2,1.,roc,n_grids, &
         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
         !        step 3
@@ -358,8 +358,8 @@ subroutine rungem(bx,by,bz,nx,ny,nz,m,rx, &
         ax=xray(n-1)+tstep*0.5*dx2
         ay=yray(n-1)+tstep*0.5*dy2
         az=zray(n-1)+tstep*0.5*dz2
-        call intpol(bx,by,bz,nx,ny,nz,m,add_dip, &
-        ax,ay,az,dx3,dy3,dz3,1.,roc,ngrd, &
+        call intpol(bx,by,bz,nx,ny,nz,box,add_dip, &
+        ax,ay,az,dx3,dy3,dz3,1.,roc,n_grids, &
         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
         !        step 4
@@ -367,8 +367,8 @@ subroutine rungem(bx,by,bz,nx,ny,nz,m,rx, &
         ax=xray(n-1)+tstep*dx3
         ay=yray(n-1)+tstep*dy3
         az=zray(n-1)+tstep*dz3
-        call intpol(bx,by,bz,nx,ny,nz,m,add_dip, &
-        ax,ay,az,dx4,dy4,dz4,1.,roc,ngrd, &
+        call intpol(bx,by,bz,nx,ny,nz,box,add_dip, &
+        ax,ay,az,dx4,dy4,dz4,1.,roc,n_grids, &
         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
         !       update new position and wavevector
@@ -384,7 +384,7 @@ subroutine rungem(bx,by,bz,nx,ny,nz,m,rx, &
         if((xray(n).lt.xmin).or.(xray(n).gt.xmax).or. &
             (yray(n).lt.ymin).or.(yray(n).gt.ymax).or. &
             (zray(n).lt.zmin).or.(zray(n).gt.zmax).or. &
-            (ar.lt.rearth+1.5*rx).or.(roc)) then
+            (ar.lt.r_inner+1.5*rx).or.(roc)) then
             !
             npts=npts-1
             return

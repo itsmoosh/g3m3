@@ -1,5 +1,5 @@
 subroutine flux_counter(qpx,qpy,qpz,hpx,hpy,hpz, &
-    opx,opy,opz,nx,ny,nz,ngrd,m,rmassq,rmassh,rmasso, &
+    opx,opy,opz,nx,ny,nz,n_grids,box,rmassq,rmassh,rmasso, &
     grid_spacing,qflux_in,qflux_out,hflux_in,hflux_out, &
     oflux_in,oflux_out)
     !
@@ -7,9 +7,9 @@ subroutine flux_counter(qpx,qpy,qpz,hpx,hpy,hpz, &
     !        particles/cm-3/s
     !
     dimension &
-    qpx(nx,ny,nz,ngrd),qpy(nx,ny,nz,ngrd),qpz(nx,ny,nz,ngrd), &
-    hpx(nx,ny,nz,ngrd),hpy(nx,ny,nz,ngrd),hpz(nx,ny,nz,ngrd), &
-    opx(nx,ny,nz,ngrd),opy(nx,ny,nz,ngrd),opz(nx,ny,nz,ngrd)
+    qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids),qpz(nx,ny,nz,n_grids), &
+    hpx(nx,ny,nz,n_grids),hpy(nx,ny,nz,n_grids),hpz(nx,ny,nz,n_grids), &
+    opx(nx,ny,nz,n_grids),opy(nx,ny,nz,n_grids),opz(nx,ny,nz,n_grids)
     !
     !      initialize fluxes
     !
@@ -34,13 +34,13 @@ subroutine flux_counter(qpx,qpy,qpz,hpx,hpy,hpz, &
     !
     do k=1,nz
         do j=1,ny
-            qflux1=qflux1+qpx(i1,j,k,m)
-            hflux1=hflux1+hpx(i1,j,k,m)
-            oflux1=oflux1+opx(i1,j,k,m)
+            qflux1=qflux1+qpx(i1,j,k,box)
+            hflux1=hflux1+hpx(i1,j,k,box)
+            oflux1=oflux1+opx(i1,j,k,box)
             !
-            qflux2=qflux2+qpx(i2,j,k,m)
-            hflux2=hflux2+hpx(i2,j,k,m)
-            oflux2=oflux2+opx(i2,j,k,m)
+            qflux2=qflux2+qpx(i2,j,k,box)
+            hflux2=hflux2+hpx(i2,j,k,box)
+            oflux2=oflux2+opx(i2,j,k,box)
         enddo
     enddo
     if(hflux1.gt.0)then
@@ -76,13 +76,13 @@ subroutine flux_counter(qpx,qpy,qpz,hpx,hpy,hpz, &
     !
     do k=1,nz
         do i=1,nx
-            qflux1=qflux1+qpy(i,j1,k,m)
-            hflux1=hflux1+hpy(i,j1,k,m)
-            oflux1=oflux1+opy(i,j1,k,m)
+            qflux1=qflux1+qpy(i,j1,k,box)
+            hflux1=hflux1+hpy(i,j1,k,box)
+            oflux1=oflux1+opy(i,j1,k,box)
             !
-            qflux2=qflux2+qpy(i,j2,k,m)
-            hflux2=hflux2+hpy(i,j2,k,m)
-            oflux2=oflux2+opy(i,j2,k,m)
+            qflux2=qflux2+qpy(i,j2,k,box)
+            hflux2=hflux2+hpy(i,j2,k,box)
+            oflux2=oflux2+opy(i,j2,k,box)
         enddo
     enddo
     if(hflux1.gt.0)then
@@ -118,13 +118,13 @@ subroutine flux_counter(qpx,qpy,qpz,hpx,hpy,hpz, &
     !
     do j=1,ny
         do i=1,nx
-            qflux1=qflux1+qpz(i,j,k1,m)
-            hflux1=hflux1+hpz(i,j,k1,m)
-            oflux1=oflux1+opz(i,j,k1,m)
+            qflux1=qflux1+qpz(i,j,k1,box)
+            hflux1=hflux1+hpz(i,j,k1,box)
+            oflux1=oflux1+opz(i,j,k1,box)
             !
-            qflux2=qflux2+qpz(i,j,k2,m)
-            hflux2=hflux2+hpz(i,j,k2,m)
-            oflux2=oflux2+opz(i,j,k2,m)
+            qflux2=qflux2+qpz(i,j,k2,box)
+            hflux2=hflux2+hpz(i,j,k2,box)
+            oflux2=oflux2+opz(i,j,k2,box)
         enddo
     enddo
     if(hflux1.gt.0)then

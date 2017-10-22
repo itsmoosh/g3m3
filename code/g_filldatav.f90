@@ -1,42 +1,42 @@
-subroutine filldatav(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
+subroutine filldatav(stuff,vx,vy,vz,nx,ny,nz,n_grids,mm,box, &
     t,tt,tx,ty,tz,mx,my,mz,xmin,ymin,zmin, &
     delx,dely,delz,vm,grd_xmin,grd_xmax, &
     grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !     fill in diagnostic data cubes
     !
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
-    dimension stuff(nx,ny,nz,ngrd),vx(nx,ny,nz), &
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
+    dimension stuff(nx,ny,nz,n_grids),vx(nx,ny,nz), &
     vy(nx,ny,nz),vz(nx,ny,nz)
     dimension t(mx,my,mz),tt(mx,my,mz), &
     tx(mx,my,mz),ty(mx,my,mz),tz(mx,my,mz)
     !
     !      load t stuff
     !
-    ddx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-    ddy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-    ddz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+    ddx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+    ddy=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+    ddz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
     !
     vm=0.00001
     do k=1,mz
         az=zmin+delz*(k-1)
-        ak=1.+(az-grd_zmin(m))/ddz
+        ak=1.+(az-grd_zmin(box))/ddz
         k1=ak
         k2=k1+1
         dz=ak-k1
         !
         do j=1,my
             ay=ymin+dely*(j-1)
-            aj=1.+(ay-grd_ymin(m))/ddy
+            aj=1.+(ay-grd_ymin(box))/ddy
             j1=aj
             j2=j1+1
             dy=aj-j1
             !
             do i=1,mx
                 ax=xmin+delx*(i-1)
-                ai=1.+(ax-grd_xmin(m))/ddx
+                ai=1.+(ax-grd_xmin(box))/ddx
                 i1=ai
                 i2=i1+1
                 dx=ai-i1

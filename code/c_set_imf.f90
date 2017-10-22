@@ -7,81 +7,81 @@ subroutine set_imf(bx,by,bz,bx0,by0,bz0,bxp,byp,bzp, &
         hpresxy,hpresxz,hpresyz, &
         opresxy,opresxz,opresyz, &
         rhop,svxp,svyp,svzp,svelx,spress, &
-        ti_te,rho_frac,nx,ny,nz,ngrd)
+        ti_te,rho_frac,nx,ny,nz,n_grids)
     !
     !     Set IMF boundary conditions. This subroutine is 
 	!		used only when spacecraft and craft_info are both true,
 	!		as we are trying to use spacecraft data as physical
 	!		inputs to set the IMF.
     !
-    dimension bx(nx,ny,nz,ngrd),bx0(nx,ny,nz,ngrd),bxp(ny,nz), &
-        by(nx,ny,nz,ngrd),by0(nx,ny,nz,ngrd),byp(ny,nz), &
-        bz(nx,ny,nz,ngrd),bz0(nx,ny,nz,ngrd),bzp(ny,nz), &
+    dimension bx(nx,ny,nz,n_grids),bx0(nx,ny,nz,n_grids),bxp(ny,nz), &
+        by(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids),byp(ny,nz), &
+        bz(nx,ny,nz,n_grids),bz0(nx,ny,nz,n_grids),bzp(ny,nz), &
         rhop(ny,nz),svxp(ny,nz),svyp(ny,nz),svzp(ny,nz), &
 		!
-        qrho(nx,ny,nz,ngrd),qpx(nx,ny,nz,ngrd), &
-        qpy(nx,ny,nz,ngrd),qpz(nx,ny,nz,ngrd), &
-        qpresx(nx,ny,nz,ngrd),qpresy(nx,ny,nz,ngrd), &
-        qpresz(nx,ny,nz,ngrd), qpresxy(nx,ny,nz,ngrd), &
-        qpresxz(nx,ny,nz,ngrd),qpresyz(nx,ny,nz,ngrd), &
+        qrho(nx,ny,nz,n_grids),qpx(nx,ny,nz,n_grids), &
+        qpy(nx,ny,nz,n_grids),qpz(nx,ny,nz,n_grids), &
+        qpresx(nx,ny,nz,n_grids),qpresy(nx,ny,nz,n_grids), &
+        qpresz(nx,ny,nz,n_grids), qpresxy(nx,ny,nz,n_grids), &
+        qpresxz(nx,ny,nz,n_grids),qpresyz(nx,ny,nz,n_grids), &
 		!
-        hrho(nx,ny,nz,ngrd),hpx(nx,ny,nz,ngrd), &
-        hpy(nx,ny,nz,ngrd),hpz(nx,ny,nz,ngrd), &
-        hpresx(nx,ny,nz,ngrd),hpresy(nx,ny,nz,ngrd), &
-        hpresz(nx,ny,nz,ngrd), hpresxy(nx,ny,nz,ngrd), &
-        hpresxz(nx,ny,nz,ngrd),hpresyz(nx,ny,nz,ngrd), &
+        hrho(nx,ny,nz,n_grids),hpx(nx,ny,nz,n_grids), &
+        hpy(nx,ny,nz,n_grids),hpz(nx,ny,nz,n_grids), &
+        hpresx(nx,ny,nz,n_grids),hpresy(nx,ny,nz,n_grids), &
+        hpresz(nx,ny,nz,n_grids), hpresxy(nx,ny,nz,n_grids), &
+        hpresxz(nx,ny,nz,n_grids),hpresyz(nx,ny,nz,n_grids), &
 		!
-        orho(nx,ny,nz,ngrd),opx(nx,ny,nz,ngrd), &
-        opy(nx,ny,nz,ngrd),opz(nx,ny,nz,ngrd), &
-        opresx(nx,ny,nz,ngrd),opresz(nx,ny,nz,ngrd), &
-        opresy(nx,ny,nz,ngrd), opresxy(nx,ny,nz,ngrd), &
-        opresxz(nx,ny,nz,ngrd),opresyz(nx,ny,nz,ngrd), &
+        orho(nx,ny,nz,n_grids),opx(nx,ny,nz,n_grids), &
+        opy(nx,ny,nz,n_grids),opz(nx,ny,nz,n_grids), &
+        opresx(nx,ny,nz,n_grids),opresz(nx,ny,nz,n_grids), &
+        opresy(nx,ny,nz,n_grids), opresxy(nx,ny,nz,n_grids), &
+        opresxz(nx,ny,nz,n_grids),opresyz(nx,ny,nz,n_grids), &
     !
-    epres(nx,ny,nz,ngrd)
+    epres(nx,ny,nz,n_grids)
     !
-    m=ngrd
+    box=n_grids
     !
     i=1
     do k=1,nz
         do j=1,ny
-            bx(i,j,k,m)=bxp(j,k)-bx0(i,j,k,m)
-            by(i,j,k,m)=byp(j,k)-by0(i,j,k,m)
-            bz(i,j,k,m)=bzp(j,k)-bz0(i,j,k,m)
+            bx(i,j,k,box)=bxp(j,k)-bx0(i,j,k,box)
+            by(i,j,k,box)=byp(j,k)-by0(i,j,k,box)
+            bz(i,j,k,box)=bzp(j,k)-bz0(i,j,k,box)
             !
-            qrho(i,j,k,m)=rhop(j,k)
-            qpx(i,j,k,m)=qrho(i,j,k,m)*svxp(j,k)
-            qpy(i,j,k,m)=qrho(i,j,k,m)*svyp(j,k)
-            qpz(i,j,k,m)=qrho(i,j,k,m)*svzp(j,k)
-            qpresx(i,j,k,m)=0.5*spress
-            qpresy(i,j,k,m)=qpresx(i,j,k,m)
-            qpresz(i,j,k,m)=qpresx(i,j,k,m)
-            qpresxy(i,j,k,m)=0.
-            qpresxz(i,j,k,m)=0.
-            qpresyz(i,j,k,m)=0.
+            qrho(i,j,k,box)=rhop(j,k)
+            qpx(i,j,k,box)=qrho(i,j,k,box)*svxp(j,k)
+            qpy(i,j,k,box)=qrho(i,j,k,box)*svyp(j,k)
+            qpz(i,j,k,box)=qrho(i,j,k,box)*svzp(j,k)
+            qpresx(i,j,k,box)=0.5*spress
+            qpresy(i,j,k,box)=qpresx(i,j,k,box)
+            qpresz(i,j,k,box)=qpresx(i,j,k,box)
+            qpresxy(i,j,k,box)=0.
+            qpresxz(i,j,k,box)=0.
+            qpresyz(i,j,k,box)=0.
             !
-            hrho(i,j,k,m)=hfrac*frac_h*rhop(j,k)
-            hpx(i,j,k,m)=hrho(i,j,k,m)*svxp(j,k)
-            hpy(i,j,k,m)=hrho(i,j,k,m)*svyp(j,k)
-            hpz(i,j,k,m)=hrho(i,j,k,m)*svzp(j,k)
-            hpresx(i,j,k,m)=0.5*spress*hfrac
-            hpresy(i,j,k,m)=hpresx(i,j,k,m)
-            hpresz(i,j,k,m)=hpresx(i,j,k,m)
-            hpresxy(i,j,k,m)=0.
-            hpresxz(i,j,k,m)=0.
-            hpresyz(i,j,k,m)=0.
+            hrho(i,j,k,box)=hfrac*frac_h*rhop(j,k)
+            hpx(i,j,k,box)=hrho(i,j,k,box)*svxp(j,k)
+            hpy(i,j,k,box)=hrho(i,j,k,box)*svyp(j,k)
+            hpz(i,j,k,box)=hrho(i,j,k,box)*svzp(j,k)
+            hpresx(i,j,k,box)=0.5*spress*hfrac
+            hpresy(i,j,k,box)=hpresx(i,j,k,box)
+            hpresz(i,j,k,box)=hpresx(i,j,k,box)
+            hpresxy(i,j,k,box)=0.
+            hpresxz(i,j,k,box)=0.
+            hpresyz(i,j,k,box)=0.
             !
-            orho(i,j,k,m)=ofrac*frac_o*rhop(j,k)
-            opx(i,j,k,m)=orho(i,j,k,m)*svxp(j,k)
-            opy(i,j,k,m)=orho(i,j,k,m)*svyp(j,k)
-            opz(i,j,k,m)=orho(i,j,k,m)*svzp(j,k)
-            opresx(i,j,k,m)=0.5*spress*ofrac
-            opresy(i,j,k,m)=opresx(i,j,k,m)
-            opresz(i,j,k,m)=opresx(i,j,k,m)
-            opresxy(i,j,k,m)=0.
-            opresxz(i,j,k,m)=0.
-            opresyz(i,j,k,m)=0.
+            orho(i,j,k,box)=ofrac*frac_o*rhop(j,k)
+            opx(i,j,k,box)=orho(i,j,k,box)*svxp(j,k)
+            opy(i,j,k,box)=orho(i,j,k,box)*svyp(j,k)
+            opz(i,j,k,box)=orho(i,j,k,box)*svzp(j,k)
+            opresx(i,j,k,box)=0.5*spress*ofrac
+            opresy(i,j,k,box)=opresx(i,j,k,box)
+            opresz(i,j,k,box)=opresx(i,j,k,box)
+            opresxy(i,j,k,box)=0.
+            opresxz(i,j,k,box)=0.
+            opresyz(i,j,k,box)=0.
             !
-            epres(i,j,k,m)=qpresx(i,j,k,m)/ti_te
+            epres(i,j,k,box)=qpresx(i,j,k,box)/ti_te
             !
             avz=avz+svzp(j,k)
         enddo

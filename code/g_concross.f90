@@ -1,5 +1,5 @@
 subroutine concross(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
-    ngrd,mm,m,xcraft,ncraft,re_equiv,rearth, &
+    n_grids,mm,box,xcraft,ncraft,re_equiv,r_inner, &
     xmin,xmax,ymin,ymax,zmin,zmax,time, &
     label,nlevs,ncon,strtch,add_dip,ivel,kht,start, &
     tx,ty,tz,tt,t,t2,work,mx,my,mz,mz2,muvwp2, &
@@ -21,13 +21,13 @@ subroutine concross(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
     !
     dimension t(mx,my,mz),tx(mx,my,mz),ty(mx,my,mz),tz(mx,my,mz), &
     tt(mx,my,mz),t2(mx,my,mz2),work(muvwp2,muvwp2)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     !
     real xray(1000),yray(1000),zray(1000), &
     xray1(1000),yray1(1000),zray1(1000)
-    dimension stuff(nx,ny,nz,ngrd),vx(nx,ny,nz),xcraft(4,ncraft), &
+    dimension stuff(nx,ny,nz,n_grids),vx(nx,ny,nz),xcraft(4,ncraft), &
     vy(nx,ny,nz),vz(nx,ny,nz), &
     bx(nx,ny,nz),by(nx,ny,nz),bz(nx,ny,nz)
     real xrays(2),yrays(2)
@@ -85,10 +85,10 @@ subroutine concross(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
     !
     !      set up evenly spaced gridding for t to be plotted
     !
-    axmax=amin1(xmax,grd_xmax(m)-.0001)
-    aymax=amin1(ymax,grd_ymax(m)-.0001)
-    azmax=amin1(zmax,grd_zmax(m)-.0001)
-    rx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
+    axmax=amin1(xmax,grd_xmax(box)-.0001)
+    aymax=amin1(ymax,grd_ymax(box)-.0001)
+    azmax=amin1(zmax,grd_zmax(box)-.0001)
+    rx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
     !
     delx=(axmax-xmin)/float(mx-1)
     dely=(aymax-ymin)/float(my-1)
@@ -109,7 +109,7 @@ subroutine concross(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
     !
     !      load t stuff
     !
-    call filldatav(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
+    call filldatav(stuff,vx,vy,vz,nx,ny,nz,n_grids,mm,box, &
     t,tt,tx,ty,tz,mx,my,mz,xmin,ymin,zmin, &
     delx,dely,delz,vm, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
@@ -190,7 +190,7 @@ subroutine concross(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
     !
     !
     call gsplci(2)
-    tisom=rearth
+    tisom=r_inner
     call isosrf(tt,mx,mx,my,my,mz,eye,muvwp2,work,tisom,-3, &
     vpl,vpr,vpb,vpt)
     !
@@ -327,10 +327,10 @@ subroutine concross(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
             xi=xmin+delx*(i-1)
             yi=ymin+dely*(j-1)
             zi=zmin+delz*(k-1)
-            call trace(bx,by,bz,nx,ny,nz,m,add_dip, &
+            call trace(bx,by,bz,nx,ny,nz,box,add_dip, &
             xi,yi,zi,dir,maxpts,xf,yf,zf, &
             xray,yray,zray,xmin,axmax,ymin,aymax, &
-            zmin+height/2.,azmax-height/2.,l,rearth,ngrd, &
+            zmin+height/2.,azmax-height/2.,l,r_inner,n_grids, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
             !
             rad1=sqrt(xi**2+yi**2+zi**2)-2.
@@ -348,10 +348,10 @@ subroutine concross(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
             !
             l1=0
             dir=-0.25*delx
-            call trace(bx,by,bz,nx,ny,nz,m,add_dip, &
+            call trace(bx,by,bz,nx,ny,nz,box,add_dip, &
             xi,yi,zi,dir,maxpts,xf1,yf1,zf1, &
             xray1,yray1,zray1,xmin,axmax,ymin,aymax, &
-            zmin+height/2.,azmax-height/2.,l1,rearth,ngrd, &
+            zmin+height/2.,azmax-height/2.,l1,r_inner,n_grids, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
             !
             rad3=sqrt(xray1(l1)**2+yray1(l1) **2+zray1(l1)**2)-2.
@@ -369,12 +369,12 @@ subroutine concross(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
                 call gsplci(12)
                 call curve3(xray,yray,zray,l)
                 call curve3(xray1,yray1,zray1,l1)
-            else  if((rad2.le.rearth).and.(rad3.le.rearth))then
+            else  if((rad2.le.r_inner).and.(rad3.le.r_inner))then
                 call gsplci(5)
                 call curve3(xray,yray,zray,l)
                 call curve3(xray1,yray1,zray1,l1)
-            else if((rad1.le.rearth).or.(rad2.le.rearth) &
-                .or.(rad3.le.rearth))then
+            else if((rad1.le.r_inner).or.(rad2.le.r_inner) &
+                .or.(rad3.le.r_inner))then
                 ijump=-ijump
                 if(ijump.ge.0) then 
                     call gsplci(7)
@@ -446,10 +446,10 @@ subroutine concross(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
         endif
         !
         dir=-0.25*delx
-        call rungem(bx,by,bz,nx,ny,nz,m,rx, &
+        call rungem(bx,by,bz,nx,ny,nz,box,rx, &
         ax,ay,az,xmin,xmax,ymin,ymax, &
-        zmin+height/2.,zmax-height/2.,rearth, &
-        add_dip,xray,yray,zray,maxpts,npts,dir,ngrd, &
+        zmin+height/2.,zmax-height/2.,r_inner, &
+        add_dip,xray,yray,zray,maxpts,npts,dir,n_grids, &
         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
         !        test for connection to earth and write out position
@@ -459,8 +459,8 @@ subroutine concross(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
         sy=(yray(npts)-ydip)*re_equiv
         sz=(zray(npts)-zdip)*re_equiv
         rtot=sqrt(sx**2+sy**2+sz**2)
-        if((rtot/re_equiv.le.rearth+2.).and. &
-            (rtot/re_equiv.gt.0.5*rearth))then
+        if((rtot/re_equiv.le.r_inner+2.).and. &
+            (rtot/re_equiv.gt.0.5*r_inner))then
             nspace=nspace+1
             !
             !        find polar coordinate : first rotate by dipole tilt
@@ -536,18 +536,18 @@ subroutine concross(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
         !
         !       go the other direction
         dir=+0.25*delx
-        call rungem(bx,by,bz,nx,ny,nz,m,rx, &
+        call rungem(bx,by,bz,nx,ny,nz,box,rx, &
         ax,ay,az,xmin,xmax,ymin,ymax, &
-        zmin+height/2.,zmax-height/2.,rearth, &
-        add_dip,xray,yray,zray,maxpts,npts,dir,ngrd, &
+        zmin+height/2.,zmax-height/2.,r_inner, &
+        add_dip,xray,yray,zray,maxpts,npts,dir,n_grids, &
         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
         sx=(xray(npts)-xdip)*re_equiv
         sy=(yray(npts)-ydip)*re_equiv
         sz=(zray(npts)-zdip)*re_equiv
         rtot=sqrt(sx**2+sy**2+sz**2)
-        if((rtot/re_equiv.le.rearth+2.).and. &
-            (rtot/re_equiv.gt.0.5*rearth))then
+        if((rtot/re_equiv.le.r_inner+2.).and. &
+            (rtot/re_equiv.gt.0.5*r_inner))then
             nspace=nspace+1
             !
             !        find polar coordinate : first rotate by dipole tilt

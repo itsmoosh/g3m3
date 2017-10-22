@@ -404,14 +404,14 @@ subroutine visual( &
     	!
         label='box '//wd1
         call concross(tvx,curx,cury,curz,bsx,bsy,bsz, &
-            nx,ny,nz,1,1,box,xcraft,ncraft,re_equiv,rearth, &
+            nx,ny,nz,1,1,box,xcraft,ncraft,re_equiv,r_inner, &
             xmin,xmax,ymin,ymax,zmin,zmax, &
             ut,label,3,11,2.0,add_dip,1,-2,start, &
             tx,ty,tz,tt,tg1,tg2,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     		!
         call contop(tvx,curx,cury,curz,bsx,bsy,bsz, &
-            nx,ny,nz,1,1,box,xcraft,ncraft,re_equiv,rearth, &
+            nx,ny,nz,1,1,box,xcraft,ncraft,re_equiv,r_inner, &
             xmin,xmax,ymin,ymax,zmin,zmax, &
             ut,label,3,11,2.0,add_dip,1,0,start, &
             tx,ty,tz,tt,tg1,tg2,work,mx,my,mz,mz2,muvwp2, &

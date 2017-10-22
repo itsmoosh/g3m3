@@ -1,4 +1,4 @@
-subroutine conflow(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
+subroutine conflow(stuff,vx,vy,vz,nx,ny,nz,n_grids,mm,box, &
     xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
     time,label,nlevs,ncon,ivel,strtch, &
     tx,ty,tz,t,t2,work,mx,my,mz,mz2,muvwp2, &
@@ -9,13 +9,13 @@ subroutine conflow(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     !        nlevs number of isossurfaces to be plotted - max 4
     !        ncon  number of contours to be plotted     - max 14
     !
-    real stuff(nx,ny,nz,ngrd),vx(nx,ny,nz), &
+    real stuff(nx,ny,nz,n_grids),vx(nx,ny,nz), &
     vy(nx,ny,nz),vz(nx,ny,nz)
     dimension t(mx,my,mz),tx(mx,my,mz),ty(mx,my,mz),tz(mx,my,mz), &
     t2(mx,my,mz),work(muvwp2,muvwp2)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
      real eye(3),tlev(6),tcon(14)
     character*4 llbs(14),wd1,wd2,wd3
     character*12 label,magnif
@@ -63,9 +63,9 @@ subroutine conflow(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     !
     !      set up evenly spaced gridding for t to be plotted
     !
-    axmax=amin1(xmax,grd_xmax(m)-.00001)
-    aymax=amin1(ymax,grd_ymax(m)-.00001)
-    azmax=amin1(zmax,grd_zmax(m)-.00001)
+    axmax=amin1(xmax,grd_xmax(box)-.00001)
+    aymax=amin1(ymax,grd_ymax(box)-.00001)
+    azmax=amin1(zmax,grd_zmax(box)-.00001)
     !
     delx=(axmax-xmin)/float(mx-1)
     dely=(aymax-ymin)/float(my-1)
@@ -83,7 +83,7 @@ subroutine conflow(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
     !
     !      load t stuff
     !
-    call filldatav(stuff,vx,vy,vz,nx,ny,nz,ngrd,mm,m, &
+    call filldatav(stuff,vx,vy,vz,nx,ny,nz,n_grids,mm,box, &
     t,t2,tx,ty,tz,mx,my,mz,xmin,ymin,zmin, &
     delx,dely,delz,vm,grd_xmin,grd_xmax, &
     grd_ymin,grd_ymax,grd_zmin,grd_zmax)

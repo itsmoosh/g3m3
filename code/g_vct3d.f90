@@ -1,6 +1,6 @@
-subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
-    ymax,zmin,zmax,time,label,iv,strtch,rearth, &
-    t,tx,ty,tz,work,mx,my,mz,muvwp2,mz2,ngrd, &
+subroutine vct3d(vx,vy,vz,nx,ny,nz,box,xmin,xmax,ymin, &
+    ymax,zmin,zmax,time,label,iv,strtch,r_inner, &
+    t,tx,ty,tz,work,mx,my,mz,muvwp2,mz2,n_grids, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !     plots 3-d vector field - iv sets velocity direction for
@@ -11,9 +11,9 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     !
     real t(mx,my,mz),tx(mx,my,mz),ty(mx,my,mz),tz(mx,my,mz), &
     work(muvwp2,muvwp2)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
      dimension vx(nx,ny,nz),vy(nx,ny,nz),vz(nx,ny,nz)
     real eye(3)
     integer vpl,vpr,vpb,vpt
@@ -59,9 +59,9 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     !
     !      set up evenly spaced gridding for t to be plotted
     !
-    axmax=amin1(xmax,grd_xmax(m)-.00001)
-    aymax=amin1(ymax,grd_ymax(m)-.00001)
-    azmax=amin1(zmax,grd_zmax(m)-.00001)
+    axmax=amin1(xmax,grd_xmax(box)-.00001)
+    aymax=amin1(ymax,grd_ymax(box)-.00001)
+    azmax=amin1(zmax,grd_zmax(box)-.00001)
     !
     delx=(axmax-xmin)/float(mx-1)
     dely=(aymax-ymin)/float(my-1)
@@ -144,9 +144,9 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     !      load t stuff to position earth and find max vector
     !
     vm=0.
-    ddx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-    ddy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-    ddz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+    ddx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+    ddy=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+    ddz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
     !
     do  k=1,mz
         az=zmin+(k-1.)*delz
@@ -166,7 +166,7 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     !     plot earth and grid references
     !
     call gsplci(2)
-    tisom=rearth
+    tisom=r_inner
     call isosrf(t,mx,mx,my,my,mz,eye,muvwp2,work,tisom,-3, &
     vpl,vpr,vpb,vpt)
     !
@@ -192,7 +192,7 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     vm=0
     do k=1,mz
         az=zmin+(k-1.)*delz
-        ak=1.+(az-grd_zmin(m))/ddz
+        ak=1.+(az-grd_zmin(box))/ddz
         k1=ak
         k2=k1+1
         dz=ak-k1
@@ -200,14 +200,14 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
         do j=1,my
             !
             ay=ymin+(j-1.)*dely
-            aj=1.+(ay-grd_ymin(m))/ddy
+            aj=1.+(ay-grd_ymin(box))/ddy
             j1=aj
             j2=j1+1
             dy=aj-j1
             !
             do i=1,mx
                 ax=xmin+(i-1.)*delx
-                ai=1.+(ax-grd_xmin(m))/ddx
+                ai=1.+(ax-grd_xmin(box))/ddx
                 i1=ai
                 i2=i1+1
                 dx=ai-i1
@@ -242,7 +242,7 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
                 vm=amax1(vm,abs(tx(i,j,k)),abs(ty(i,j,k)),abs(tz(i,j,k)))
                 radius=sqrt((ax-xdip)**2+(ay-ydip)**2 &
                 +(az-zdip)**2)
-                 if(radius.lt.rearth+1.)then
+                 if(radius.lt.r_inner+1.)then
                     tx(i,j,k)=0.
                     ty(i,j,k)=0.
                     tz(i,j,k)=0.
@@ -375,7 +375,7 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     !     plot earth and grid references
     !
     call gsplci(2)
-    tisom=rearth
+    tisom=r_inner
     call isosrf(t,mx,mx,my,my,mz,eye,muvwp2,work,tisom,-3, &
     vpl,vpr,vpb,vpt)
     !
@@ -515,7 +515,7 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     !     plot earth and grid references
     !
     call gsplci(2)
-    tisom=rearth
+    tisom=r_inner
     call isosrf(t,mx,mx,my,my,mz,eye,muvwp2,work,tisom,-3, &
     vpl,vpr,vpb,vpt)
     !
@@ -656,7 +656,7 @@ subroutine vct3d(vx,vy,vz,nx,ny,nz,m,xmin,xmax,ymin, &
     !     plot earth and grid references
     !
     call gsplci(2)
-    tisom=rearth
+    tisom=r_inner
     call isosrf(t,mx,mx,my,my,mz,eye,muvwp2,work,tisom,-3, &
     vpl,vpr,vpb,vpt)
     !

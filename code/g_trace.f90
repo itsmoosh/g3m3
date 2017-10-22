@@ -1,6 +1,6 @@
-subroutine trace(bx,by,bz,n1,n2,n3,m,add_dip, &
+subroutine trace(bx,by,bz,n1,n2,n3,box,add_dip, &
     xi,yi,zi,dir,np,xf,yf,zf,xx,yy,zz, &
-    xmin,xmax,ymin,ymax,zmin,zmax,l,rearth,ngrd, &
+    xmin,xmax,ymin,ymax,zmin,zmax,l,r_inner,n_grids, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !    3 field line tracing subroutines originally by tsyganenko.
@@ -32,9 +32,9 @@ subroutine trace(bx,by,bz,n1,n2,n3,m,add_dip, &
     sin_tilt,cos_tilt,b0
     dimension bx(n1,n2,n3),by(n1,n2,n3),bz(n1,n2,n3), &
     xx(np),yy(np),zz(np)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     logical roc,add_dip
     !
     err=0.05
@@ -46,8 +46,8 @@ subroutine trace(bx,by,bz,n1,n2,n3,m,add_dip, &
     ds3=ds/3.
     l=0
     !
-    call intpol(bx,by,bz,n1,n2,n3,m,add_dip, &
-    x,y,z,r1,r2,r3,ds3,roc,ngrd, &
+    call intpol(bx,by,bz,n1,n2,n3,box,add_dip, &
+    x,y,z,r1,r2,r3,ds3,roc,n_grids, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     if(roc) return
     !
@@ -56,13 +56,13 @@ subroutine trace(bx,by,bz,n1,n2,n3,m,add_dip, &
         yy(l)=y
         zz(l)=z
         !
-        call step(bx,by,bz,n1,n2,n3,m,add_dip,x,y,z,ds,err,ngrd, &
+        call step(bx,by,bz,n1,n2,n3,box,add_dip,x,y,z,ds,err,n_grids, &
         grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         ar=sqrt((x-xdip)**2+(y-ydip)**2+(z-zdip)**2)
         if((x.lt.xmin).or.(x.gt.xmax).or. &
             (y.lt.ymin).or.(y.gt.ymax).or. &
             (z.lt.zmin).or.(z.gt.zmax).or. &
-            (ar.lt.rearth+1.)) then
+            (ar.lt.r_inner+1.)) then
             xf=x
             yf=y
             zf=z

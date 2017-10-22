@@ -1,7 +1,7 @@
-subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
+subroutine contrace(stuff,bx,by,bz,nx,ny,nz,n_grids,box, &
     xmin,xmax,ymin,ymax,zmin,zmax,iside, &
     time,label,nlevs,ncon,add_dip, &
-    radstrt,rearth,nphi,theta1,theta2,ncuts, &
+    radstrt,r_inner,nphi,theta1,theta2,ncuts, &
     t,tt,t3,t2,work,mx,my,mz,muvwp2,mz2, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
@@ -14,11 +14,11 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
     sin_tilt,cos_tilt,b0
     real t(mx,my,mz),tt(mx,my,mz),t3(mx,my,mz),t2(mx,my,mz2), &
     work(muvwp2,muvwp2)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     real xray(1000),yray(1000),zray(1000)
-    dimension stuff(nx,ny,nz,ngrd), &
+    dimension stuff(nx,ny,nz,n_grids), &
     bx(nx,ny,nz),by(nx,ny,nz), &
     bz(nx,ny,nz)
     real eye(3),tlev(6),tcon(14)
@@ -42,17 +42,17 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
     !
     !      set up evenly spaced gridding for t to be plotted
     !
-    axmax=amin1(xmax,grd_xmax(m)-xdip-.00001)
-    aymax=amin1(ymax,grd_ymax(m)-ydip-.00001)
-    azmax=amin1(zmax,grd_zmax(m)-zdip-.00001)
+    axmax=amin1(xmax,grd_xmax(box)-xdip-.00001)
+    aymax=amin1(ymax,grd_ymax(box)-ydip-.00001)
+    azmax=amin1(zmax,grd_zmax(box)-zdip-.00001)
     !
     delx=(axmax-xmin)/float(mx-1)
     dely=(aymax-ymin)/float(my-1)
     delz=(azmax-zmin)/float(mz-1)
     !
-    ddx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-    ddy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-    ddz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+    ddx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+    ddy=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+    ddz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
     !
     !      set decrements have even spacing
     !
@@ -68,14 +68,14 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
     !
     do k=1,mz
         az=iside*(zmin+delz*(k-1))
-        ak=1.+(az-grd_zmin(m))/ddz
+        ak=1.+(az-grd_zmin(box))/ddz
         k1=ak
         k2=k1+1
         dz=ak-k1
         !
         do j=1,my
             ay=iside*(ymin+dely*(j-1))
-            aj=1.+(ay-grd_ymin(m))/ddy
+            aj=1.+(ay-grd_ymin(box))/ddy
             j1=aj
             j2=j1+1
             dy=aj-j1
@@ -83,19 +83,19 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
             !
             do i=1,mx
                 ax=xmin+delx*(i-1)
-                ai=1.+(ax-grd_xmin(m))/ddx
+                ai=1.+(ax-grd_xmin(box))/ddx
                 i1=ai
                 i2=i1+1
                 dx=ai-i1
                 !
-                t(i,j,k)=stuff(i1,j1,k1,m)*(1.-dx)*(1.-dy)*(1.-dz) &
-                +stuff(i1,j1,k2,m)*(1.-dx)*(1.-dy)*(dz) &
-                +stuff(i1,j2,k1,m)*(1.-dx)*(dy)*(1.-dz) &
-                +stuff(i1,j2,k2,m)*(1.-dx)*(dy)*(dz) &
-                +stuff(i2,j1,k1,m)*(dx)*(1.-dy)*(1.-dz) &
-                +stuff(i2,j1,k2,m)*(dx)*(1.-dy)*(dz) &
-                +stuff(i2,j2,k1,m)*(dx)*(dy)*(1.-dz) &
-                +stuff(i2,j2,k2,m)*(dx)*(dy)*(dz)
+                t(i,j,k)=stuff(i1,j1,k1,box)*(1.-dx)*(1.-dy)*(1.-dz) &
+                +stuff(i1,j1,k2,box)*(1.-dx)*(1.-dy)*(dz) &
+                +stuff(i1,j2,k1,box)*(1.-dx)*(dy)*(1.-dz) &
+                +stuff(i1,j2,k2,box)*(1.-dx)*(dy)*(dz) &
+                +stuff(i2,j1,k1,box)*(dx)*(1.-dy)*(1.-dz) &
+                +stuff(i2,j1,k2,box)*(dx)*(1.-dy)*(dz) &
+                +stuff(i2,j2,k1,box)*(dx)*(dy)*(1.-dz) &
+                +stuff(i2,j2,k2,box)*(dx)*(dy)*(dz)
                 !
                 radius=sqrt(ax**2+ay**2+az**2)
                 tt(i,j,k)=radius
@@ -247,7 +247,7 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
         enddo
     enddo
     call gsplci(2)
-    tisom=rearth
+    tisom=r_inner
     call isosrf(t2,mx,mx,my,my,mz2,eye,muvwp2,work,tisom,-3, &
     vpl,vpr,vpb,vpt)
     !
@@ -302,9 +302,9 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
             zi=-x1*sin_tilt+z1*cos_tilt+zdip
             !
             dir=-delx
-            call rungem(bx,by,bz,nx,ny,nz,m,ddx, &
-            xi,yi,zi,xmin,xmax,ymin,ymax,rzmin,rzmax,rearth, &
-            add_dip,xray,yray,zray,maxpts,npts,dir,ngrd, &
+            call rungem(bx,by,bz,nx,ny,nz,box,ddx, &
+            xi,yi,zi,xmin,xmax,ymin,ymax,rzmin,rzmax,r_inner, &
+            add_dip,xray,yray,zray,maxpts,npts,dir,n_grids, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
             !
             do nn=1,npts
@@ -323,9 +323,9 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
             call curve3(xray,yray,zray,npts)
             !
             dir=delx
-            call rungem(bx,by,bz,nx,ny,nz,m,ddx, &
-            xi,yi,zi,xmin,xmax,ymin,ymax,rzmin,rzmax,rearth, &
-            add_dip,xray,yray,zray,maxpts,npts,dir,ngrd, &
+            call rungem(bx,by,bz,nx,ny,nz,box,ddx, &
+            xi,yi,zi,xmin,xmax,ymin,ymax,rzmin,rzmax,r_inner, &
+            add_dip,xray,yray,zray,maxpts,npts,dir,n_grids, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
             !
             do nn=1,npts
@@ -413,7 +413,7 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
     !     call wtstr(.03,.55,title,1,0,0)
     !
     call gsplci(2)
-    tisom=rearth
+    tisom=r_inner
     call isosrf(tt,mx,mx,my,my,mz,eye,muvwp2,work,tisom,-3, &
     vpl,vpr,vpb,vpt)
     !
@@ -494,9 +494,9 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
             zi=-x1*sin_tilt+z1*cos_tilt+zdip
             !
             dir=-delx
-            call rungem(bx,by,bz,nx,ny,nz,m,ddx, &
-            xi,yi,zi,xmin,xmax,ymin,ymax,-zmax,zmax,rearth, &
-            add_dip,xray,yray,zray,maxpts,npts,dir,ngrd, &
+            call rungem(bx,by,bz,nx,ny,nz,box,ddx, &
+            xi,yi,zi,xmin,xmax,ymin,ymax,-zmax,zmax,r_inner, &
+            add_dip,xray,yray,zray,maxpts,npts,dir,n_grids, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
             !
             do nn=1,npts
@@ -515,9 +515,9 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,ngrd,m, &
             call curve3(xray,yray,zray,npts)
             !
             dir=+delx
-            call rungem(bx,by,bz,nx,ny,nz,m,ddx, &
-            xi,yi,zi,xmin,xmax,ymin,ymax,-zmax,zmax,rearth, &
-            add_dip,xray,yray,zray,maxpts,npts,dir,ngrd, &
+            call rungem(bx,by,bz,nx,ny,nz,box,ddx, &
+            xi,yi,zi,xmin,xmax,ymin,ymax,-zmax,zmax,r_inner, &
+            add_dip,xray,yray,zray,maxpts,npts,dir,n_grids, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
             !
             do nn=1,npts

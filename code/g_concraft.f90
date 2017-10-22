@@ -3,8 +3,8 @@
 !	concraft
 !	concraft_fix
 !
-subroutine concraft(stuff,cross,nx,ny,nz,m, &
-    xcraft,ncraft,re_equiv,time,label,start,frac,ngrd, &
+subroutine concraft(stuff,cross,nx,ny,nz,box, &
+    xcraft,ncraft,re_equiv,time,label,start,frac,n_grids, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !      subroutine to plot cross-plane quantities at the
@@ -26,9 +26,9 @@ subroutine concraft(stuff,cross,nx,ny,nz,m, &
     !
     real xrays(2),yrays(2)
     dimension xcraft(4,ncraft),stuff(nx,ny,nz),cross(ny,nz)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     character*4 wd1,wd2,wd3
     character*12 label
     character*20 title
@@ -46,12 +46,12 @@ subroutine concraft(stuff,cross,nx,ny,nz,m, &
     !      make a 2-d cross tail cut for either imp 8 and geotail
     !
     ncon=13
-    xmin=grd_xmin(m)
-    xmax=grd_xmax(m)
-    ymin=grd_ymin(m)
-    ymax=grd_ymax(m)
-    zmin=grd_zmin(m)
-    zmax=grd_zmax(m)
+    xmin=grd_xmin(box)
+    xmax=grd_xmax(box)
+    ymin=grd_ymin(box)
+    ymax=grd_ymax(box)
+    zmin=grd_zmin(box)
+    zmax=grd_zmax(box)
     delx=(xmax-xmin)/(nx-1.)
     dely=(ymax-ymin)/(ny-1.)
     delz=(zmax-zmin)/(nz-1.)
@@ -141,8 +141,8 @@ end
 !	******************************************
 !
 !
-subroutine concraft_fix(stuff,cross,nx,ny,nz,m, &
-    xcraft,ncraft, re_equiv,time,label,start,alo,ahi,ngrd, &
+subroutine concraft_fix(stuff,cross,nx,ny,nz,box, &
+    xcraft,ncraft, re_equiv,time,label,start,alo,ahi,n_grids, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !      subroutine to plot cross-plane quantities at the
@@ -164,9 +164,9 @@ subroutine concraft_fix(stuff,cross,nx,ny,nz,m, &
     !
     real xrays(2),yrays(2)
     dimension xcraft(4,ncraft),stuff(nx,ny,nz),cross(ny,nz)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     !
     character*4 wd1,wd2,wd3
     character*12 label
@@ -185,12 +185,12 @@ subroutine concraft_fix(stuff,cross,nx,ny,nz,m, &
     !      make a 2-d cross tail cut for either imp 8 and geotail
     !
     ncon=13
-    xmin=grd_xmin(m)
-    xmax=grd_xmax(m)
-    ymin=grd_ymin(m)
-    ymax=grd_ymax(m)
-    zmin=grd_zmin(m)
-    zmax=grd_zmax(m)
+    xmin=grd_xmin(box)
+    xmax=grd_xmax(box)
+    ymin=grd_ymin(box)
+    ymax=grd_ymax(box)
+    zmin=grd_zmin(box)
+    zmax=grd_zmax(box)
     delx=(xmax-xmin)/(nx-1.)
     dely=(ymax-ymin)/(ny-1.)
     delz=(zmax-zmin)/(nz-1.)
