@@ -1,7 +1,7 @@
 subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
     curx,cury,curz,evx,evy,evz,btot, &
     epres,qrho,hrho,orho,rst,resist,reynolds, &
-    nx,ny,nz,ngrd,m,rmassq,rmassh,rmasso, &
+    nx,ny,nz,n_grids,box,rmassq,rmassh,rmasso, &
     ijmid,nummid,ijzero,mbndry,numzero,mmid,mzero, &
     rx,ry,rz)
     !
@@ -12,8 +12,8 @@ subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
     efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz), &
     curx(nx,ny,nz),cury(nx,ny,nz),curz(nx,ny,nz), &
     evx(nx,ny,nz),evy(nx,ny,nz),evz(nx,ny,nz), &
-    qrho(nx,ny,nz,ngrd),hrho(nx,ny,nz,ngrd),orho(nx,ny,nz,ngrd), &
-    epres(nx,ny,nz,ngrd),btot(nx,ny,nz)
+    qrho(nx,ny,nz,n_grids),hrho(nx,ny,nz,n_grids),orho(nx,ny,nz,n_grids), &
+    epres(nx,ny,nz,n_grids),btot(nx,ny,nz)
     dimension rst(nx,ny,nz,mbndry)
     integer ijmid(mbndry,3,mmid),ijzero(mbndry,3,mzero)
     integer nummid(mbndry),numzero(mbndry)
@@ -59,15 +59,15 @@ subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
                 ip=i+1
                 im=i-1
                 !
-                arho=(qrho(i,j,k,m)/rmassq+hrho(i,j,k,m)/rmassh+ &
-                orho(i,j,k,m)/rmasso)*reynolds
+                arho=(qrho(i,j,k,box)/rmassq+hrho(i,j,k,box)/rmassh+ &
+                orho(i,j,k,box)/rmasso)*reynolds
                 !
                 efldx(i,j,k)=efldx(i,j,k)- &
-                ((epres(ip,j,k,m)-epres(im,j,k,m))/dxt)/arho
+                ((epres(ip,j,k,box)-epres(im,j,k,box))/dxt)/arho
                 efldy(i,j,k)=efldy(i,j,k)- &
-                ((epres(i,jp,k,m)-epres(i,jm,k,m))/dyt)/arho
+                ((epres(i,jp,k,box)-epres(i,jm,k,box))/dyt)/arho
                 efldz(i,j,k)=efldz(i,j,k)- &
-                ((epres(i,j,kp,m)-epres(i,j,km,m))/dzt)/arho
+                ((epres(i,j,kp,box)-epres(i,j,km,box))/dzt)/arho
                 !
             enddo
         enddo
@@ -75,42 +75,42 @@ subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
     !
     !      add in ionospheric resistance
     !
-    if((m.le.mbndry).and.(resist.lt.5000.))then
+    if((box.le.mbndry).and.(resist.lt.5000.))then
         ! parallelizes loop. RW, oct. 23, 2002
         !$omp  parallel do
-        do n=1,nummid(m)
-            i=ijmid(m,1,n)
-            j=ijmid(m,2,n)
-            k=ijmid(m,3,n)
+        do n=1,nummid(box)
+            i=ijmid(box,1,n)
+            j=ijmid(box,2,n)
+            k=ijmid(box,3,n)
             !
-            eden=(qrho(i,j,k,m)/rmassq+hrho(i,j,k,m)/rmassh+ &
-            orho(i,j,k,m)/rmasso)
+            eden=(qrho(i,j,k,box)/rmassq+hrho(i,j,k,box)/rmassh+ &
+            orho(i,j,k,box)/rmasso)
             !
-            efldx(i,j,k)=efldx(i,j,k)+rst(i,j,k,m)*curx(i,j,k)/eden
-            efldy(i,j,k)=efldy(i,j,k)+rst(i,j,k,m)*cury(i,j,k)/eden
-            efldz(i,j,k)=efldz(i,j,k)+rst(i,j,k,m)*curz(i,j,k)/eden
+            efldx(i,j,k)=efldx(i,j,k)+rst(i,j,k,box)*curx(i,j,k)/eden
+            efldy(i,j,k)=efldy(i,j,k)+rst(i,j,k,box)*cury(i,j,k)/eden
+            efldz(i,j,k)=efldz(i,j,k)+rst(i,j,k,box)*curz(i,j,k)/eden
         enddo
-        do n=1,numzero(m)
-            i=ijzero(m,1,n)
-            j=ijzero(m,2,n)
-            k=ijzero(m,3,n)
+        do n=1,numzero(box)
+            i=ijzero(box,1,n)
+            j=ijzero(box,2,n)
+            k=ijzero(box,3,n)
             !
-            eden=(qrho(i,j,k,m)/rmassq+hrho(i,j,k,m)/rmassh+ &
-            orho(i,j,k,m)/rmasso)
+            eden=(qrho(i,j,k,box)/rmassq+hrho(i,j,k,box)/rmassh+ &
+            orho(i,j,k,box)/rmasso)
             !
-            efldx(i,j,k)=efldx(i,j,k)+rst(i,j,k,m)*curx(i,j,k)/eden
-            efldy(i,j,k)=efldy(i,j,k)+rst(i,j,k,m)*cury(i,j,k)/eden
-            efldz(i,j,k)=efldz(i,j,k)+rst(i,j,k,m)*curz(i,j,k)/eden
+            efldx(i,j,k)=efldx(i,j,k)+rst(i,j,k,box)*curx(i,j,k)/eden
+            efldy(i,j,k)=efldy(i,j,k)+rst(i,j,k,box)*cury(i,j,k)/eden
+            efldz(i,j,k)=efldz(i,j,k)+rst(i,j,k,box)*curz(i,j,k)/eden
         enddo
     endif
     !
     !      boundary condtions for terrestrial surface currents
     !
-    !     if(m.le.mbndry)then
-    !      do n=1,nummid(m)
-    !        i=ijmid(m,1,n)
-    !        j=ijmid(m,2,n)
-    !        k=ijmid(m,3,n)
+    !     if(box.le.mbndry)then
+    !      do n=1,nummid(box)
+    !        i=ijmid(box,1,n)
+    !        j=ijmid(box,2,n)
+    !        k=ijmid(box,3,n)
     !        efldx(i,j,k)=0.
     !        efldy(i,j,k)=0.
     !        efldz(i,j,k)=0.

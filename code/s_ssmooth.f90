@@ -1,10 +1,11 @@
-subroutine ssmooth(px,wrkpx,nx,ny,nz,ngrd,m,chipx)
+subroutine ssmooth(px,wrkpx,nx,ny,nz,n_grids,box,chipx)
     !
     !     applies straight diffusion
     !
-    dimension px(nx,ny,nz,ngrd),wrkpx(nx,ny,nz,ngrd)
+    dimension px(nx,ny,nz,n_grids),wrkpx(nx,ny,nz,n_grids)
     !
-    !     write(6,*)'ssmooth',nx,ny,nz,ngrd,m,chipx
+    !     write(*,*) 'ssmooth: nx, ny, nz, n_grids, box, chipx'
+	!		write(*,*) nx, ny, nz, n_grids, box, chipx
     !
     !         step 1:   diffuse 3-d direction
     !
@@ -12,11 +13,11 @@ subroutine ssmooth(px,wrkpx,nx,ny,nz,ngrd,m,chipx)
     do k=2,nz-1
         do j=2,ny-1
             do i=2,nx-1
-                px(i,j,k,m)=wrkpx(i,j,k,m)+chipx*( &
-                wrkpx(i+1,j,k,m)+wrkpx(i-1,j,k,m) &
-                + wrkpx(i,j+1,k,m)+wrkpx(i,j-1,k,m) &
-                + wrkpx(i,j,k+1,m)+wrkpx(i,j,k-1,m) &
-                -6.*wrkpx(i,j,k,m))
+                px(i,j,k,box)=wrkpx(i,j,k,box)+chipx*( &
+                wrkpx(i+1,j,k,box)+wrkpx(i-1,j,k,box) &
+                + wrkpx(i,j+1,k,box)+wrkpx(i,j-1,k,box) &
+                + wrkpx(i,j,k+1,box)+wrkpx(i,j,k-1,box) &
+                -6.*wrkpx(i,j,k,box))
             enddo
         enddo
     enddo
@@ -26,7 +27,7 @@ subroutine ssmooth(px,wrkpx,nx,ny,nz,ngrd,m,chipx)
     do k=2,nz-1
         do j=2,ny-1
             do i=2,nx-1
-                wrkpx(i,j,k,m)=px(i,j,k,m)
+                wrkpx(i,j,k,box)=px(i,j,k,box)
             enddo
         enddo
     enddo

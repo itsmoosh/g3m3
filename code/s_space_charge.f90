@@ -1,22 +1,22 @@
 subroutine space_charge(charge,efldx,efldy,efldz, &
-    bx0,by0,bz0,px,py,pz,rho,nx,ny,nz,ngrd,m,rearth, &
+    bx0,by0,bz0,px,py,pz,rho,nx,ny,nz,n_grids,box,r_inner, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !      calculates the space-charge fields in the plasma
     !
-    dimension bx0(nx,ny,nz,ngrd),by0(nx,ny,nz,ngrd), &
-    bz0(nx,ny,nz,ngrd),charge(nx,ny,nz), &
+    dimension bx0(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids), &
+    bz0(nx,ny,nz,n_grids),charge(nx,ny,nz), &
     efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz), &
-    px(nx,ny,nz,ngrd),py(nx,ny,nz,ngrd),pz(nx,ny,nz,ngrd), &
-    rho(nx,ny,nz,ngrd)
+    px(nx,ny,nz,n_grids),py(nx,ny,nz,n_grids),pz(nx,ny,nz,n_grids), &
+    rho(nx,ny,nz,n_grids)
     !
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     !
-    rx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-    ry=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-    rz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+    rx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+    ry=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+    rz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
     !
     dxt=2.*rx
     dyt=2.*ry
@@ -46,19 +46,19 @@ subroutine space_charge(charge,efldx,efldy,efldz, &
                 !
                 !     correct for curl b_0 errors
                 !
-                arho=rho(i,j,k,m)
+                arho=rho(i,j,k,box)
                 arho=amax1(arho,d_min)
                 !
-                apx=px(i,j,k,m)/arho
-                apy=py(i,j,k,m)/arho
-                apz=pz(i,j,k,m)/arho
+                apx=px(i,j,k,box)/arho
+                apy=py(i,j,k,box)/arho
+                apz=pz(i,j,k,box)/arho
                 !
-                curlbx=( (bz0(i,jp,k,m)-bz0(i,jm,k,m))/dyt &
-                -(by0(i,j,kp,m)-by0(i,j,km,m))/dzt )/arho
-                curlby=( (bx0(i,j,kp,m)-bx0(i,j,km,m))/dzt &
-                -(bz0(ip,j,k,m)-bz0(im,j,k,m))/dxt )/arho
-                curlbz=( (by0(ip,j,k,m)-by0(im,j,k,m))/dxt &
-                -(bx0(i,jp,k,m)-bx0(i,jm,k,m))/dyt )/arho
+                curlbx=( (bz0(i,jp,k,box)-bz0(i,jm,k,box))/dyt &
+                -(by0(i,j,kp,box)-by0(i,j,km,box))/dzt )/arho
+                curlby=( (bx0(i,j,kp,box)-bx0(i,j,km,box))/dzt &
+                -(bz0(ip,j,k,box)-bz0(im,j,k,box))/dxt )/arho
+                curlbz=( (by0(ip,j,k,box)-by0(im,j,k,box))/dxt &
+                -(bx0(i,jp,k,box)-bx0(i,jm,k,box))/dyt )/arho
                 !
                 charge(i,j,k)=charge(i,j,k) &
                 -(apx*curlbx+apy*curlby+apz*curlbz)

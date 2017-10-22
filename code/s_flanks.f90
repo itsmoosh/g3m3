@@ -4,24 +4,24 @@
 !	flanks_grds
 !	flanks_synced
 !
-subroutine flanks(wrkrho,rho,oldrho,nx,ny,nz,ngrd,m, &
+subroutine flanks(wrkrho,rho,oldrho,nx,ny,nz,n_grids,box, &
     t_new,t_old,t,work, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
-    dimension rho(nx,ny,nz,ngrd),oldrho(nx,ny,nz,ngrd), &
-    wrkrho(nx,ny,nz,ngrd),work(nx,ny,nz)
-    dimension t_new(ngrd),t_old(ngrd)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension rho(nx,ny,nz,n_grids),oldrho(nx,ny,nz,n_grids), &
+    wrkrho(nx,ny,nz,n_grids),work(nx,ny,nz)
+    dimension t_new(n_grids),t_old(n_grids)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     !
-    !     m is the suject array index
+    !     box is the suject array index
     !
     !      sets the outer boundaries of fine grid at position ns
     !      using data from coarse grid at position nb
     !
-    mb=m+1
-    ms=m
+    mb=box+1
+    ms=box
     !
     t1=(t_new(mb)-t)/(t_new(mb)-t_old(mb))
     t2=1.-t1
@@ -313,24 +313,24 @@ end
 !
 subroutine flanks_grds( &
     rho_n,nx_n,ny_n,nz_n,ngrd_n,main_ngrd, &
-    rho,oldrho,work,nx,ny,nz,ngrd, &
+    rho,oldrho,work,nx,ny,nz,n_grids, &
     t_new,t_old,t,grd_xmin,grd_xmax, &
     grd_ymin,grd_ymax,grd_zmin,grd_zmax, &
     grd_xmin_n,grd_xmax_n,grd_ymin_n, &
     grd_ymax_n,grd_zmin_n,grd_zmax_n)
     !
-    dimension rho(nx,ny,nz,ngrd),oldrho(nx,ny,nz,ngrd), &
+    dimension rho(nx,ny,nz,n_grids),oldrho(nx,ny,nz,n_grids), &
     rho_n(nx_n,ny_n,nz_n,ngrd_n), &
     work(nx,ny,nz)
-    dimension t_new(ngrd),t_old(ngrd)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension t_new(n_grids),t_old(n_grids)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     dimension grd_xmin_n(ngrd_n),grd_xmax_n(ngrd_n), &
     grd_ymin_n(ngrd_n),grd_ymax_n(ngrd_n), &
     grd_zmin_n(ngrd_n),grd_zmax_n(ngrd_n)
     !
-    !     m is the suject array index
+    !     box is the suject array index
     !
     !      sets the outer boundaries of fine grid at position ns
     !      using data from coarse grid at position nb
@@ -634,21 +634,21 @@ end
 !	****************************************
 !
 !
-subroutine flanks_synced(rho,nx,ny,nz,ngrd,m, &
+subroutine flanks_synced(rho,nx,ny,nz,n_grids,box, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
-    dimension rho(nx,ny,nz,ngrd)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension rho(nx,ny,nz,n_grids)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     !
     !      sets the outer boundaries of fine grid at position ns
     !      using data from coarse grid at position nb
     !
-    mb=m+1
+    mb=box+1
     nb=mb
     !
-    ms=m
+    ms=box
     ns=ms
     !
     delx=(grd_xmax(mb)-grd_xmin(mb))/(nx-1.)

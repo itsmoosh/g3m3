@@ -4,7 +4,7 @@
 !	set_bndry_moon_ram
 !
 subroutine set_bndry_moon(rmassq,rmassh,rmasso, &
-    m,nx,ny,nz,ngrd, &
+    box,nx,ny,nz,n_grids, &
     parm_srf,parm_mid,parm_zero, &
     ijsrf,numsrf,ijmid,nummid,ijzero, &
     numzero,mbndry,msrf,mmid,mzero, &
@@ -15,9 +15,9 @@ subroutine set_bndry_moon(rmassq,rmassh,rmasso, &
     !
     !    photoionization ionosphere
     !
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     !
     integer ijsrf(mbndry,3,msrf),ijmid(mbndry,3,mmid), &
     ijzero(mbndry,3,mzero)
@@ -32,27 +32,27 @@ subroutine set_bndry_moon(rmassq,rmassh,rmasso, &
     !
     !      set scale lengths
     !
-    dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-    dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-    dz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+    dx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+    dy=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+    dz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
     !
     !      reset indices
     !
-    numsrf(m)=0
-    nummid(m)=0
-    numzero(m)=0
+    numsrf(box)=0
+    nummid(box)=0
+    numzero(box)=0
     ntot=0
     !
     !       set conditions at moon's new position
     !
     do k=1,nz
-        az=grd_zmin(m)+dz*(k-1)
+        az=grd_zmin(box)+dz*(k-1)
         zm=az-zmoon
         do j=1,ny
-            ay=grd_ymin(m)+dy*(j-1)
+            ay=grd_ymin(box)+dy*(j-1)
             ym=ay-ymoon
             do i=1,nx
-                ax=grd_xmin(m)+dx*(i-1)
+                ax=grd_xmin(box)+dx*(i-1)
                 xm=ax-xmoon
                 ar_moon=sqrt(xm**2+ym**2+zm**2)
                 !
@@ -80,58 +80,59 @@ subroutine set_bndry_moon(rmassq,rmassh,rmasso, &
                 endif
                 !
                 if(ar_moon.le.rmoon-1.5*dx)then
-                    numzero(m)=numzero(m)+1
-                    if(numzero(m).gt.mzero)then
-                        write(6,*)'numzero too large',m,numzero(m),mzero
+                    numzero(box)=numzero(box)+1
+                    if(numzero(box).gt.mzero)then
+                        write(6,*)'numzero too large',box,numzero(box),mzero
                         stop
                     endif
-                    ijzero(m,1,numzero(m))=i
-                    ijzero(m,2,numzero(m))=j
-                    ijzero(m,3,numzero(m))=k
+                    ijzero(box,1,numzero(box))=i
+                    ijzero(box,2,numzero(box))=j
+                    ijzero(box,3,numzero(box))=k
                     !
-                    parm_zero(m,1,numzero(m))=qden*rmassq
-                    parm_zero(m,2,numzero(m))=hden*rmassh
-                    parm_zero(m,3,numzero(m))=oden*rmasso
-                    parm_zero(m,4,numzero(m))=qpress
-                    parm_zero(m,5,numzero(m))=hpress
-                    parm_zero(m,6,numzero(m))=opress
-                    parm_zero(m,7,numzero(m))=epress
+                    parm_zero(box,1,numzero(box))=qden*rmassq
+                    parm_zero(box,2,numzero(box))=hden*rmassh
+                    parm_zero(box,3,numzero(box))=oden*rmasso
+                    parm_zero(box,4,numzero(box))=qpress
+                    parm_zero(box,5,numzero(box))=hpress
+                    parm_zero(box,6,numzero(box))=opress
+                    parm_zero(box,7,numzero(box))=epress
                     !
                 else  if(ar_moon.le.rmoon-0.5*dx) then
-                    nummid(m)=nummid(m)+1
-                    if(nummid(m).gt.mmid)then
-                        write(6,*)'nummid too large',m,nummid(m),mmid
+                    nummid(box)=nummid(box)+1
+                    if(nummid(box).gt.mmid)then
+                        write(*,*) 'nummid too large. box, nummid(box), mmid:'
+						write(*,*) box, nummid(box), mmid
                         stop
                     endif
-                    ijmid(m,1,nummid(m))=i
-                    ijmid(m,2,nummid(m))=j
-                    ijmid(m,3,nummid(m))=k
+                    ijmid(box,1,nummid(box))=i
+                    ijmid(box,2,nummid(box))=j
+                    ijmid(box,3,nummid(box))=k
                     !
-                    parm_mid(m,1,nummid(m))=qden*rmassq
-                    parm_mid(m,2,nummid(m))=hden*rmassh
-                    parm_mid(m,3,nummid(m))=oden*rmasso
-                    parm_mid(m,4,nummid(m))=qpress
-                    parm_mid(m,5,nummid(m))=hpress
-                    parm_mid(m,6,nummid(m))=opress
-                    parm_mid(m,7,nummid(m))=epress
+                    parm_mid(box,1,nummid(box))=qden*rmassq
+                    parm_mid(box,2,nummid(box))=hden*rmassh
+                    parm_mid(box,3,nummid(box))=oden*rmasso
+                    parm_mid(box,4,nummid(box))=qpress
+                    parm_mid(box,5,nummid(box))=hpress
+                    parm_mid(box,6,nummid(box))=opress
+                    parm_mid(box,7,nummid(box))=epress
                     !
                 else if(ar_moon.le.rmoon+0.6*dx) then
-                    numsrf(m)=numsrf(m)+1
-                    if(numsrf(m).gt.msrf)then
-                        write(6,*)'numsrf too large',m,numsrf(m),msrf
+                    numsrf(box)=numsrf(box)+1
+                    if(numsrf(box).gt.msrf)then
+                        write(6,*)'numsrf too large',box,numsrf(box),msrf
                         stop
                         !                endif
-                        ijsrf(m,1,numsrf(m))=i
-                        ijsrf(m,2,numsrf(m))=j
-                        ijsrf(m,3,numsrf(m))=k
+                        ijsrf(box,1,numsrf(box))=i
+                        ijsrf(box,2,numsrf(box))=j
+                        ijsrf(box,3,numsrf(box))=k
                         !
-                        parm_srf(m,1,numsrf(m))=qden*rmassq
-                        parm_srf(m,2,numsrf(m))=hden*rmassh
-                        parm_srf(m,3,numsrf(m))=oden*rmasso
-                        parm_srf(m,4,numsrf(m))=qpress
-                        parm_srf(m,5,numsrf(m))=hpress
-                        parm_srf(m,6,numsrf(m))=opress
-                        parm_srf(m,7,numsrf(m))=epress
+                        parm_srf(box,1,numsrf(box))=qden*rmassq
+                        parm_srf(box,2,numsrf(box))=hden*rmassh
+                        parm_srf(box,3,numsrf(box))=oden*rmasso
+                        parm_srf(box,4,numsrf(box))=qpress
+                        parm_srf(box,5,numsrf(box))=hpress
+                        parm_srf(box,6,numsrf(box))=opress
+                        parm_srf(box,7,numsrf(box))=epress
                         !
                     endif
                 endif
@@ -140,8 +141,8 @@ subroutine set_bndry_moon(rmassq,rmassh,rmasso, &
         enddo
     enddo
     !
-    !         write(6,*)'total pts',ntot
-    !         write(6,*)'moon bndry_m pts',m,numsrf(m),nummid(m),numzero(m)
+    !         write(*,*) 'Total pts: ', ntot
+    !         write(*,*) 'moon bndry_m pts: ', box, numsrf(box), nummid(box), numzero(box)
     !
     return
 end
@@ -151,7 +152,7 @@ end
 !
 !
 subroutine set_bndry_moon_ram(rmassq,rmassh,rmasso, &
-    m,nx,ny,nz,ngrd, &
+    box,nx,ny,nz,n_grids, &
     parm_srf,parm_mid,parm_zero, &
     ijsrf,numsrf,ijmid,nummid,ijzero, &
     numzero,mbndry,msrf,mmid,mzero, &
@@ -163,9 +164,9 @@ subroutine set_bndry_moon_ram(rmassq,rmassh,rmasso, &
     !
     !      sputtered or ram produced ionosphere
     !
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     !
     integer ijsrf(mbndry,3,msrf),ijmid(mbndry,3,mmid), &
     ijzero(mbndry,3,mzero)
@@ -180,15 +181,15 @@ subroutine set_bndry_moon_ram(rmassq,rmassh,rmasso, &
     !
     !      set scale lengths
     !
-    dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-    dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-    dz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+    dx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+    dy=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+    dz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
     !
     !      reset indices
     !
-    numsrf(m)=0
-    nummid(m)=0
-    numzero(m)=0
+    numsrf(box)=0
+    nummid(box)=0
+    numzero(box)=0
     ntot=0
     !
     !      speed for ram induced ionosphere
@@ -198,13 +199,13 @@ subroutine set_bndry_moon_ram(rmassq,rmassh,rmasso, &
     !       set conditions at moon's new position
     !
     do k=1,nz
-        az=grd_zmin(m)+dz*(k-1)
+        az=grd_zmin(box)+dz*(k-1)
         zm=az-zmoon
         do j=1,ny
-            ay=grd_ymin(m)+dy*(j-1)
+            ay=grd_ymin(box)+dy*(j-1)
             ym=ay-ymoon
             do i=1,nx
-                ax=grd_xmin(m)+dx*(i-1)
+                ax=grd_xmin(box)+dx*(i-1)
                 xm=ax-xmoon
                 ar_moon=sqrt(xm**2+ym**2+zm**2)
                 !
@@ -234,58 +235,58 @@ subroutine set_bndry_moon_ram(rmassq,rmassh,rmasso, &
                 endif
                 !
                 if(ar_moon.le.rmoon-1.5*dx)then
-                    numzero(m)=numzero(m)+1
-                    if(numzero(m).gt.mzero)then
-                        write(6,*)'numzero too large',m,numzero(m),mzero
+                    numzero(box)=numzero(box)+1
+                    if(numzero(box).gt.mzero)then
+                        write(6,*)'numzero too large',box,numzero(box),mzero
                         stop
                     endif
-                    ijzero(m,1,numzero(m))=i
-                    ijzero(m,2,numzero(m))=j
-                    ijzero(m,3,numzero(m))=k
+                    ijzero(box,1,numzero(box))=i
+                    ijzero(box,2,numzero(box))=j
+                    ijzero(box,3,numzero(box))=k
                     !
-                    parm_zero(m,1,numzero(m))=qden*rmassq
-                    parm_zero(m,2,numzero(m))=hden*rmassh
-                    parm_zero(m,3,numzero(m))=oden*rmasso
-                    parm_zero(m,4,numzero(m))=qpress
-                    parm_zero(m,5,numzero(m))=hpress
-                    parm_zero(m,6,numzero(m))=opress
-                    parm_zero(m,7,numzero(m))=epress
+                    parm_zero(box,1,numzero(box))=qden*rmassq
+                    parm_zero(box,2,numzero(box))=hden*rmassh
+                    parm_zero(box,3,numzero(box))=oden*rmasso
+                    parm_zero(box,4,numzero(box))=qpress
+                    parm_zero(box,5,numzero(box))=hpress
+                    parm_zero(box,6,numzero(box))=opress
+                    parm_zero(box,7,numzero(box))=epress
                     !
                 else if(ar_moon.le.rmoon-0.5*dx) then
-                    nummid(m)=nummid(m)+1
-                    if(nummid(m).gt.mmid)then
-                        write(6,*)'nummid too large',m,nummid(m),mmid
+                    nummid(box)=nummid(box)+1
+                    if(nummid(box).gt.mmid)then
+                        write(6,*)'nummid too large',box,nummid(box),mmid
                         stop
                     endif
-                    ijmid(m,1,nummid(m))=i
-                    ijmid(m,2,nummid(m))=j
-                    ijmid(m,3,nummid(m))=k
+                    ijmid(box,1,nummid(box))=i
+                    ijmid(box,2,nummid(box))=j
+                    ijmid(box,3,nummid(box))=k
                     !
-                    parm_mid(m,1,nummid(m))=qden*rmassq
-                    parm_mid(m,2,nummid(m))=hden*rmassh
-                    parm_mid(m,3,nummid(m))=oden*rmasso
-                    parm_mid(m,4,nummid(m))=qpress
-                    parm_mid(m,5,nummid(m))=hpress
-                    parm_mid(m,6,nummid(m))=opress
-                    parm_mid(m,7,nummid(m))=epress
+                    parm_mid(box,1,nummid(box))=qden*rmassq
+                    parm_mid(box,2,nummid(box))=hden*rmassh
+                    parm_mid(box,3,nummid(box))=oden*rmasso
+                    parm_mid(box,4,nummid(box))=qpress
+                    parm_mid(box,5,nummid(box))=hpress
+                    parm_mid(box,6,nummid(box))=opress
+                    parm_mid(box,7,nummid(box))=epress
                     !
                 else if(ar_moon.le.rmoon+0.6*dx) then
-                    numsrf(m)=numsrf(m)+1
-                    if(numsrf(m).gt.msrf)then
-                        write(6,*)'numsrf too large',m,numsrf(m),msrf
+                    numsrf(box)=numsrf(box)+1
+                    if(numsrf(box).gt.msrf)then
+                        write(6,*)'numsrf too large',box,numsrf(box),msrf
                         stop
                         !                endif
-                        ijsrf(m,1,numsrf(m))=i
-                        ijsrf(m,2,numsrf(m))=j
-                        ijsrf(m,3,numsrf(m))=k
+                        ijsrf(box,1,numsrf(box))=i
+                        ijsrf(box,2,numsrf(box))=j
+                        ijsrf(box,3,numsrf(box))=k
                         !
-                        parm_srf(m,1,numsrf(m))=qden*rmassq
-                        parm_srf(m,2,numsrf(m))=hden*rmassh
-                        parm_srf(m,3,numsrf(m))=oden*rmasso
-                        parm_srf(m,4,numsrf(m))=qpress
-                        parm_srf(m,5,numsrf(m))=hpress
-                        parm_srf(m,6,numsrf(m))=opress
-                        parm_srf(m,7,numsrf(m))=epress
+                        parm_srf(box,1,numsrf(box))=qden*rmassq
+                        parm_srf(box,2,numsrf(box))=hden*rmassh
+                        parm_srf(box,3,numsrf(box))=oden*rmasso
+                        parm_srf(box,4,numsrf(box))=qpress
+                        parm_srf(box,5,numsrf(box))=hpress
+                        parm_srf(box,6,numsrf(box))=opress
+                        parm_srf(box,7,numsrf(box))=epress
                         !
                     endif
                 endif
@@ -294,8 +295,8 @@ subroutine set_bndry_moon_ram(rmassq,rmassh,rmasso, &
         enddo
     enddo
     !
-    !         write(6,*)'total pts',ntot
-    !         write(6,*)'moon bndry_m pts',m,numsrf(m),nummid(m),numzero(m)
+    !         write(*,*) 'Total pts: ', ntot
+    !         write(*,*) 'moon bndry_m pts: ', box, numsrf(box), nummid(box), numzero(box)
     !
     return
 end

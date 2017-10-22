@@ -1,10 +1,10 @@
-subroutine calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
+subroutine calcur(bx,by,bz,nx,ny,nz,n_grids,box,curx,cury,curz, &
     rx,ry,rz)
     !
     !     this calculates the current associated with the perturbed b field
     !          i.e. curz= dby/dx - dbx/dy
     !
-    dimension bx(nx,ny,nz,ngrd),by(nx,ny,nz,ngrd),bz(nx,ny,nz,ngrd), &
+    dimension bx(nx,ny,nz,n_grids),by(nx,ny,nz,n_grids),bz(nx,ny,nz,n_grids), &
     curx(nx,ny,nz),cury(nx,ny,nz),curz(nx,ny,nz)
     !
     dxt=2.*rx
@@ -24,14 +24,14 @@ subroutine calcur(bx,by,bz,nx,ny,nz,ngrd,m,curx,cury,curz, &
                 im=i-1
                 ip=i+1
                 !
-                curx(i,j,k)=(bz(i,jp,k,m)-bz(i,jm,k,m))/dyt &
-                - (by(i,j,kp,m)-by(i,j,km,m))/dzt
+                curx(i,j,k)=(bz(i,jp,k,box)-bz(i,jm,k,box))/dyt &
+                - (by(i,j,kp,box)-by(i,j,km,box))/dzt
                 !
-                cury(i,j,k)=(bx(i,j,kp,m)-bx(i,j,km,m))/dzt &
-                - (bz(ip,j,k,m)-bz(im,j,k,m))/dxt
+                cury(i,j,k)=(bx(i,j,kp,box)-bx(i,j,km,box))/dzt &
+                - (bz(ip,j,k,box)-bz(im,j,k,box))/dxt
                 !
-                curz(i,j,k)=(by(ip,j,k,m)-by(im,j,k,m))/dxt &
-                - (bx(i,jp,k,m)-bx(i,jm,k,m))/dyt
+                curz(i,j,k)=(by(ip,j,k,box)-by(im,j,k,box))/dxt &
+                - (bx(i,jp,k,box)-bx(i,jm,k,box))/dyt
             enddo
         enddo
     enddo

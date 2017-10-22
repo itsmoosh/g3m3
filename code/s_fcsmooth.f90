@@ -3,7 +3,7 @@
 !	fcsmooth
 !	fcsmooth_2d
 !
-subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
+subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,n_grids,box,chipx, &
     tempx,tempy,tempz)
     !
     !     applies flux correction smoothing to field quantities
@@ -12,8 +12,8 @@ subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
     !           px is the final product
     !     wrk arrays assumed to have dimension larger than nx,ny,nz
     !
-    dimension px(nx,ny,nz,ngrd),oldpx(nx,ny,nz,ngrd), &
-    wrkpx(nx,ny,nz,ngrd), &
+    dimension px(nx,ny,nz,n_grids),oldpx(nx,ny,nz,n_grids), &
+    wrkpx(nx,ny,nz,n_grids), &
     tempx(nx,ny,nz),tempy(nx,ny,nz),tempz(nx,ny,nz)
     !
     real,dimension(nx,ny,nz) :: deltax,delta1x,fnx, &
@@ -26,7 +26,7 @@ subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
     do k=1,nz
         do j=1,ny
             do i=1,nx
-                tempx(i,j,k)=wrkpx(i,j,k,m)
+                tempx(i,j,k)=wrkpx(i,j,k,box)
             enddo
         enddo
     enddo
@@ -40,11 +40,11 @@ subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
             jp=j+1
             jm=j-1
             do i=2,nx-1
-                px(i,j,k,m)=wrkpx(i,j,k,m)+chipx*( &
-                oldpx(i+1,j,k,m)+oldpx(i-1,j,k,m) &
-                +oldpx(i,jp,k,m)+oldpx(i,jm,k,m) &
-                +oldpx(i,j,kp,m)+oldpx(i,j,km,m) &
-                -6.*oldpx(i,j,k,m))
+                px(i,j,k,box)=wrkpx(i,j,k,box)+chipx*( &
+                oldpx(i+1,j,k,box)+oldpx(i-1,j,k,box) &
+                +oldpx(i,jp,k,box)+oldpx(i,jm,k,box) &
+                +oldpx(i,j,kp,box)+oldpx(i,j,km,box) &
+                -6.*oldpx(i,j,k,box))
             enddo
         enddo
     enddo
@@ -54,28 +54,28 @@ subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
     !$omp  parallel do
     do k=1,nz
         do j=1,ny
-            px(1,j,k,m)=wrkpx(1,j,k,m)
-            px(nx,j,k,m)=wrkpx(nx,j,k,m)
-            tempx(1,j,k)=wrkpx(1,j,k,m)
-            tempx(nx,j,k)=wrkpx(nx,j,k,m)
+            px(1,j,k,box)=wrkpx(1,j,k,box)
+            px(nx,j,k,box)=wrkpx(nx,j,k,box)
+            tempx(1,j,k)=wrkpx(1,j,k,box)
+            tempx(nx,j,k)=wrkpx(nx,j,k,box)
         enddo
     enddo
     !$omp  parallel do
     do j=1,ny
         do i=1,nx
-            px(i,j,1,m)=wrkpx(i,j,1,m)
-            px(i,j,nz,m)=wrkpx(i,j,nz,m)
-            tempx(i,j,1)=wrkpx(i,j,1,m)
-            tempx(i,j,nz)=wrkpx(i,j,nz,m)
+            px(i,j,1,box)=wrkpx(i,j,1,box)
+            px(i,j,nz,box)=wrkpx(i,j,nz,box)
+            tempx(i,j,1)=wrkpx(i,j,1,box)
+            tempx(i,j,nz)=wrkpx(i,j,nz,box)
         enddo
     enddo
     !$omp  parallel do
     do k=1,nz
         do i=1,nx
-            px(i,1,k,m)=wrkpx(i,1,k,m)
-            px(i,ny,k,m)=wrkpx(i,ny,k,m)
-            tempx(i,1,k)=wrkpx(i,1,k,m)
-            tempx(i,ny,k)=wrkpx(i,ny,k,m)
+            px(i,1,k,box)=wrkpx(i,1,k,box)
+            px(i,ny,k,box)=wrkpx(i,ny,k,box)
+            tempx(i,1,k)=wrkpx(i,1,k,box)
+            tempx(i,ny,k)=wrkpx(i,ny,k,box)
         enddo
     enddo
     !
@@ -86,8 +86,8 @@ subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
         do j=1,ny
             do i=1,nx-1
                 i1=i+1
-                deltax(i,j,k)=wrkpx(i1,j,k,m)-wrkpx(i,j,k,m)   !d-non-diffuse n+1 sol'n
-                delta1x(i,j,k)=px(i1,j,k,m)-px(i,j,k,m)   !d1-diffused n+1 sol'n
+                deltax(i,j,k)=wrkpx(i1,j,k,box)-wrkpx(i,j,k,box)   !d-non-diffuse n+1 sol'n
+                delta1x(i,j,k)=px(i1,j,k,box)-px(i,j,k,box)   !d1-diffused n+1 sol'n
             enddo
         enddo
     enddo
@@ -124,8 +124,8 @@ subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
         do j=1,ny
             do i=2,nx-1
                 i1=i-1
-                tempx(i,j,k)=px(i,j,k,m)-fnx(i,j,k)+fnx(i1,j,k) ! all smoothing
-                !        px(i,j,k,m)=px(i,j,k,m)-fnx(i)+fnx(i1)  ! x-smooth only
+                tempx(i,j,k)=px(i,j,k,box)-fnx(i,j,k)+fnx(i1,j,k) ! all smoothing
+                !        px(i,j,k,box)=px(i,j,k,box)-fnx(i)+fnx(i1)  ! x-smooth only
             enddo
         enddo
     enddo
@@ -137,8 +137,8 @@ subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
         do j=1,ny-1
             j1=j+1
             do i=1,nx
-                deltay(i,j,k)=wrkpx(i,j1,k,m)-wrkpx(i,j,k,m)  !non-diffuse n+1 solution
-                delta1y(i,j,k)=px(i,j1,k,m)-px(i,j,k,m)   !diffused n+1 solution
+                deltay(i,j,k)=wrkpx(i,j1,k,box)-wrkpx(i,j,k,box)  !non-diffuse n+1 solution
+                delta1y(i,j,k)=px(i,j1,k,box)-px(i,j,k,box)   !diffused n+1 solution
             enddo
         enddo
     enddo
@@ -176,7 +176,7 @@ subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
             j1=j-1
             do i=1,nx
                 tempx(i,j,k)=tempx(i,j,k)-fny(i,j,k)+fny(i,j1,k) ! for x-y-z smoothing
-                !        px(i,j,k,m)=tempx(i,j,k)-fny(j)+fny(j1) ! for x-y smoothing
+                !        px(i,j,k,box)=tempx(i,j,k)-fny(j)+fny(j1) ! for x-y smoothing
             enddo
         enddo
     enddo
@@ -187,8 +187,8 @@ subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
     do k=1,nz-1
         do j=1,ny
             do i=1,nx
-                deltaz(i,j,k)=wrkpx(i,j,k+1,m)-wrkpx(i,j,k,m)  !non-diffuse n+1 soln
-                delta1z(i,j,k)=px(i,j,k+1,m)-px(i,j,k,m)   !diffused n+1 solution
+                deltaz(i,j,k)=wrkpx(i,j,k+1,box)-wrkpx(i,j,k,box)  !non-diffuse n+1 soln
+                delta1z(i,j,k)=px(i,j,k+1,box)-px(i,j,k,box)   !diffused n+1 solution
             enddo
         enddo
     enddo
@@ -224,7 +224,7 @@ subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
     do k=2,nz-1
         do j=1,ny
             do i=1,nx
-                px(i,j,k,m)=tempx(i,j,k)-fnz(i,j,k)+fnz(i,j,k-1)
+                px(i,j,k,box)=tempx(i,j,k)-fnz(i,j,k)+fnz(i,j,k-1)
             enddo
         enddo
     enddo
@@ -236,7 +236,7 @@ end
 !	****************************************
 !
 !
-subroutine fcsmooth_2d(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
+subroutine fcsmooth_2d(px,oldpx,wrkpx,nx,ny,nz,n_grids,box,chipx, &
     delta,delta1,fn)
     !
     !     applies flux correction smoothing to field quantities
@@ -245,8 +245,8 @@ subroutine fcsmooth_2d(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
     !           px is the final product
     !     wrk arrays assumed to have dimension larger than nx,ny,nz
     !
-    dimension px(nx,ny,nz,ngrd),oldpx(nx,ny,nz,ngrd), &
-    wrkpx(nx,ny,nz,ngrd), &
+    dimension px(nx,ny,nz,n_grids),oldpx(nx,ny,nz,n_grids), &
+    wrkpx(nx,ny,nz,n_grids), &
     delta(nx,ny,nz),delta1(nx,ny,nz),fn(nx,ny,nz)
     !
     !         step 1:   diffuse initial in x direction
@@ -255,9 +255,9 @@ subroutine fcsmooth_2d(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
     do k=1,nz
         do j=1,ny
             do i=2,nx-1
-                px(i,j,k,m)=wrkpx(i,j,k,m)+chipx*( &
-                oldpx(i+1,j,k,m)+oldpx(i-1,j,k,m) &
-                -2.*oldpx(i,j,k,m))
+                px(i,j,k,box)=wrkpx(i,j,k,box)+chipx*( &
+                oldpx(i+1,j,k,box)+oldpx(i-1,j,k,box) &
+                -2.*oldpx(i,j,k,box))
             enddo
         enddo
     enddo
@@ -267,8 +267,8 @@ subroutine fcsmooth_2d(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
     !$omp  parallel do
     do k=1,nz
         do j=1,ny
-            px(1,j,k,m)=wrkpx(1,j,k,m)
-            px(nx,j,k,m)=wrkpx(nx,j,k,m)
+            px(1,j,k,box)=wrkpx(1,j,k,box)
+            px(nx,j,k,box)=wrkpx(nx,j,k,box)
         enddo
     enddo
     !
@@ -279,8 +279,8 @@ subroutine fcsmooth_2d(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
         do j=1,ny
             do i=1,nx-1
                 i1=i+1
-                delta(i,j,k)=wrkpx(i1,j,k,m)-wrkpx(i,j,k,m)   !d-non-diffuse n+1 sol'n
-                delta1(i,j,k)=px(i1,j,k,m)-px(i,j,k,m)   !d1-diffused n+1 sol'n
+                delta(i,j,k)=wrkpx(i1,j,k,box)-wrkpx(i,j,k,box)   !d-non-diffuse n+1 sol'n
+                delta1(i,j,k)=px(i1,j,k,box)-px(i,j,k,box)   !d1-diffused n+1 sol'n
             enddo
         enddo
     enddo
@@ -315,8 +315,8 @@ subroutine fcsmooth_2d(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
         do j=1,ny
             do i=2,nx-1
                 i1=i-1
-                wrkpx(i,j,k,m)=px(i,j,k,m)-fn(i,j,k)+fn(i1,j,k) ! all smoothing
-                !        px(i,j,k,m)=px(i,j,k,m)-fn(i,j,k)+fn(i1,j,k)  ! x-smooth only
+                wrkpx(i,j,k,box)=px(i,j,k,box)-fn(i,j,k)+fn(i1,j,k) ! all smoothing
+                !        px(i,j,k,box)=px(i,j,k,box)-fn(i,j,k)+fn(i1,j,k)  ! x-smooth only
             enddo
         enddo
     enddo
@@ -329,17 +329,17 @@ subroutine fcsmooth_2d(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
             jp=j+1
             jm=j-1
             do i=1,nx
-                px(i,j,k,m)=wrkpx(i,j,k,m)+chipx*( &
-                oldpx(i,jp,k,m)+oldpx(i,jm,k,m) &
-                -2.*oldpx(i,j,k,m))
+                px(i,j,k,box)=wrkpx(i,j,k,box)+chipx*( &
+                oldpx(i,jp,k,box)+oldpx(i,jm,k,box) &
+                -2.*oldpx(i,j,k,box))
             enddo
         enddo
     enddo
     !$omp  parallel do
     do k=1,nz
         do i=1,nx
-            px(i,1,k,m)=wrkpx(i,1,k,m)
-            px(i,ny,k,m)=wrkpx(i,ny,k,m)
+            px(i,1,k,box)=wrkpx(i,1,k,box)
+            px(i,ny,k,box)=wrkpx(i,ny,k,box)
         enddo
     enddo
     !
@@ -350,8 +350,8 @@ subroutine fcsmooth_2d(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
         do j=1,ny-1
             j1=j+1
             do i=1,nx
-                delta(i,j,k)=wrkpx(i,j1,k,m)-wrkpx(i,j,k,m)  !non-diffuse n+1 solution
-                delta1(i,j,k)=px(i,j1,k,m)-px(i,j,k,m)   !diffused n+1 solution
+                delta(i,j,k)=wrkpx(i,j1,k,box)-wrkpx(i,j,k,box)  !non-diffuse n+1 solution
+                delta1(i,j,k)=px(i,j1,k,box)-px(i,j,k,box)   !diffused n+1 solution
             enddo
         enddo
     enddo
@@ -388,8 +388,8 @@ subroutine fcsmooth_2d(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
         do j=2,ny-1
             j1=j-1
             do i=1,nx
-                !        wrkpx(i,j,k,m)=px(i,j,k,m)-fn(i,j,k)+fn(i,j1,k) ! for x-y-z smoothing
-                px(i,j,k,m)=px(i,j,k,m)-fn(i,j,k)+fn(i,j1,k) ! for x-y smoothing
+                !        wrkpx(i,j,k,box)=px(i,j,k,box)-fn(i,j,k)+fn(i,j1,k) ! for x-y-z smoothing
+                px(i,j,k,box)=px(i,j,k,box)-fn(i,j,k)+fn(i,j1,k) ! for x-y smoothing
             enddo
         enddo
     enddo

@@ -3,23 +3,23 @@
 !	corer
 !	corer_grds
 !
-subroutine corer(rho,nx,ny,nz,ngrd,m,grd_xmin,grd_xmax, &
+subroutine corer(rho,nx,ny,nz,n_grids,box,grd_xmin,grd_xmax, &
     grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
-    !      m is the coring subject grid index
+    !      box is the coring subject grid index
     !
-    dimension rho(nx,ny,nz,ngrd)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension rho(nx,ny,nz,n_grids)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     !
     !    fills in the core of the coarser (big) grid in position nb
     !       using data from the finer (small) grid in position ns
     !
     !     set limits for coarse grid
     !
-    mb=m+1
-    ms=m
+    mb=box+1
+    ms=box
     sx=(grd_xmax(ms)-grd_xmin(ms))/(nx-1.)
     sy=(grd_ymax(ms)-grd_ymin(ms))/(ny-1.)
     sz=(grd_zmax(ms)-grd_zmin(ms))/(nz-1.)
@@ -64,17 +64,17 @@ end
 !	****************************************
 !
 !
-subroutine corer_grds(rho,nx,ny,nz,ngrd,main_ngrd, &
+subroutine corer_grds(rho,nx,ny,nz,n_grids,main_ngrd, &
     rho_n,nx_n,ny_n,nz_n,ngrd_n, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
     grd_zmin,grd_zmax, &
     grd_xmin_n,grd_xmax_n,grd_ymin_n,grd_ymax_n, &
     grd_zmin_n,grd_zmax_n)
     !
-    dimension rho(nx,ny,nz,ngrd),rho_n(nx_n,ny_n,nz_n,ngrd_n)
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-    grd_ymin(ngrd),grd_ymax(ngrd), &
-    grd_zmin(ngrd),grd_zmax(ngrd)
+    dimension rho(nx,ny,nz,n_grids),rho_n(nx_n,ny_n,nz_n,ngrd_n)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+    grd_ymin(n_grids),grd_ymax(n_grids), &
+    grd_zmin(n_grids),grd_zmax(n_grids)
     dimension grd_xmin_n(ngrd_n),grd_xmax_n(ngrd_n), &
     grd_ymin_n(ngrd_n),grd_ymax_n(ngrd_n), &
     grd_zmin_n(ngrd_n),grd_zmax_n(ngrd_n)

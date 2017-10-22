@@ -4,30 +4,30 @@ subroutine diffuse(qrho,qpres,qpx,qpy,qpz, &
     wrkqrho,wrkqpres,wrkqpx,wrkqpy,wrkqpz, &
     wrkhrho,wrkhpres,wrkhpx,wrkhpy,wrkhpz,wrkorho, &
     wrkopres,wrkopx,wrkopy,wrkopz, &
-    wrkepres,wrkbx,wrkby,wrkbz,nx,ny,nz,ngrd,m, &
+    wrkepres,wrkbx,wrkby,wrkbz,nx,ny,nz,n_grids,box, &
     difrho,difpxyz,diferg,delt,xspac,yspac,zspac)
     !
     !     apply straight artifical diffusion:
     !
-    dimension qrho(nx,ny,nz,ngrd),qpres(nx,ny,nz,ngrd), &
-    qpx(nx,ny,nz,ngrd),qpy(nx,ny,nz,ngrd),qpz(nx,ny,nz,ngrd), &
-    hrho(nx,ny,nz,ngrd),hpres(nx,ny,nz,ngrd), &
-    hpx(nx,ny,nz,ngrd),hpy(nx,ny,nz,ngrd),hpz(nx,ny,nz,ngrd), &
-    orho(nx,ny,nz,ngrd),opres(nx,ny,nz,ngrd), &
-    opx(nx,ny,nz,ngrd),opy(nx,ny,nz,ngrd),opz(nx,ny,nz,ngrd), &
-    bx(nx,ny,nz,ngrd),by(nx,ny,nz,ngrd),bz(nx,ny,nz,ngrd), &
-    epres(nx,ny,nz,ngrd)
+    dimension qrho(nx,ny,nz,n_grids),qpres(nx,ny,nz,n_grids), &
+    qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids),qpz(nx,ny,nz,n_grids), &
+    hrho(nx,ny,nz,n_grids),hpres(nx,ny,nz,n_grids), &
+    hpx(nx,ny,nz,n_grids),hpy(nx,ny,nz,n_grids),hpz(nx,ny,nz,n_grids), &
+    orho(nx,ny,nz,n_grids),opres(nx,ny,nz,n_grids), &
+    opx(nx,ny,nz,n_grids),opy(nx,ny,nz,n_grids),opz(nx,ny,nz,n_grids), &
+    bx(nx,ny,nz,n_grids),by(nx,ny,nz,n_grids),bz(nx,ny,nz,n_grids), &
+    epres(nx,ny,nz,n_grids)
     !
-    dimension wrkqrho(nx,ny,nz,ngrd),wrkqpres(nx,ny,nz,ngrd), &
-    wrkqpx(nx,ny,nz,ngrd),wrkqpy(nx,ny,nz,ngrd), &
-    wrkqpz(nx,ny,nz,ngrd),wrkhrho(nx,ny,nz,ngrd), &
-    wrkhpres(nx,ny,nz,ngrd),wrkhpx(nx,ny,nz,ngrd), &
-    wrkhpy(nx,ny,nz,ngrd),wrkhpz(nx,ny,nz,ngrd), &
-    wrkorho(nx,ny,nz,ngrd),wrkopres(nx,ny,nz,ngrd), &
-    wrkopx(nx,ny,nz,ngrd),wrkopy(nx,ny,nz,ngrd), &
-    wrkopz(nx,ny,nz,ngrd),wrkbx(nx,ny,nz,ngrd), &
-    wrkby(nx,ny,nz,ngrd),wrkbz(nx,ny,nz,ngrd), &
-    wrkepres(nx,ny,nz,ngrd)
+    dimension wrkqrho(nx,ny,nz,n_grids),wrkqpres(nx,ny,nz,n_grids), &
+    wrkqpx(nx,ny,nz,n_grids),wrkqpy(nx,ny,nz,n_grids), &
+    wrkqpz(nx,ny,nz,n_grids),wrkhrho(nx,ny,nz,n_grids), &
+    wrkhpres(nx,ny,nz,n_grids),wrkhpx(nx,ny,nz,n_grids), &
+    wrkhpy(nx,ny,nz,n_grids),wrkhpz(nx,ny,nz,n_grids), &
+    wrkorho(nx,ny,nz,n_grids),wrkopres(nx,ny,nz,n_grids), &
+    wrkopx(nx,ny,nz,n_grids),wrkopy(nx,ny,nz,n_grids), &
+    wrkopz(nx,ny,nz,n_grids),wrkbx(nx,ny,nz,n_grids), &
+    wrkby(nx,ny,nz,n_grids),wrkbz(nx,ny,nz,n_grids), &
+    wrkepres(nx,ny,nz,n_grids)
     !
     difb=diferg*delt/xspac
     dife=difrho*delt/xspac
@@ -49,123 +49,123 @@ subroutine diffuse(qrho,qpres,qpx,qpy,qpz, &
                 !
                 !       species 1
                 !
-                qrho(i,j,k,m)=wrkqrho(i,j,k,m) +difr*( &
-                +wrkqrho(ip,j,k,m)+wrkqrho(im,j,k,m) &
-                +wrkqrho(i,jp,k,m)+wrkqrho(i,jm,k,m) &
-                +wrkqrho(i,j,kp,m)+wrkqrho(i,j,km,m) &
-                -6.*wrkqrho(i,j,k,m) )
+                qrho(i,j,k,box)=wrkqrho(i,j,k,box) +difr*( &
+                +wrkqrho(ip,j,k,box)+wrkqrho(im,j,k,box) &
+                +wrkqrho(i,jp,k,box)+wrkqrho(i,jm,k,box) &
+                +wrkqrho(i,j,kp,box)+wrkqrho(i,j,km,box) &
+                -6.*wrkqrho(i,j,k,box) )
     			!
-                qpx(i,j,k,m)=wrkqpx(i,j,k,m) +difp*( &
-                +wrkqpx(ip,j,k,m)+wrkqpx(im,j,k,m) &
-                +wrkqpx(i,jp,k,m)+wrkqpx(i,jm,k,m) &
-                +wrkqpx(i,j,kp,m)+wrkqpx(i,j,km,m) &
-                -6.*wrkqpx(i,j,k,m) )
+                qpx(i,j,k,box)=wrkqpx(i,j,k,box) +difp*( &
+                +wrkqpx(ip,j,k,box)+wrkqpx(im,j,k,box) &
+                +wrkqpx(i,jp,k,box)+wrkqpx(i,jm,k,box) &
+                +wrkqpx(i,j,kp,box)+wrkqpx(i,j,km,box) &
+                -6.*wrkqpx(i,j,k,box) )
                 !
-                qpy(i,j,k,m)=wrkqpy(i,j,k,m) +difp*( &
-                +wrkqpy(ip,j,k,m)+wrkqpy(im,j,k,m) &
-                +wrkqpy(i,jp,k,m)+wrkqpy(i,jm,k,m) &
-                +wrkqpy(i,j,kp,m)+wrkqpy(i,j,km,m) &
-                -6.*wrkqpy(i,j,k,m) )
+                qpy(i,j,k,box)=wrkqpy(i,j,k,box) +difp*( &
+                +wrkqpy(ip,j,k,box)+wrkqpy(im,j,k,box) &
+                +wrkqpy(i,jp,k,box)+wrkqpy(i,jm,k,box) &
+                +wrkqpy(i,j,kp,box)+wrkqpy(i,j,km,box) &
+                -6.*wrkqpy(i,j,k,box) )
                 !
-                qpz(i,j,k,m)=wrkqpz(i,j,k,m) +difp*( &
-                +wrkqpz(ip,j,k,m)+wrkqpz(im,j,k,m) &
-                +wrkqpz(i,jp,k,m)+wrkqpz(i,jm,k,m) &
-                +wrkqpz(i,j,kp,m)+wrkqpz(i,j,km,m) &
-                -6.*wrkqpz(i,j,k,m) )
+                qpz(i,j,k,box)=wrkqpz(i,j,k,box) +difp*( &
+                +wrkqpz(ip,j,k,box)+wrkqpz(im,j,k,box) &
+                +wrkqpz(i,jp,k,box)+wrkqpz(i,jm,k,box) &
+                +wrkqpz(i,j,kp,box)+wrkqpz(i,j,km,box) &
+                -6.*wrkqpz(i,j,k,box) )
                 !
-                qpres(i,j,k,m)=wrkqpres(i,j,k,m) +dife*( &
-                + wrkqpres(ip,j,k,m)+wrkqpres(im,j,k,m) &
-                + wrkqpres(i,jp,k,m)+wrkqpres(i,jm,k,m) &
-                + wrkqpres(i,j,kp,m)+wrkqpres(i,j,km,m) &
-                -6.*wrkqpres(i,j,k,m) )
+                qpres(i,j,k,box)=wrkqpres(i,j,k,box) +dife*( &
+                + wrkqpres(ip,j,k,box)+wrkqpres(im,j,k,box) &
+                + wrkqpres(i,jp,k,box)+wrkqpres(i,jm,k,box) &
+                + wrkqpres(i,j,kp,box)+wrkqpres(i,j,km,box) &
+                -6.*wrkqpres(i,j,k,box) )
                 !
                 !       species 2
                 !
-                hrho(i,j,k,m)=wrkhrho(i,j,k,m) +difr*( &
-                + wrkhrho(ip,j,k,m)+wrkhrho(im,j,k,m) &
-                + wrkhrho(i,jp,k,m)+wrkhrho(i,jm,k,m) &
-                + wrkhrho(i,j,kp,m)+wrkhrho(i,j,km,m) &
-                -6.*wrkhrho(i,j,k,m) )
+                hrho(i,j,k,box)=wrkhrho(i,j,k,box) +difr*( &
+                + wrkhrho(ip,j,k,box)+wrkhrho(im,j,k,box) &
+                + wrkhrho(i,jp,k,box)+wrkhrho(i,jm,k,box) &
+                + wrkhrho(i,j,kp,box)+wrkhrho(i,j,km,box) &
+                -6.*wrkhrho(i,j,k,box) )
     			!
-                hpx(i,j,k,m)=wrkhpx(i,j,k,m) +difp*( &
-                +wrkhpx(ip,j,k,m)+wrkhpx(im,j,k,m) &
-                +wrkhpx(i,jp,k,m)+wrkhpx(i,jm,k,m) &
-                +wrkhpx(i,j,kp,m)+wrkhpx(i,j,km,m) &
-                -6.*wrkhpx(i,j,k,m) )
+                hpx(i,j,k,box)=wrkhpx(i,j,k,box) +difp*( &
+                +wrkhpx(ip,j,k,box)+wrkhpx(im,j,k,box) &
+                +wrkhpx(i,jp,k,box)+wrkhpx(i,jm,k,box) &
+                +wrkhpx(i,j,kp,box)+wrkhpx(i,j,km,box) &
+                -6.*wrkhpx(i,j,k,box) )
                 !
-                hpy(i,j,k,m)=wrkhpy(i,j,k,m) +difp*( &
-                +wrkhpy(ip,j,k,m)+wrkhpy(im,j,k,m) &
-                +wrkhpy(i,jp,k,m)+wrkhpy(i,jm,k,m) &
-                +wrkhpy(i,j,kp,m)+wrkhpy(i,j,km,m) &
-                -6.*wrkhpy(i,j,k,m) )
+                hpy(i,j,k,box)=wrkhpy(i,j,k,box) +difp*( &
+                +wrkhpy(ip,j,k,box)+wrkhpy(im,j,k,box) &
+                +wrkhpy(i,jp,k,box)+wrkhpy(i,jm,k,box) &
+                +wrkhpy(i,j,kp,box)+wrkhpy(i,j,km,box) &
+                -6.*wrkhpy(i,j,k,box) )
                 !
-                hpz(i,j,k,m)=wrkhpz(i,j,k,m) +difp*( &
-                +wrkhpz(ip,j,k,m)+wrkhpz(im,j,k,m) &
-                +wrkhpz(i,jp,k,m)+wrkhpz(i,jm,k,m) &
-                +wrkhpz(i,j,kp,m)+wrkhpz(i,j,km,m) &
-                -6.*wrkhpz(i,j,k,m) )
+                hpz(i,j,k,box)=wrkhpz(i,j,k,box) +difp*( &
+                +wrkhpz(ip,j,k,box)+wrkhpz(im,j,k,box) &
+                +wrkhpz(i,jp,k,box)+wrkhpz(i,jm,k,box) &
+                +wrkhpz(i,j,kp,box)+wrkhpz(i,j,km,box) &
+                -6.*wrkhpz(i,j,k,box) )
                 !
-                hpres(i,j,k,m)=wrkhpres(i,j,k,m) +dife*( &
-                + wrkhpres(ip,j,k,m)+wrkhpres(im,j,k,m) &
-                + wrkhpres(i,jp,k,m)+wrkhpres(i,jm,k,m) &
-                + wrkhpres(i,j,kp,m)+wrkhpres(i,j,km,m) &
-                -6.*wrkhpres(i,j,k,m) )
+                hpres(i,j,k,box)=wrkhpres(i,j,k,box) +dife*( &
+                + wrkhpres(ip,j,k,box)+wrkhpres(im,j,k,box) &
+                + wrkhpres(i,jp,k,box)+wrkhpres(i,jm,k,box) &
+                + wrkhpres(i,j,kp,box)+wrkhpres(i,j,km,box) &
+                -6.*wrkhpres(i,j,k,box) )
                 !
                 !       species 3
                 !
-                orho(i,j,k,m)=wrkorho(i,j,k,m) +difo*( &
-                + wrkorho(ip,j,k,m)+wrkorho(im,j,k,m) &
-                + wrkorho(i,jp,k,m)+wrkorho(i,jm,k,m) &
-                + wrkorho(i,j,kp,m)+wrkorho(i,j,km,m) &
-                -6.*wrkorho(i,j,k,m) )
+                orho(i,j,k,box)=wrkorho(i,j,k,box) +difo*( &
+                + wrkorho(ip,j,k,box)+wrkorho(im,j,k,box) &
+                + wrkorho(i,jp,k,box)+wrkorho(i,jm,k,box) &
+                + wrkorho(i,j,kp,box)+wrkorho(i,j,km,box) &
+                -6.*wrkorho(i,j,k,box) )
     			!
-                opx(i,j,k,m)=wrkopx(i,j,k,m) +difo*( &
-                +wrkopx(ip,j,k,m)+wrkopx(im,j,k,m) &
-                +wrkopx(i,jp,k,m)+wrkopx(i,jm,k,m) &
-                +wrkopx(i,j,kp,m)+wrkopx(i,j,km,m) &
-                -6.*wrkopx(i,j,k,m) )
+                opx(i,j,k,box)=wrkopx(i,j,k,box) +difo*( &
+                +wrkopx(ip,j,k,box)+wrkopx(im,j,k,box) &
+                +wrkopx(i,jp,k,box)+wrkopx(i,jm,k,box) &
+                +wrkopx(i,j,kp,box)+wrkopx(i,j,km,box) &
+                -6.*wrkopx(i,j,k,box) )
                 !
-                opy(i,j,k,m)=wrkopy(i,j,k,m) +difo*( &
-                +wrkopy(ip,j,k,m)+wrkopy(im,j,k,m) &
-                +wrkopy(i,jp,k,m)+wrkopy(i,jm,k,m) &
-                +wrkopy(i,j,kp,m)+wrkopy(i,j,km,m) &
-                -6.*wrkopy(i,j,k,m) )
+                opy(i,j,k,box)=wrkopy(i,j,k,box) +difo*( &
+                +wrkopy(ip,j,k,box)+wrkopy(im,j,k,box) &
+                +wrkopy(i,jp,k,box)+wrkopy(i,jm,k,box) &
+                +wrkopy(i,j,kp,box)+wrkopy(i,j,km,box) &
+                -6.*wrkopy(i,j,k,box) )
                 !
-                opz(i,j,k,m)=wrkopz(i,j,k,m) +difo*( &
-                +wrkopz(ip,j,k,m)+wrkopz(im,j,k,m) &
-                +wrkopz(i,jp,k,m)+wrkopz(i,jm,k,m) &
-                +wrkopz(i,j,kp,m)+wrkopz(i,j,km,m) &
-                -6.*wrkopz(i,j,k,m) )
+                opz(i,j,k,box)=wrkopz(i,j,k,box) +difo*( &
+                +wrkopz(ip,j,k,box)+wrkopz(im,j,k,box) &
+                +wrkopz(i,jp,k,box)+wrkopz(i,jm,k,box) &
+                +wrkopz(i,j,kp,box)+wrkopz(i,j,km,box) &
+                -6.*wrkopz(i,j,k,box) )
                 !
-                opres(i,j,k,m)=wrkopres(i,j,k,m) +dife*( &
-                + wrkopres(ip,j,k,m)+wrkopres(im,j,k,m) &
-                + wrkopres(i,jp,k,m)+wrkopres(i,jm,k,m) &
-                + wrkopres(i,j,kp,m)+wrkopres(i,j,km,m) &
-                -6.*wrkopres(i,j,k,m) )
+                opres(i,j,k,box)=wrkopres(i,j,k,box) +dife*( &
+                + wrkopres(ip,j,k,box)+wrkopres(im,j,k,box) &
+                + wrkopres(i,jp,k,box)+wrkopres(i,jm,k,box) &
+                + wrkopres(i,j,kp,box)+wrkopres(i,j,km,box) &
+                -6.*wrkopres(i,j,k,box) )
                 !
-                epres(i,j,k,m)=wrkepres(i,j,k,m) +dife*( &
-                + wrkepres(ip,j,k,m)+wrkepres(im,j,k,m) &
-                + wrkepres(i,jp,k,m)+wrkepres(i,jm,k,m) &
-                + wrkepres(i,j,kp,m)+wrkepres(i,j,km,m) &
-                -6.*wrkepres(i,j,k,m) )
+                epres(i,j,k,box)=wrkepres(i,j,k,box) +dife*( &
+                + wrkepres(ip,j,k,box)+wrkepres(im,j,k,box) &
+                + wrkepres(i,jp,k,box)+wrkepres(i,jm,k,box) &
+                + wrkepres(i,j,kp,box)+wrkepres(i,j,km,box) &
+                -6.*wrkepres(i,j,k,box) )
                 !
-                bx(i,j,k,m)=wrkbx(i,j,k,m)+difb*( &
-                + wrkbx(ip,j,k,m)+wrkbx(im,j,k,m) &
-                + wrkbx(i,jp,k,m)+wrkbx(i,jm,k,m) &
-                + wrkbx(i,j,kp,m)+wrkbx(i,j,km,m) &
-                -6.*wrkbx(i,j,k,m) )
+                bx(i,j,k,box)=wrkbx(i,j,k,box)+difb*( &
+                + wrkbx(ip,j,k,box)+wrkbx(im,j,k,box) &
+                + wrkbx(i,jp,k,box)+wrkbx(i,jm,k,box) &
+                + wrkbx(i,j,kp,box)+wrkbx(i,j,km,box) &
+                -6.*wrkbx(i,j,k,box) )
                 !
-                by(i,j,k,m)=wrkby(i,j,k,m)+difb*( &
-                + wrkby(ip,j,k,m)+wrkby(im,j,k,m) &
-                + wrkby(i,jp,k,m)+wrkby(i,jm,k,m) &
-                + wrkby(i,j,kp,m)+wrkby(i,j,km,m) &
-                -6.*wrkby(i,j,k,m) )
+                by(i,j,k,box)=wrkby(i,j,k,box)+difb*( &
+                + wrkby(ip,j,k,box)+wrkby(im,j,k,box) &
+                + wrkby(i,jp,k,box)+wrkby(i,jm,k,box) &
+                + wrkby(i,j,kp,box)+wrkby(i,j,km,box) &
+                -6.*wrkby(i,j,k,box) )
                 !
-                bz(i,j,k,m)=wrkbz(i,j,k,m)+difb*( &
-                + wrkbz(ip,j,k,m)+wrkbz(im,j,k,m) &
-                + wrkbz(i,jp,k,m)+wrkbz(i,jm,k,m) &
-                + wrkbz(i,j,kp,m)+wrkbz(i,j,km,m) &
-                -6.*wrkbz(i,j,k,m) )
+                bz(i,j,k,box)=wrkbz(i,j,k,box)+difb*( &
+                + wrkbz(ip,j,k,box)+wrkbz(im,j,k,box) &
+                + wrkbz(i,jp,k,box)+wrkbz(i,jm,k,box) &
+                + wrkbz(i,j,kp,box)+wrkbz(i,j,km,box) &
+                -6.*wrkbz(i,j,k,box) )
             enddo
         enddo
     enddo
