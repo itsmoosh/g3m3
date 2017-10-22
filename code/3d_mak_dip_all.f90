@@ -4,8 +4,8 @@
 !	mak_dip_grd
 !	mak_dip_moon
 !
-subroutine mak_dip_all(bx0,by0,bz0,nx,ny,nz,ngrd, &
-    mbndry,ijzero,numzero,mzero,rearth, &
+subroutine mak_dip_all(bx0,by0,bz0,nx,ny,nz,n_grids, &
+    mbndry,ijzero,numzero,mzero,r_inner, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !      initialize static magnetic field along entire grid
@@ -13,11 +13,11 @@ subroutine mak_dip_all(bx0,by0,bz0,nx,ny,nz,ngrd, &
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
         sin_tilt,cos_tilt,b0
     !
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-        grd_ymin(ngrd),grd_ymax(ngrd), &
-        grd_zmin(ngrd),grd_zmax(ngrd)
-    dimension bx0(nx,ny,nz,ngrd),by0(nx,ny,nz,ngrd), &
-        bz0(nx,ny,nz,ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+        grd_ymin(n_grids),grd_ymax(n_grids), &
+        grd_zmin(n_grids),grd_zmax(n_grids)
+    dimension bx0(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids), &
+        bz0(nx,ny,nz,n_grids)
     integer ijzero(mbndry,3,mzero),numzero(mbndry)
     !
     !
@@ -25,21 +25,21 @@ subroutine mak_dip_all(bx0,by0,bz0,nx,ny,nz,ngrd, &
     cos_rot=cos(rot_angle)
     !
     !$omp  parallel do
-    do m=1,ngrd
-        dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-        dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-        dz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+    do box=1,n_grids
+        dx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+        dy=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+        dz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
         !
         do k=1,nz
-            az=grd_zmin(m)+dz*(k-1)
+            az=grd_zmin(box)+dz*(k-1)
             z1=(az-zdip)
             !
             do  j=1,ny
-                ay=grd_ymin(m)+dy*(j-1)
+                ay=grd_ymin(box)+dy*(j-1)
                 y1=(ay-ydip)
                 !
                 do  i=1,nx
-                    ax=grd_xmin(m)+dx*(i-1)
+                    ax=grd_xmin(box)+dx*(i-1)
                     x1=(ax-xdip)
                     !
                     !       rotate coordinates for planet motion
@@ -79,14 +79,14 @@ subroutine mak_dip_all(bx0,by0,bz0,nx,ny,nz,ngrd, &
                     aby=rbx*sin_rot+rby*cos_rot
                     abz=rbz
                     !
-                    if(ar.gt.rearth-1.5) then
-                        bx0(i,j,k,m)=abx
-                        by0(i,j,k,m)=aby
-                        bz0(i,j,k,m)=abz
+                    if(ar.gt.r_inner-1.5) then
+                        bx0(i,j,k,box)=abx
+                        by0(i,j,k,box)=aby
+                        bz0(i,j,k,box)=abz
                     else
-                        bx0(i,j,k,m)=0.
-                        by0(i,j,k,m)=0.
-                        bz0(i,j,k,m)=0.
+                        bx0(i,j,k,box)=0.
+                        by0(i,j,k,box)=0.
+                        bz0(i,j,k,box)=0.
                     endif
                     !
                 enddo
@@ -97,19 +97,19 @@ subroutine mak_dip_all(bx0,by0,bz0,nx,ny,nz,ngrd, &
     !
     !     boundary conditions
     !
-    do m=1,mbndry
+    do box=1,mbndry
         !$omp  parallel do
-        do n=1,numzero(m)
+        do n=1,numzero(box)
             !
             !        get coords of point
             !
-            i=ijzero(m,1,n)
-            j=ijzero(m,2,n)
-            k=ijzero(m,3,n)
+            i=ijzero(box,1,n)
+            j=ijzero(box,2,n)
+            k=ijzero(box,3,n)
             !
-            bx0(i,j,k,m)=0.
-            by0(i,j,k,m)=0.
-            bz0(i,j,k,m)=0.
+            bx0(i,j,k,box)=0.
+            by0(i,j,k,box)=0.
+            bz0(i,j,k,box)=0.
         enddo
     enddo
     !
@@ -120,8 +120,8 @@ end
 !	****************************************
 !
 !
-subroutine mak_dip_grd(bx0,by0,bz0,nx,ny,nz,ngrd, &
-    mbndry,m,ijzero,numzero,mzero,rearth, &
+subroutine mak_dip_grd(bx0,by0,bz0,nx,ny,nz,n_grids, &
+    mbndry,box,ijzero,numzero,mzero,r_inner, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !      initialize static magnetic field along entire grid
@@ -129,33 +129,34 @@ subroutine mak_dip_grd(bx0,by0,bz0,nx,ny,nz,ngrd, &
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
         sin_tilt,cos_tilt,b0
     !
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-        grd_ymin(ngrd),grd_ymax(ngrd), &
-        grd_zmin(ngrd),grd_zmax(ngrd)
-    dimension bx0(nx,ny,nz,ngrd),by0(nx,ny,nz,ngrd), &
-        bz0(nx,ny,nz,ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+        grd_ymin(n_grids),grd_ymax(n_grids), &
+        grd_zmin(n_grids),grd_zmax(n_grids)
+    dimension bx0(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids), &
+        bz0(nx,ny,nz,n_grids)
     integer ijzero(mbndry,3,mzero),numzero(mbndry)
     !
     sin_rot=sin(rot_angle)
     cos_rot=cos(rot_angle)
     !
-    !     write(6,*)'in mak dip',m,rearth,b0
+    !     write(*,*)'In mak dip: box, r_inner, b0'
+	!		write(*,*) box, r_inner, b0
     !
-    dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-    dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-    dz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+    dx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+    dy=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+    dz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
     !
     !$omp  parallel do
     do k=1,nz
-        az=grd_zmin(m)+dz*(k-1)
+        az=grd_zmin(box)+dz*(k-1)
         z1=(az-zdip)
         !
         do  j=1,ny
-            ay=grd_ymin(m)+dy*(j-1)
+            ay=grd_ymin(box)+dy*(j-1)
             y1=(ay-ydip)
             !
             do  i=1,nx
-                ax=grd_xmin(m)+dx*(i-1)
+                ax=grd_xmin(box)+dx*(i-1)
                 x1=(ax-xdip)
                 !
                 !        determine magnetic dipole field
@@ -200,14 +201,14 @@ subroutine mak_dip_grd(bx0,by0,bz0,nx,ny,nz,ngrd, &
                 aby=rbx*sin_rot+rby*cos_rot
                 abz=rbz
                 !
-                if(ar.gt.rearth-1.5) then
-                    bx0(i,j,k,m)=abx
-                    by0(i,j,k,m)=aby
-                    bz0(i,j,k,m)=abz
+                if(ar.gt.r_inner-1.5) then
+                    bx0(i,j,k,box)=abx
+                    by0(i,j,k,box)=aby
+                    bz0(i,j,k,box)=abz
                 else
-                    bx0(i,j,k,m)=0.
-                    by0(i,j,k,m)=0.
-                    bz0(i,j,k,m)=0.
+                    bx0(i,j,k,box)=0.
+                    by0(i,j,k,box)=0.
+                    bz0(i,j,k,box)=0.
                 endif
                 !
             enddo
@@ -217,18 +218,18 @@ subroutine mak_dip_grd(bx0,by0,bz0,nx,ny,nz,ngrd, &
     !
     !     boundary conditions
     !
-    if(m.le.mbndry)then
-        do n=1,numzero(m)
+    if(box.le.mbndry)then
+        do n=1,numzero(box)
             !
             !        get coords of point
             !
-            i=ijzero(m,1,n)
-            j=ijzero(m,2,n)
-            k=ijzero(m,3,n)
+            i=ijzero(box,1,n)
+            j=ijzero(box,2,n)
+            k=ijzero(box,3,n)
             !
-            bx0(i,j,k,m)=0.
-            by0(i,j,k,m)=0.
-            bz0(i,j,k,m)=0.
+            bx0(i,j,k,box)=0.
+            by0(i,j,k,box)=0.
+            bz0(i,j,k,box)=0.
         enddo
     endif
     !
@@ -239,8 +240,8 @@ end
 !	****************************************
 !
 !
-subroutine mak_dip_moon(bx0,by0,bz0,nx,ny,nz,ngrd, &
-    mbndry,m,ijzero,numzero,mzero,rearth, &
+subroutine mak_dip_moon(bx0,by0,bz0,nx,ny,nz,n_grids, &
+    mbndry,box,ijzero,numzero,mzero,r_inner, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
     !      initialize static magnetic field along entire grid
@@ -248,33 +249,34 @@ subroutine mak_dip_moon(bx0,by0,bz0,nx,ny,nz,ngrd, &
     common /rotation/v_rot,r_rot,rot_angle,xdip,ydip,zdip, &
         sin_tilt,cos_tilt,b0
     !
-    dimension grd_xmin(ngrd),grd_xmax(ngrd), &
-        grd_ymin(ngrd),grd_ymax(ngrd), &
-        grd_zmin(ngrd),grd_zmax(ngrd)
-    dimension bx0(nx,ny,nz,ngrd),by0(nx,ny,nz,ngrd), &
-        bz0(nx,ny,nz,ngrd)
+    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
+        grd_ymin(n_grids),grd_ymax(n_grids), &
+        grd_zmin(n_grids),grd_zmax(n_grids)
+    dimension bx0(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids), &
+        bz0(nx,ny,nz,n_grids)
     integer ijzero(mbndry,3,mzero),numzero(mbndry)
     !
     sin_rot=sin(rot_angle)
     cos_rot=cos(rot_angle)
     !
-    !     write(6,*)'in mak dip moon',m,nx,ny,nz,ngrd,mbndry
+    !     write(*,*)'In mak dip moon: box, nx, ny, nz, n_grids, mbndry'
+	!		write(*,*) box, nx, ny, nz, n_grids, mbndry
     !
-    dx=(grd_xmax(m)-grd_xmin(m))/(nx-1.)
-    dy=(grd_ymax(m)-grd_ymin(m))/(ny-1.)
-    dz=(grd_zmax(m)-grd_zmin(m))/(nz-1.)
+    dx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
+    dy=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
+    dz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
     !
     !$omp  parallel do
     do k=1,nz
-        az=grd_zmin(m)+dz*(k-1)
+        az=grd_zmin(box)+dz*(k-1)
         z1=(az-zdip)
         !
         do  j=1,ny
-            ay=grd_ymin(m)+dy*(j-1)
+            ay=grd_ymin(box)+dy*(j-1)
             y1=(ay-ydip)
             !
             do  i=1,nx
-                ax=grd_xmin(m)+dx*(i-1)
+                ax=grd_xmin(box)+dx*(i-1)
                 x1=(ax-xdip)
                 !
                 !        determine magnetic dipole field
@@ -298,7 +300,8 @@ subroutine mak_dip_moon(bx0,by0,bz0,nx,ny,nz,ngrd, &
                 y2=yp**2
                 z2=zp**2
                 ar=sqrt(x2+y2+z2)+1.e-8
-                !        write(6,*)x2,y2,z2,ar
+                !        write(*,*) 'x2, y2, z2, ar'
+                !        write(*,*) x2, y2, z2, ar
                 !
                 !        cartesian equivalent
                 !
@@ -320,14 +323,14 @@ subroutine mak_dip_moon(bx0,by0,bz0,nx,ny,nz,ngrd, &
                 aby=rbx*sin_rot+rby*cos_rot
                 abz=rbz
                 !
-                if(ar.gt.rearth-1.5) then
-                    bx0(i,j,k,m)=abx
-                    by0(i,j,k,m)=aby
-                    bz0(i,j,k,m)=abz
+                if(ar.gt.r_inner-1.5) then
+                    bx0(i,j,k,box)=abx
+                    by0(i,j,k,box)=aby
+                    bz0(i,j,k,box)=abz
                 else
-                    bx0(i,j,k,m)=0.
-                    by0(i,j,k,m)=0.
-                    bz0(i,j,k,m)=0.
+                    bx0(i,j,k,box)=0.
+                    by0(i,j,k,box)=0.
+                    bz0(i,j,k,box)=0.
                 endif
                 !
             enddo

@@ -19,39 +19,41 @@ subroutine set_resist(rst,nx,ny,nz,mbndry,resist, &
     !        initialize
     !
     rst=0.
-    !     write(6,*)'set_resist',mbndry,nx,ny,nz,b0
-    !     write(6,*)numsrf,nummid,numzero
+    !     write(*,*)'set_resist: mbndry, nx, ny, nz, b0'
+	!		write(*,*) mbndry, nx, ny, nz, b0
+    !     write(*,*) 'numsrf, nummid, numzero'
+	!		write(*,*) numsrf, nummid, numzero
     !
     !     interior resistivity
     !
     do n=1,numzero(mbndry)
-        do m=1,mbndry
-            i=ijzero(m,1,n)
-            j=ijzero(m,2,n)
-            k=ijzero(m,3,n)
-            rst(i,j,k,m)=b0/resist
+        do box=1,mbndry
+            i=ijzero(box,1,n)
+            j=ijzero(box,2,n)
+            k=ijzero(box,3,n)
+            rst(i,j,k,box)=b0/resist
         enddo
     enddo
     !
     !     lower ionosphere resistivity
     !
     do n=1,nummid(mbndry)
-        do m=1,mbndry
-            i=ijmid(m,1,n)
-            j=ijmid(m,2,n)
-            k=ijmid(m,3,n)
-            rst(i,j,k,m)=0.5*b0/resist
+        do box=1,mbndry
+            i=ijmid(box,1,n)
+            j=ijmid(box,2,n)
+            k=ijmid(box,3,n)
+            rst(i,j,k,box)=0.5*b0/resist
         enddo
     enddo
     !
     !     upper ionosphere
     !
     do n=1,numsrf(mbndry)
-        do m=1,mbndry
-            i=ijsrf(m,1,n)
-            j=ijsrf(m,2,n)
-            k=ijsrf(m,3,n)
-            rst(i,j,k,m)=0.125*b0/resist
+        do box=1,mbndry
+            i=ijsrf(box,1,n)
+            j=ijsrf(box,2,n)
+            k=ijsrf(box,3,n)
+            rst(i,j,k,box)=0.125*b0/resist
         enddo
     enddo 
     return

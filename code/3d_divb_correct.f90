@@ -5,7 +5,7 @@
 !	divb_correct_tst
 !
 subroutine divb_correct(bx,by,bz,dbx,dby,dbz,poten, &
-    b,x,g,h,xi,xj,nband,ntot,nx,ny,nz,ngrd,m, &
+    b,x,g,h,xi,xj,nband,ntot,nx,ny,nz,n_grids,box, &
     xspac)
     !
     !     this program solves the matrix equation
@@ -35,10 +35,10 @@ subroutine divb_correct(bx,by,bz,dbx,dby,dbz,poten, &
     !
     !
     !     common /space/abd(7,893101)
-    real bx(nx,ny,nz,ngrd),by(nx,ny,nz,ngrd),bz(nx,ny,nz,ngrd)
+    real bx(nx,ny,nz,n_grids),by(nx,ny,nz,n_grids),bz(nx,ny,nz,n_grids)
     real dbx(nx,ny,nz),dby(nx,ny,nz),dbz(nx,ny,nz), &
         poten(nx,ny,nz)
-    real xspac(ngrd)
+    real xspac(n_grids)
     !
     real b(ntot),x(ntot),g(ntot),h(ntot),xi(ntot),xj(ntot)
     integer ipvt(nband)
@@ -46,11 +46,11 @@ subroutine divb_correct(bx,by,bz,dbx,dby,dbz,poten, &
     real, allocatable, dimension(:,:) :: abd
     allocate(abd(7,nx*ny*nz))
     !
-    !write(6,*)'calling divb',nband,ntot,nx,ny,nz,ngrd,m
+    !write(*,*)'calling divb',nband,ntot,nx,ny,nz,n_grids,box
     !
-    rx=xspac(m)
-    ry=xspac(m)
-    rz=xspac(m)
+    rx=xspac(box)
+    ry=xspac(box)
+    rz=xspac(box)
     !
     !
     !      make the banded matrix
@@ -148,9 +148,9 @@ subroutine divb_correct(bx,by,bz,dbx,dby,dbz,poten, &
             do i=2,nx-1
                 !
                 n=i+nx*(j-1)+nx*ny*(k-1)
-                divb=( (bx(i+1,j,k,m)-bx(i-1,j,k,m)) &
-                    +(by(i,j+1,k,m)-by(i,j-1,k,m)) &
-                    +(bz(i,j,k+1,m)-bz(i,j,k-1,m)) )/(2.*rx)
+                divb=( (bx(i+1,j,k,box)-bx(i-1,j,k,box)) &
+                    +(by(i,j+1,k,box)-by(i,j-1,k,box)) &
+                    +(bz(i,j,k+1,box)-bz(i,j,k-1,box)) )/(2.*rx)
                 !
                 b(n)=divb
             enddo
@@ -193,9 +193,9 @@ subroutine divb_correct(bx,by,bz,dbx,dby,dbz,poten, &
     do k=2,nz-1
         do j=2,ny-1
             do i=2,nx-1
-                bx(i,j,k,m)=bx(i,j,k,m)-dbx(i,j,k)
-                by(i,j,k,m)=by(i,j,k,m)-dby(i,j,k)
-                bz(i,j,k,m)=bz(i,j,k,m)-dbz(i,j,k)
+                bx(i,j,k,box)=bx(i,j,k,box)-dbx(i,j,k)
+                by(i,j,k,box)=by(i,j,k,box)-dby(i,j,k)
+                bz(i,j,k,box)=bz(i,j,k,box)-dbz(i,j,k)
             enddo
         enddo
     enddo
@@ -209,7 +209,7 @@ end
 !
 !
 subroutine divb_correct_n(bx,by,bz,dbx,dby,dbz,poten, &
-    b,x,g,h,xi,xj,nband,ntot,nx,ny,nz,ngrd,m, &
+    b,x,g,h,xi,xj,nband,ntot,nx,ny,nz,n_grids,box, &
     xspac)
     !
     !     this program solves the matrix equation
@@ -239,19 +239,19 @@ subroutine divb_correct_n(bx,by,bz,dbx,dby,dbz,poten, &
     !
     !
     common /space_n/abd(7,117649)
-    real bx(nx,ny,nz,ngrd),by(nx,ny,nz,ngrd),bz(nx,ny,nz,ngrd)
+    real bx(nx,ny,nz,n_grids),by(nx,ny,nz,n_grids),bz(nx,ny,nz,n_grids)
     real dbx(nx,ny,nz),dby(nx,ny,nz),dbz(nx,ny,nz), &
         poten(nx,ny,nz)
-    real xspac(ngrd)
+    real xspac(n_grids)
     !
     real b(ntot),x(ntot),g(ntot),h(ntot),xi(ntot),xj(ntot)
     integer ipvt(nband)
     !
-    !      write(6,*)'calling divb',nband,ntot,nx,ny,nz,ngrd,m
+    !      write(*,*)'calling divb',nband,ntot,nx,ny,nz,n_grids,box
     !
-    rx=xspac(m)
-    ry=xspac(m)
-    rz=xspac(m)
+    rx=xspac(box)
+    ry=xspac(box)
+    rz=xspac(box)
     !
     !
     !      make the banded matrix
@@ -350,9 +350,9 @@ subroutine divb_correct_n(bx,by,bz,dbx,dby,dbz,poten, &
                 !
                 n=i+nx*(j-1)+nx*ny*(k-1)
                 n=i+nx*(j-1)+nx*ny*(k-1)
-                divb=( (bx(i+1,j,k,m)-bx(i-1,j,k,m)) &
-                    +(by(i,j+1,k,m)-by(i,j-1,k,m)) &
-                    +(bz(i,j,k+1,m)-bz(i,j,k-1,m)) )/(2.*rx)
+                divb=( (bx(i+1,j,k,box)-bx(i-1,j,k,box)) &
+                    +(by(i,j+1,k,box)-by(i,j-1,k,box)) &
+                    +(bz(i,j,k+1,box)-bz(i,j,k-1,box)) )/(2.*rx)
                 !
                 b(n)=divb
             enddo
@@ -395,9 +395,9 @@ subroutine divb_correct_n(bx,by,bz,dbx,dby,dbz,poten, &
     do k=2,nz-1
         do j=2,ny-1
             do i=2,nx-1
-                bx(i,j,k,m)=bx(i,j,k,m)-dbx(i,j,k)
-                by(i,j,k,m)=by(i,j,k,m)-dby(i,j,k)
-                bz(i,j,k,m)=bz(i,j,k,m)-dbz(i,j,k)
+                bx(i,j,k,box)=bx(i,j,k,box)-dbx(i,j,k)
+                by(i,j,k,box)=by(i,j,k,box)-dby(i,j,k)
+                bz(i,j,k,box)=bz(i,j,k,box)-dbz(i,j,k)
             enddo
         enddo
     enddo
@@ -410,10 +410,10 @@ end
 !
 !
 subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
-    b,x,g,h,xi,xj,nband,ntot,nx,ny,nz,ngrd,m, &
+    b,x,g,h,xi,xj,nband,ntot,nx,ny,nz,n_grids,box, &
     tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-    grd_zmin,grd_zmax,xspac,rearth)
+    grd_zmin,grd_zmax,xspac,r_inner)
     !
     !     this program solves the matrix equation
     !            a.x=b
@@ -442,33 +442,35 @@ subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
     !
     !
     common /space/abd(7,893101)
-    real bx(nx,ny,nz,ngrd),by(nx,ny,nz,ngrd),bz(nx,ny,nz,ngrd)
+    real bx(nx,ny,nz,n_grids),by(nx,ny,nz,n_grids),bz(nx,ny,nz,n_grids)
     real dbx(nx,ny,nz),dby(nx,ny,nz),dbz(nx,ny,nz), &
         poten(nx,ny,nz)
-    real grd_xmin(ngrd),grd_xmax(ngrd),grd_ymin(ngrd),grd_ymax(ngrd), &
-        grd_zmin(ngrd),grd_zmax(ngrd),xspac(ngrd)
+    real grd_xmin(n_grids),grd_xmax(n_grids),grd_ymin(n_grids),grd_ymax(n_grids), &
+        grd_zmin(n_grids),grd_zmax(n_grids),xspac(n_grids)
     real tx(mx,my,mz),ty(mx,my,mz),tz(mx,my,mz),tg1(mx,my,mz), &
         tg2(mx,my,mz2),tt(mx,my,mz),work(muvwp2,muvwp2)
     !
     real b(ntot),x(ntot),g(ntot),h(ntot),xi(ntot),xj(ntot)
     integer ipvt(nband)
     !
-    write(6,*)'calling divb',nband,ntot,nx,ny,nz,ngrd,m
+    write(*,*)'Calling divb: nband, ntot, nx, ny, nz, n_grids, box'
+	write(*,*) nband,ntot,nx,ny,nz,n_grids,box
     !
-    rx=xspac(m)
-    ry=xspac(m)
-    rz=xspac(m)
+    rx=xspac(box)
+    ry=xspac(box)
+    rz=xspac(box)
     !
-    ymin=grd_ymin(m)+ry
-    ymax=grd_ymax(m)-ry
-    zmin=grd_zmin(m)+rz
-    zmax=grd_zmax(m)-rz
-    xmin=grd_xmin(m)+rx
-    xmax=grd_xmax(m)-rx
+    ymin=grd_ymin(box)+ry
+    ymax=grd_ymax(box)-ry
+    zmin=grd_zmin(box)+rz
+    zmax=grd_zmax(box)-rz
+    xmin=grd_xmin(box)+rx
+    xmax=grd_xmax(box)-rx
     !
     xcut=(xmin+xmax)/2.
     !
-    write(6,*)xmin,xmax,ymin,ymax,zmin,zmax
+	write(*,*) 'xmin, xmax, ymin, ymax, zmin, zmax'
+    write(*,*) xmin,xmax,ymin,ymax,zmin,zmax
     !
     !      make the banded matrix
     !
@@ -567,20 +569,20 @@ subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
     !
     poten=0.
     do k=2,nz-1
-        az=grd_zmin(m)+rz*(k-1)
+        az=grd_zmin(box)+rz*(k-1)
         do j=2,ny-1
-            ay=grd_ymin(m)+ry*(j-1)
+            ay=grd_ymin(box)+ry*(j-1)
             do i=2,nx-1
-                ax=grd_xmin(m)+rx*(i-1)
+                ax=grd_xmin(box)+rx*(i-1)
                 ar=sqrt(ax**2+ay**2+az**2)
                 !
                 n=i+nx*(j-1)+nx*ny*(k-1)
-                divb=( (bx(i+1,j,k,m)-bx(i-1,j,k,m)) &
-                    +(by(i,j+1,k,m)-by(i,j-1,k,m)) &
-                    +(bz(i,j,k+1,m)-bz(i,j,k-1,m)) )/(2.*rx)
+                divb=( (bx(i+1,j,k,box)-bx(i-1,j,k,box)) &
+                    +(by(i,j+1,k,box)-by(i,j-1,k,box)) &
+                    +(bz(i,j,k+1,box)-bz(i,j,k-1,box)) )/(2.*rx)
                 !
-                !          if(m.gt.1)then
-                !            if (ar.gt.rx*rearth)then
+                !          if(box.gt.1)then
+                !            if (ar.gt.rx*r_inner)then
                 !             b(n)=divb
                 !             poten(i,j,k)=abs(divb)    ! needed only for plotting
                 !            endif
@@ -597,12 +599,14 @@ subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
     !
     !     plot div b error : poten
     !
-    write(6,*)'plot divb in',m,nband,ntot,poten(10,10,10)
-    write(6,*)xmin,xmax,ymin,ymax,zmin,zmax
+    write(*,*)'plot divb in: box, nband, ntot, poten'
+	write(*,*) box,nband,ntot,poten(10,10,10)
+    write(*,*) 'xmin, xmax, ymin, ymax, zmin, zmax'
+    write(*,*) xmin,xmax,ymin,ymax,zmin,zmax
     dbx=0.
     dby=0.
     dbz=0.
-    call conflow(poten,dbx,dby,dbz,nx,ny,nz,1,m,m, &
+    call conflow(poten,dbx,dby,dbz,nx,ny,nz,1,box,box, &
         xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
         ut,'divb in',3,11,1,2.0, &
         tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2)
@@ -651,11 +655,12 @@ subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
     !
     !      plot the calculated divb error
     !
-    write(6,*)'plot divb out',m,nband,ntot,poten(10,10,10)
+    write(*,*) 'plot divb out: box, nband, ntot, poten'
+	write(*,*) box,nband,ntot,poten(10,10,10)
     h=0.
     xi=0.
     xj=0.
-    call conflow(poten,h,xi,xj,nx,ny,nz,1,m,m, &
+    call conflow(poten,h,xi,xj,nx,ny,nz,1,box,box, &
         xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
         ut,'divb out',3,11,1,2.0, &
         tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2)
@@ -665,9 +670,9 @@ subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
     do k=2,nz-1
         do j=2,ny-1
             do i=2,nx-1
-                bx(i,j,k,m)=bx(i,j,k,m)-dbx(i,j,k)
-                by(i,j,k,m)=by(i,j,k,m)-dby(i,j,k)
-                bz(i,j,k,m)=bz(i,j,k,m)-dbz(i,j,k)
+                bx(i,j,k,box)=bx(i,j,k,box)-dbx(i,j,k)
+                by(i,j,k,box)=by(i,j,k,box)-dby(i,j,k)
+                bz(i,j,k,box)=bz(i,j,k,box)-dbz(i,j,k)
             enddo
         enddo
     enddo
@@ -675,9 +680,9 @@ subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
         do j=2,ny-1
             do i=2,nx-1
                 n=i+nx*(j-1)+nx*ny*(k-1)
-                    divb=( (bx(i+1,j,k,m)-bx(i-1,j,k,m)) &
-                    +(by(i,j+1,k,m)-by(i,j-1,k,m)) &
-                    +(bz(i,j,k+1,m)-bz(i,j,k-1,m)) )/(2.*rx)
+                    divb=( (bx(i+1,j,k,box)-bx(i-1,j,k,box)) &
+                    +(by(i,j+1,k,box)-by(i,j-1,k,box)) &
+                    +(bz(i,j,k+1,box)-bz(i,j,k-1,box)) )/(2.*rx)
                 poten(i,j,k)=abs(divb)    ! needed only for plotting
             enddo
         enddo
@@ -688,8 +693,9 @@ subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
     h=0.
     xi=0.
     xj=0.
-    write(6,*)'plot divb final',m,nband,ntot,poten(10,10,10)
-    call conflow(poten,h,xi,xj,nx,ny,nz,1,m,m, &
+    write(*,*) 'plot divb final: box, nband, ntot, poten'
+	write(*,*) box,nband,ntot,poten(10,10,10)
+    call conflow(poten,h,xi,xj,nx,ny,nz,1,box,box, &
         xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
         ut,'divb fin',3,11,1,2.0, &
         tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2)

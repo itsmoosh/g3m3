@@ -3,18 +3,18 @@
 !	totfld
 !	tot_b
 !
-subroutine totfld(bx,bx0,btx,nx,ny,nz,ngrd,m)
+subroutine totfld(bx,bx0,btx,nx,ny,nz,n_grids,box)
     !
     !     calculates the total magnetic field from the perturbed and
     !        stationary magnetic field
     !
-    dimension bx(nx,ny,nz,ngrd),bx0(nx,ny,nz,ngrd),btx(nx,ny,nz)
+    dimension bx(nx,ny,nz,n_grids),bx0(nx,ny,nz,n_grids),btx(nx,ny,nz)
     !
     !$omp parallel do
     do k=1,nz
         do j=1,ny
             do i=1,nx
-                btx(i,j,k)=bx0(i,j,k,m)+bx(i,j,k,m)
+                btx(i,j,k)=bx0(i,j,k,box)+bx(i,j,k,box)
             enddo
         enddo
     enddo
