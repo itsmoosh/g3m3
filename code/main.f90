@@ -1245,6 +1245,7 @@ program multifluid
 		!###########################################
 		!
 		ts1 = tsave
+		fluid_f = fluid_f + 1
 		!
 		!	***************
 		!	Rotation timing
