@@ -28,13 +28,11 @@ recursive subroutine sparse(abd,nband,n,b,x,ipvt,rsq, &
     real g(n),h(n),xi(n),xj(n)
     logical,optional :: recurse
     integer, optional :: rirst
-    integer box
     !
     !      criterion for sum-squared residuals
     !       and number of restarts attempted internally
     !
     eps2=n*eps**2
-    
     if(recurse) then
         irst = rirst
     else
@@ -76,7 +74,7 @@ recursive subroutine sparse(abd,nband,n,b,x,ipvt,rsq, &
             anum=anum+g(j)*h(j)
             aden=aden+xi(j)**2
         enddo
-        if(aden.eq.0.)pause 'very singular matrix'
+        if(aden.eq.0.) write(*,*) 'Very singular matrix in sparse.'
         !
         anum=anum/aden
         do j=1,n
@@ -137,6 +135,6 @@ recursive subroutine sparse(abd,nband,n,b,x,ipvt,rsq, &
     !
     !     never found solution if you get here
     !
-    pause 'too many iterations'
+    write(*,*) 'Too many iterations. No solution for sparse.'
     return
 end

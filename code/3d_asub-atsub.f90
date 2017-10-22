@@ -3,23 +3,23 @@
 !	asub
 !	atsub
 !
-subroutine asub(abd,nband,n,ipvt,x,xi)
+subroutine asub(abd,nbands,n,ipvt,x,xi)
     !
     !    calculates a.x taking advantage of the banded
     !       structure of a
     !
-    real abd(nband,n),x(n),xi(n)
-    integer ipvt(nband)
-    integer box
+    real abd(nbands,n),x(n),xi(n)
+    integer ipvt(nbands)
+    integer band
     !
     !     initialize product
     !
     do i=1,n
         xi(i)=0.
         !
-        do box=1,nband
-            ii=i+ipvt(box)
-            if((ii.ge.1).and.(ii.le.n)) xi(i)=xi(i)+abd(box,ii)*x(ii)
+        do band=1,nbands
+            ii=i+ipvt(band)
+            if((ii.ge.1).and.(ii.le.n)) xi(i)=xi(i)+abd(band,ii)*x(ii)
         enddo
     enddo
     !
@@ -30,25 +30,25 @@ end
 !	****************************************
 !
 !
-subroutine atsub(abd,nband,n,ipvt,x,xi)
+subroutine atsub(abd,nbands,n,ipvt,x,xi)
     !
     !    warning: symmetrical matrix assumed here
     !    calculates transpose(a).x
     !         taking advantage of the banded
     !          structure of a
     !
-    real abd(nband,n),x(n),xi(n)
-    integer ipvt(nband)
-    integer box
+    real abd(nbands,n),x(n),xi(n)
+    integer ipvt(nbands)
+    integer band
     !
     !     initialize product
     !
     do i=1,n
         xi(i)=0.
         !
-        do box=1,nband
-            ii=i+ipvt(box)
-            if((ii.ge.1).and.(ii.le.n))xi(i)=xi(i)+abd(m,ii)*x(ii)
+        do band=1,nbands
+            ii=i+ipvt(band)
+            if((ii.ge.1).and.(ii.le.n)) xi(i)=xi(i)+abd(band,ii)*x(ii)
         enddo
     enddo
     !
