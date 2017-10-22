@@ -1,6 +1,6 @@
  $option
      tmax=600.01 ntgraph=10  stepsz=0.25 start=.f. tsave=150.
-         isotropic=.f. 
+         isotropic=.f. run_name="saturna" write_dat=.f.
  $end
 
  $planet
@@ -50,4 +50,4 @@
  $end
 
 The remainder of this file is not read:
-Width of the torus is reduced by half so the amount of plasma added to the system is reduced to a xxx kg/s
+
