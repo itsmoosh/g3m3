@@ -1,0 +1,22 @@
+#!/bin/bash
+#	Changes names of default output files
+#	from multifluid runs to run-specific names.
+#	Run this script as:
+#		scripts/mv_names.run runname
+#	Appends runname to filenames before extension
+
+execdir=$HOME/multifluid
+
+if [[ -z $1 ]] ; then
+	echo "Error: run name omitted. Run as scripts/mv_names.run runname"
+	exit
+fi
+
+mv conc.dat conc_$1.dat
+mv fluxes.dat fluxes_$1.dat
+mv speeds.dat speeds_$1.dat
+mv output.log output_$1.log
+mv git_hash.txt git_$1.txt
+mv gmeta gmeta_$1
+mv input input_$1
+rename fluid fluid_$1_ fluid_??
