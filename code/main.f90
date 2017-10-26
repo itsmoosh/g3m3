@@ -46,9 +46,38 @@ program multifluid
 	!	*******************
 	!	Critical parameters
 	!	*******************
-		integer,parameter :: nx=121,ny=121,nz=61,n_grids=5,division=2, &
-		mbndry=1, ncts=281, num_pts(3)=[nx,ny,nz]
 		integer, parameter :: dp = kind(1.d0)  !	Double precision
+		!
+	!	*******************
+	!	Gridding parameters
+	!	*******************
+		real,parameter :: limit=60.	! Typically 60
+		integer,parameter :: nx=2*limit+1	! Typically 121
+		integer,parameter :: ny=2*limit+1
+		integer,parameter :: nz=limit+1
+		integer,parameter :: num_pts(3)=[nx,ny,nz]
+		integer,parameter :: n_grids=5
+		integer,parameter :: division=2
+		integer,parameter :: mbndry=1	!	Box for inner boundary
+		integer,parameter :: ncts=281	!	Number of set_imf points
+		real,parameter :: wind_adjust=5./4.	!	wind_adjust * limit must yield a whole number
+		real xspac(n_grids), grid_minvals(3,n_grids), grid_maxvals(3,n_grids)
+!		real(dp) ut	!	Some day.
+		real ut
+		!
+		!	Notes about grid variables:
+		!		
+		!	Grid limits are set by grid_minvals grid_maxvals arrays. 'limit' is the
+		!		base min/max value for the smallest xy box. z is half as much.
+		!	xspac is the relative grid spacing; the distance between grid
+		!		points in units of the smallest grid step size.
+		!	wind_adjust is the factor to stretch/compress the biggest box
+		!		along the wind direction to capture the magnetotail.
+		!		This is the # of times larger to make the magnetotail side than the
+		!		y min/max values.
+		!	UT is in hours; we use higher precision so that we can
+		!		track spacecraft times seconds apart after many hours of simulation time.
+		!	UT = 0 is chosen to keep values relatively low for Europa sims, 1996-12-02T14:24:00.000
 		!
 		real,parameter	:: d_min=0.01	! Minimum density
 		real,parameter	:: o_conc_min=0.01
@@ -172,24 +201,6 @@ program multifluid
 		integer		:: num_vals = 0	!	FIX NEEDED: Write the ntimes value for each craft to this
 		real		:: rot_closest = 0.0	!	FIX NEEDED: Use utc_to_jd subroutine to find these numbers so they can print to file headers
 		character*40 :: git_hash = 'deadbeef'
-		!
-		real,parameter :: wind_adjust=4./3., limit=60.
-		real xspac(n_grids), grid_minvals(3,n_grids), grid_maxvals(3,n_grids)
-!		real(dp) ut	!	Some day.
-		real ut
-		!
-		!	Notes about grid variables:
-		!		
-		!	Grid limits are set by grid_minvals grid_maxvals arrays. 'limit' is the
-		!		base min/max value for the smallest xy box. z is half as much.
-		!	xspac is the relative grid spacing; the distance between grid
-		!		points in units of the smallest grid step size.
-		!	wind_adjust is the factor to stretch/compress the biggest box
-		!		along the wind direction to capture the magnetotail.
-		!	UT is in hours; we use higher precision so that we can
-		!		track spacecraft times seconds apart after many hours of simulation time.
-		!	UT = 0 is chosen to keep values relatively low for Europa sims, 1996-12-02T14:24:00.000
-		!
 		!
 	!	*******************
 	!	Spacecraft file I/O
