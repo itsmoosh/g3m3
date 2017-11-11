@@ -26,7 +26,7 @@ clean:
 	rm -f *.dat
 
 test:
-	$(FC) $(FCFLAGS) -o test.x $(TESTF) $(TESTP)
+	$(DEBUGGER) $(FCFLAGS) $(DBFLAGS) -o test.x $(TESTF) $(TESTP) $(DBLIBS)
 
 debug:
 	$(DEBUGGER) $(FCFLAGS) $(DBFLAGS) -o debug.x $(FILES) $(DBLIBS) 
