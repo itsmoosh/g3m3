@@ -19,4 +19,4 @@ mv output.log output_$1.log
 mv git_hash.txt git_$1.txt
 mv gmeta gmeta_$1
 mv input input_$1
-rename fluid fluid_$1_ fluid_??
+rename fluid fluid_$1_ fluid??
