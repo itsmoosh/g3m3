@@ -62,9 +62,15 @@ subroutine utc_to_jd(ut_string, jd)
 		case (12)
 			monthdays = 31+28+31+30+31+30+31+31+30+31+30
 	end select
-	
-	jd = (year-2000.0)*365.0 + leapdays + monthdays + day + hours/24.0 + mins/24.0/60.0 + seconds/24.0/3600.0
-	jd = jd - 1.5 + J2000
+
+	jd = J2000 - 1.5 &
+		+ (year-2000.0)*365.0 &
+		+ leapdays &
+		+ monthdays &
+		+ day &
+		+ hours/24.0 &
+		+ mins/24.0/60.0 &
+		+ seconds/24.0/3600.0
 
 	return
 end subroutine utc_to_jd
