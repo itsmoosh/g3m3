@@ -41,7 +41,7 @@
 
  $physical
      re_equiv=0.20 b_equiv=20.79 v_equiv=1000. rho_equiv=0.2
-     spacecraft=.f. craft_input=.f. warp=.f. utstart=0.0
+     spacecraft=.f. input_fluid=.f. warp=.f. utstart=0.0 repeat_flybys=.f.
  $end
 
  $smooth

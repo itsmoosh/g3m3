@@ -12,9 +12,12 @@ stepsz - upper limit to solution timestep (can drive instability, try lowering t
 start - true for new run, false if continuing with input fluid files
 tsave - duration in units of t_equiv per fluid file (number of fluid files * tsave should = tmax, above)
 isotropic - deprecated after splitting code into two versions (can be removed/ignored)
+write_dat - writes some simulation data to disk
  
  
 $planet	[formerly earth]
+bodyname - up to 10 characters to indicate parent body name. Selects orbital parameters from astrometry module
+moonname - same as bodyname but for selected moon
 xdip - x offset in sim units for dip moment (if @ center, enter small value in one avoid singularity)
 ydip - y offset in sim units for dip moment (if @ center, enter small value in one avoid singularity)
 zdip - z offset in sim units for dip moment (if @ center, enter small value in one avoid singularity)
@@ -39,7 +42,7 @@ denh_torus - number density in sim units for 'heavy' species at moon inner bound
 deno_torus - number density in sim units for 'oxygen' species at moon inner boundary for this exec 
 gravity - acceleration at planetary surface in SI
 ti_te - ion to electron temperature ratio
-gamma - polytropic index (ratio of specific heats at constant pressure and volume, 5/3 for adiabatic)
+gamma - polytropic/adiabatic index (ratio of specific heats at constant pressure and volume, (N+2)/N for N degrees of freedom: 5/3 isotropic, 2 planar, 3 linear)
 ringo - control plasma torus conditional @Saturn or ring current outflow @Earth (see code)
 update - ask robert … unsure, didn’t use
 reload - ask robert … unsure, didn’t use
@@ -84,10 +87,10 @@ b_equiv - magnetic field normalization factor (obtained from next two norms + al
 v_equiv - velocity normalization factor (chosen to keep calculations near unity). This is 1 sim unit in km/s
 rho_equiv - density normalization factor (chosen to keep calculations near unity). This is 1 sim unit in rmassq/cm^3
 spacecraft - conditional to record spacecraft data (unused in my code MAT)
-craft_input - conditional to use spacecraft data as physical inputs for sims
+input_fluid - [formerly craft_input] conditional to use spacecraft data as physical inputs for sims
 warp - conditional related to spacecraft data (unused in my code)
-ut_init - time to set UT to for an initialization run (when start=.true.)
-utstart - UT to resume at
+utstart - UT to resume at -- mv input_out input between execution calls to continually increase this. Needed for spacecraft data recording. Set to zero to resume from sim time recorded in fluid file.
+repeat_flybys - true to write a spacecraft .dat file for every orbit/flyby, or false to just write one for each flyby.
  
 $smooth
 	these parameters used in introducing artificial viscosity to stabilize the simulation
@@ -96,4 +99,4 @@ $smooth
 [Removed (MJS):]
 $randomlinesofnumbers
 grid sizes in grid points, each successive grid needs to be 2X the last, not necessarily centered
-
+ut_init - time to set UT to for an initialization run (when start=.true.)
