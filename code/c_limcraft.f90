@@ -1,26 +1,33 @@
-subroutine limcraft(xcraft,ncraft,re_equiv,n_grids, &
-    grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-    grd_zmin,grd_zmax)
+subroutine limcraft(craftpos,ntimes,vals,ndef_craft,ncraft,re_equiv,n_grids,grid_minvals,grid_maxvals)
     !
-    !      tests to see whether spacecraft is in the system and
-    !           resets their position if not
+    !	Tests to see whether trajectory craft locations are always in the system and
+    !	resets their positions if not.
     !
-    integer box
-    dimension grd_xmin(n_grids),grd_xmax(n_grids), &
-        grd_ymin(n_grids),grd_ymax(n_grids), &
-        grd_zmin(n_grids),grd_zmax(n_grids)
-    dimension xcraft(4,ncraft)
-    !
-    abit=0.001
-    box=n_grids
-    do n=1,ncraft
-        xcraft(1,n)=amax1(xcraft(1,n),(grd_xmin(box)+abit)*re_equiv)
-        xcraft(1,n)=amin1(xcraft(1,n),(grd_xmax(box)-abit)*re_equiv)
-        xcraft(2,n)=amax1(xcraft(2,n),(grd_ymin(box)+abit)*re_equiv)
-        xcraft(2,n)=amin1(xcraft(2,n),(grd_ymax(box)-abit)*re_equiv)
-        xcraft(3,n)=amax1(xcraft(3,n),(grd_zmin(box)+abit)*re_equiv)
-        xcraft(3,n)=amin1(xcraft(3,n),(grd_zmax(box)-abit)*re_equiv)
+	implicit none
+
+    integer n, m_recnum
+	integer, intent(in) :: n_grids
+	integer, intent(in) :: grid_minvals(3,n_grids)
+	integer, intent(in) :: grid_maxvals(3,n_grids)
+	integer, intent(in) :: ntimes(ncraft,2)
+	integer, intent(in) :: ndef_craft
+	integer, intent(in) :: ncraft
+	integer, intent(in) :: vals
+
+	real, intent(in) :: re_equiv
+
+	real, intent(inout) :: craftpos(4,ncraft,vals)
+
+	real abit
+
+	abit = 0.001
+	
+    do n = ndef_craft+1,ncraft
+		do m_recnum = 1, ntimes(n,2)
+			craftpos(1:3,n,m_recnum) = amax1( craftpos(1:3,n,m_recnum), (grid_minvals(:,n_grids) +abit)*re_equiv )
+			craftpos(1:3,n,m_recnum) = amin1( craftpos(1:3,n,m_recnum), (grid_maxvals(:,n_grids) -abit)*re_equiv )
+		enddo
     enddo
-    !
+
     return
-end
+end subroutine limcraft

@@ -21,7 +21,7 @@ recursive subroutine sparse(abd,nband,n,b,x,ipvt,rsq, &
     !       should be reset if you want a big system
     !     eps is an error limit on the solution
     !
-    parameter(eps=1.e-4)
+    real,parameter :: eps = 1.0e-4
     !
     real abd(nband,n),b(n),x(n)
     integer ipvt(nband)
