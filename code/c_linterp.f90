@@ -5,7 +5,11 @@ subroutine linterp(xyzt1,xyzt2,time,xyz)
 	!		the given input time.
 	!	Be sure to match time units for xyzt1(4), xyzt2(4), and time.
     !
-	real, intent(in) :: xyzt1(4), xyzt2(4), time
+	implicit none
+
+	real, intent(in) :: xyzt1(4)
+	real, intent(in) :: xyzt2(4)
+	real, intent(in) :: time
 	real, intent(out) :: xyz(3)
 	!
 	!	If we input the same start and end point, return the same xyz

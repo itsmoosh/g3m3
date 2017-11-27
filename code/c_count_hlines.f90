@@ -4,7 +4,7 @@ subroutine count_hlines(dat_header, dummy_f, nheadlines)
 	!
 	implicit none
 
-	character*120, intent(in)	:: dat_header
+	character*200, intent(in)	:: dat_header
 	integer, intent(in)		:: dummy_f
 	integer, intent(inout)	:: nheadlines
 

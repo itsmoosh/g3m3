@@ -146,7 +146,7 @@ contains
 
 		character*10, intent(in) :: bodyname, moonname
 
-		real	planet_orbit_rad, planet_year, planet_rad, &
+		real planet_orbit_rad, planet_year, planet_rad, &
 				planet_per, planet_mass, planet_obliq, planet_incl, &
 				r_lim, torus_infall, planet_tilt, planet_init_long, &
 				planet_xdip, planet_ydip, planet_zdip, torus_dist, &

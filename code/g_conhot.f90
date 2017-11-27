@@ -22,6 +22,8 @@ subroutine conhot(stuff,vx,vy,vz,nx,ny,nz,n_grids,mm,box, &
     character*20 title
     integer vpl,vpr,vpb,vpt,lind(18)
     integer box
+	integer, parameter :: dp = kind(1.d0)
+	real(dp) time
     !
     !     skip parameters for field lines and arrows
     !

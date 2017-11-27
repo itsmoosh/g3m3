@@ -19,6 +19,8 @@ subroutine concraft(stuff,cross,nx,ny,nz,box, &
 	!
     integer box
     logical start
+	integer, parameter :: dp = kind(1.d0)
+	real(dp) time
     !
     common /conre4/ isizel,isizem,isizep,nrep, &
     ncrt,ilab,nulbll,ioffd, & 
@@ -159,6 +161,8 @@ subroutine concraft_fix(stuff,cross,nx,ny,nz,box, &
 	!
     integer box
     logical start
+	integer, parameter :: dp = kind(1.d0)
+	real(dp) time
     !
     common /conre4/ isizel,isizem,isizep,nrep, &
     ncrt,ilab,nulbll,ioffd, & 

@@ -5,6 +5,8 @@ subroutine countcraft(craft_info,scin,ncraft,ndef_craft,naux_craft)
 	!	Returns the number of default craft, specified craft trajectories,
 	!		and the total number of spacecraft.
     !
+	implicit none
+
     character*32, intent(in) :: craft_info
 	integer, intent(in) :: scin
 	integer, intent(out) :: ncraft, ndef_craft, naux_craft
@@ -14,8 +16,8 @@ subroutine countcraft(craft_info,scin,ncraft,ndef_craft,naux_craft)
 	call system('ls -1 '//trim(craft_info)//'*.craft | wc -l >> '//trim(craft_info)//'crafts.txt')
 	!
 	open(scin,file=trim(craft_info)//'crafts.txt',status='unknown',form='formatted')
-		read(scin,*) ndef_craft	! First line of crafts.txt, written above, is output of wc -l from defaults.pos, the number of lines in this file.
-		read(scin,*) naux_craft, junkline	! Second line is number of .craft files
+		read(scin,*) ndef_craft, junkline	! First line of crafts.txt, written above, is output of wc -l from defaults.pos, the number of lines in this file.
+		read(scin,*) naux_craft	! Second line is number of .craft files
 	close(scin)
 	!
 	ndef_craft = ndef_craft - 1	!	Corrects for including header line in line count

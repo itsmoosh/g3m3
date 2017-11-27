@@ -28,6 +28,8 @@ subroutine contrace(stuff,bx,by,bz,nx,ny,nz,n_grids,box, &
     integer vpl,vpr,vpb,vpt,lind(14)
     integer box
     logical add_dip,roc
+	integer, parameter :: dp = kind(1.d0)
+	real(dp) time
     !
     my2=my/2+1
     z22=1.3*mz2

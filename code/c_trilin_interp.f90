@@ -8,16 +8,18 @@ subroutine trilin_interp(sxyz,gridpts,qty,scdata)
 	!	Only accepts scalar input. Call for each component of measured
 	!		vectors.
     !
+	implicit none
+
 	real, intent(in) :: sxyz(3), gridpts(3,2), qty(2,2,2)
 	real, intent(out) :: scdata
-	!
+	
 	real x0, x1, y0, y1, z0, z1
-	!
+	
 	!	We interpolate between corners to approximate x-parallel edge values
 	real edge00, edge01, edge10, edge11
 	!	Then interpolate between edge values to find xy-plane face values
 	real face0, face1
-	!
+	
 	real xd, yd, zd
 	!
 	!	**********************************
@@ -28,36 +30,36 @@ subroutine trilin_interp(sxyz,gridpts,qty,scdata)
 	y1=gridpts(2,2)
  	z0=gridpts(3,1)
 	z1=gridpts(3,2)
-	!
+	
 	!	Find % of the way from pt. 0 to pt. 1 for each axis
 	xd = (sxyz(1) - x0)/(x1 - x0)
 	yd = (sxyz(2) - y0)/(y1 - y0)
 	zd = (sxyz(3) - z0)/(z1 - z0)
-	!
+	
 	!	Find interpolated value at the right % from low-x face to high-x face
 	!		along each of the x-parallel edges
 	edge00 = qty(1,1,1)*(1-xd) + qty(2,1,1)*xd
 	edge01 = qty(1,1,2)*(1-xd) + qty(2,1,2)*xd
 	edge10 = qty(1,2,1)*(1-xd) + qty(2,2,1)*xd
 	edge11 = qty(1,2,2)*(1-xd) + qty(2,2,2)*xd
-	!
+	
 	!	Use interpolated edge values to interpolate along y-parallel
 	!		direction to find values above and below the desired point in z
 	face0 = edge00*(1-yd) + edge10*yd
 	face1 = edge01*(1-yd) + edge11*yd
-	!
+	
 	!	Interpolate between face values to get trilinearly interpolated
 	!		value for qty at sxyz location
 	scdata = face0*(1-zd) + face1*zd
-	!
-	write(*,*) 'TRILIN_INTERP DIAGNOSTICS:'
-	write(*,*) '--------------------------'
-	write(*,*) 'sxyz:', 'gridpts', 'qty', 'scdata'
-	write(*,*) sxyz, gridpts, qty, scdata
-	write(*,*) 'xd', 'yd', 'zd'
-	write(*,*) xd, yd, zd
-	write(*,*) 'edge00', 'edge01', 'edge10', 'edge11'
-	write(*,*) edge00, edge01, edge10, edge11
-	!
+	
+	!write(*,*) 'TRILIN_INTERP DIAGNOSTICS:'
+	!write(*,*) '--------------------------'
+	!write(*,*) 'sxyz: ', 'gridpts ', 'qty ', 'scdata'
+	!write(*,*) sxyz, gridpts, qty, scdata
+	!write(*,*) 'xd ', 'yd ', 'zd'
+	!write(*,*) xd, yd, zd
+	!write(*,*) 'edge00 ', 'edge01 ', 'edge10 ', 'edge11'
+	!write(*,*) edge00, edge01, edge10, edge11
+	
     return
 end subroutine trilin_interp

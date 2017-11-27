@@ -8,10 +8,11 @@ subroutine flanks(wrkrho,rho,oldrho,nx,ny,nz,n_grids,box, &
     t_new,t_old,t,work, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
     !
+	integer, parameter :: dp = kind(1.d0)
     integer box
+	real(dp) t_old(n_grids), t_new(n_grids), t
     dimension rho(nx,ny,nz,n_grids),oldrho(nx,ny,nz,n_grids), &
     wrkrho(nx,ny,nz,n_grids),work(nx,ny,nz)
-    dimension t_new(n_grids),t_old(n_grids)
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &
     grd_ymin(n_grids),grd_ymax(n_grids), &
     grd_zmin(n_grids),grd_zmax(n_grids)

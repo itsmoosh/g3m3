@@ -21,6 +21,8 @@ subroutine contur(stuff,nx,ny,nz,n_grids,box,xmin,xmax, &
     character*20 title
     integer vpl,vpr,vpb,vpt,lind(14)
     integer box
+	integer, parameter :: dp = kind(1.d0)
+	real(dp) time
     !
     !      dimension for plotted array
     !

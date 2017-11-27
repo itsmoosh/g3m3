@@ -2,6 +2,7 @@ subroutine utc_to_jd(ut_string, jd)
 	!	Converts a UTC string to JD number.
 	!	Expects a string with format YYYY-MM-DDTHH:MM:SS.SSS
 	!	Outputs a real number that requires at least double precision
+	implicit none
 
 	integer, parameter	:: dp = selected_real_kind(17,300)
 	real(dp), parameter	:: J2000 = 2451545.0

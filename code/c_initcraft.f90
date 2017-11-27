@@ -10,7 +10,7 @@ subroutine initcraft( craft_info, craft_data, craftnames, scin, scout, dat_heade
 	character*32,	intent(in)	:: craft_info
 	character*32,	intent(in)	:: craft_data
 	character*8,	intent(in)	:: craftnames(ncraft)
-	character*120,	intent(in)	:: dat_header
+	character*200,	intent(in)	:: dat_header
 	
 	integer, intent(in)		:: scin
 	integer, intent(in)		:: scout
@@ -131,6 +131,7 @@ subroutine initcraft( craft_info, craft_data, craftnames, scin, scout, dat_heade
 	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     !	Open and go to end of .dat files for each craft	
+	rot_closest = 0.0	!	For default craft, which are handled first
     do n=1,ncraft
 		cname = craftnames(n)
 		num_vals = ntimes(n,2)
@@ -139,7 +140,6 @@ subroutine initcraft( craft_info, craft_data, craftnames, scin, scout, dat_heade
 		craftstat=0
 		!	Open .dat files for each craft. Files will be closed automatically when process completes or dies.
     	if(.not.dat_exists) then
-
 			open(scout+n, file=fname_scdat, iostat=craftstat, status='unknown', form='formatted')
 			git_hash = git_hash_3d	!	git_hash in .dat files corresponds to the time of creation for the .dat file, not the .craft file as read in in step 2 above.
 			write(scout+n,crafthead)
@@ -171,7 +171,8 @@ subroutine initcraft( craft_info, craft_data, craftnames, scin, scout, dat_heade
 	enddo
 
 	!	4. Cleanup
-	call system ('rm '//trim(craft_data)//'dat_working.txt')
+	inquire(file=trim(craft_data)//'dat_working.txt', exist=dat_exists)
+	if(dat_exists) call system ('rm '//trim(craft_data)//'dat_working.txt')
 
 	return
 end subroutine initcraft

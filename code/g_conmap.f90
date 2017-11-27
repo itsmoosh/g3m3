@@ -29,6 +29,8 @@ subroutine conmap(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz,n_grids,mm,box, &
     integer vpl,vpr,vpb,vpt,lind(14)
     integer box
     logical add_dip
+	integer, parameter :: dp = kind(1.d0)
+	real(dp) time
     !
     !      dimension for plotted array
     !

@@ -98,4 +98,4 @@ subroutine set_imf(bx,by,bz,bx0,by0,bz0,bxp,byp,bzp, &
     avz=avz/float(ny*nz)
     !      write(fluxs_f,*)'set_imf avz',avz,ny,nz
     return
-end
+end subroutine set_imf

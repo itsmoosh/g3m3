@@ -37,6 +37,8 @@ subroutine contop(stuff,vx,vy,vz,bx,by,bz,nx,ny,nz, &
     integer vpl,vpr,vpb,vpt,lind(14)
     integer box
     logical add_dip,start
+	integer, parameter :: dp = kind(1.d0)
+	real(dp) time
     !
     ilab=0
     ioffm=10

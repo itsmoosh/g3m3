@@ -161,7 +161,9 @@ subroutine bndry_flanks( &
     !     this subroutine applies boundary conditions to all grid types
     !     of the system and at any irregular boundaries
     !
+	integer, parameter :: dp = kind(1.d0)
     integer box
+	real(dp) t_old(n_grids), t_new(n_grids), t_grid
     dimension qrho(nx,ny,nz,n_grids),qpresx(nx,ny,nz,n_grids), &
     qpresy(nx,ny,nz,n_grids),qpresz(nx,ny,nz,n_grids), &
     qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids),qpz(nx,ny,nz,n_grids), &
@@ -223,7 +225,6 @@ subroutine bndry_flanks( &
     !
     dimension work(nx,ny,nz)
     !
-    dimension t_old(n_grids),t_new(n_grids)
     dimension grd_xmin(n_grids),grd_xmax(n_grids), &
     grd_ymin(n_grids),grd_ymax(n_grids), &
     grd_zmin(n_grids),grd_zmax(n_grids)
