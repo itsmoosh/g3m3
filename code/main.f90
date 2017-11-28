@@ -313,6 +313,7 @@ program multifluid
 		real(dp) t_step(n_grids)
 		real(dp) t_stepnew(n_grids)
 		real t_equiv
+		real t_diff	!	For checking t and ut upon restart to warn of drastic changes
 		real, parameter :: sc_delt = 0.30	!	Set to less than the interval between spacecraft measurements. t_step is capped at this amount if spacecraft = .true. This number is in seconds.
 		real, parameter :: t_step_max_def = 20.0
 		real :: t_step_max = t_step_max_def
@@ -1127,7 +1128,22 @@ program multifluid
 		!###########################################
 		ut=utstart	!	utstart read from input file
 		!###########################################
-		if(utstart .gt. 0.00001) t = ut*3600./t_equiv
+		if(utstart .gt. 0.00001) then
+			t_diff = abs(ut*3600./t_equiv - t)
+			if(t_diff .gt. 1.0) then
+				if(t_diff .lt. 100.0) then
+					write(*,*) '+++++++'
+					write(*,*) 'WARNING: Non-zero utstart differs from t in restart fluid file.'
+					write(*,*) '+++++++'
+				else
+					write(*,*) '+++++++'
+					write(*,*) 'ERROR: utstart drastically differs from t in restart fluid file. ABORTING!'
+					write(*,*) '+++++++'
+					stop
+				endif
+			endif
+			t = ut*3600./t_equiv
+		endif
 		!
 		!	***************
 		!	Rotation timing
@@ -3531,7 +3547,7 @@ program multifluid
 	write(*,*) 'Run complete! t =', t, 'ut = ', ut
 	write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
 	!
-	tmax = t - utstart*3600./t_equiv + 0.1
+	tmax = int(t - utstart*3600./t_equiv) + 0.05
 	utstart = ut
 	!
 	write(*,*) 'Writing input parameters to ',fname_inp_o
