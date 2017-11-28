@@ -24,6 +24,8 @@ clean:
 	rm -f *.log
 	rm -f gmeta
 	rm -f *.dat
+	rm -f fluid*
+	rm nohup.out
 
 test:
 	$(DEBUGGER) $(FCFLAGS) $(DBFLAGS) -o test.x $(TESTF) $(TESTP) $(DBLIBS)
