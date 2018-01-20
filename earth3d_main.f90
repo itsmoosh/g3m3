@@ -555,7 +555,7 @@ program multifluid
     nrot=ut/planet_per
     rot_hrs=ut-nrot*planet_per
     rot_angle=6.2832*rot_hrs/planet_per
-    d_min=0.001
+    d_min=0.01
     !
     !      ionospheric parameters
     !
@@ -899,7 +899,67 @@ program multifluid
         ijzero,numzero,ijmid,nummid,ijsrf,numsrf
         close(nchf)
         !
+        write(6,*)'entering lores visual pre divb_correct and ringo'
+        call visual(qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz,rmassq, &
+            hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz,rmassh, &
+            orho,opresx,opresy,opresz,opx,opy,opz,rmasso, &
+            epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
+            curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
+            tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
+            nx,ny,nz,ngrd,xspac,ringo,mbndry,gamma1, &
+            cross,along,flat,xcraft,ncraft,re_equiv,v_equiv, &
+            grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
+            grd_zmin,grd_zmax,ut,b_equiv,ti_te,rho_equiv, &
+            parm_srf,parm_mid,parm_zero,numsrf,nummid,numzero, &
+            mzero,mmid,msrf,ijzero,ijmid,ijsrf,reynolds,resist, &
+            evx,evy,evz,rearth,planet_rad)
         !
+        if(divb_lores)then
+            do m=ngrd,1,-1
+                write(6,*)'divb on box',m
+                call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
+                    curx,cury,curz,efldx,efldy,efldz, &
+                    7,nx*ny*nz,nx,ny,nz,ngrd,m,xspac)
+                call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
+                    curx,cury,curz,efldx,efldy,efldz, &
+                    7,nx*ny*nz,nx,ny,nz,ngrd,m,xspac)
+                write(6,*)'completed divb on box',m
+            enddo !end m loop
+            !
+            !        apply bndry conditions
+            !
+            do m=ngrd-1,1,-1
+                call flanks_synced(bx,nx,ny,nz,ngrd,m, &
+                    grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+                call flanks_synced(by,nx,ny,nz,ngrd,m, &
+                    grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+                call flanks_synced(bz,nx,ny,nz,ngrd,m, &
+                    grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+            enddo
+            do m=1,ngrd-1
+                call bndry_corer( &
+                    qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
+                    hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
+                    orho,opresx,opresy,opresz,opx,opy,opz, &
+                    epres,bx,by,bz, &
+                    qpresxy,qpresxz,qpresyz, &
+                    hpresxy,hpresxz,hpresyz, &
+                    opresxy,opresxz,opresyz, &
+                    nx,ny,nz,ngrd,m, &
+                    grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
+            enddo  !end bndry_corer
+        endif  ! end divb_lores
+        !
+        ts1=t+tsave
+        tstep=tmax
+        tmax=t+tmax
+        tgraf=t+deltg
+        tdiv=t
+        nchf=11
+        ut=utstart+t*t_equiv/3600.
+        !
+		! correct field aligned currents
+		!
         if(ringo)then
             m=1
             rx=xspac(m)
@@ -967,14 +1027,6 @@ program multifluid
         endif ! if(ringo)
 
         !
-        ts1=t+tsave
-        tstep=tmax
-        tmax=t+tmax
-        tgraf=t+deltg
-        tdiv=t
-        nchf=11
-        ut=utstart+t*t_equiv/3600.
-        !
         !     initialize plasma resistivity
         !
         call set_resist(resistive,nx,ny,nz,mbndry,resist, &
@@ -982,8 +1034,7 @@ program multifluid
             msrf,mmid,mzero,1.)
         !
     
-        write(6,*)'entering lores visual'
-        ut=utstart+t*t_equiv/3600.
+        write(6,*)'entering lores visual post divb_correct'
         call visual(qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz,rmassq, &
             hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz,rmassh, &
             orho,opresx,opresy,opresz,opx,opy,opz,rmasso, &
@@ -1547,7 +1598,7 @@ program multifluid
         !
         !       check speeds of individual grids
         !
-        vlim=1.333*m
+        vlim=1.5*m
         call set_speed_agrd( &
             qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
             hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -2179,7 +2230,7 @@ program multifluid
                         wrkopresxy,wrkopresxz,wrkopresyz,rmasso, &
                         wrkepres,nx,ny,nz,ngrd,m,o_conc)
                     !
-                    vlim=1.333*m
+                    vlim=1.5*m
                     call set_speed_agrd( &
                         wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                         wrkqpx,wrkqpy,wrkqpz, &
@@ -2413,7 +2464,7 @@ program multifluid
                         opresxy,opresxz,opresyz,rmasso, &
                         epres,nx,ny,nz,ngrd,m,o_conc)
                     !
-                    vlim=1.333*m
+                    vlim=1.5*m
                     call set_speed_agrd( &
                         qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
                         hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -2609,7 +2660,7 @@ program multifluid
                     !
                     !      write(6,*)'lapidus speeds'
                     !
-                    vlim=1.333*m
+                    vlim=1.5*m
                     call set_speed_agrd( &
                         wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
                         wrkqpx,wrkqpy,wrkqpz, &
@@ -2763,7 +2814,7 @@ program multifluid
                         opresxy,opresxz,opresyz,rmasso, &
                         epres,nx,ny,nz,ngrd,m,o_conc)
                     !
-                    vlim=1.333*m
+                    vlim=1.5*m
                     call set_speed_agrd( &
                         qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
                         hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
@@ -2865,9 +2916,7 @@ program multifluid
                 evx,evy,evz,rearth,planet_rad)
             !
             if(divb_lores.and.(tgraf.gt.0.))then
-                range=1.33*lunar_dist/re_equiv
-                write(6,*)'range for divb taper',lunar_dist,range
-                do m=ngrd-1,1,-1
+                do m=ngrd,1,-1
                     write(6,*)'divb on box',m
                     call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
                         curx,cury,curz,efldx,efldy,efldz, &
@@ -4362,7 +4411,7 @@ subroutine visual( &
         label='alf_mach '//wd1 
         call conhot(efldy,curx,cury,curz,nx,ny,nz,1,1,m, &
             xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-            ut,label,3,18,1,2.0,4., &
+            ut,label,3,18,1,2.0,20., &
             tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2, &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !

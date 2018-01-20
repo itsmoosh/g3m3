@@ -1582,8 +1582,8 @@ subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,ngrd,m,chipx, &
     !$omp  parallel do
     do k=1,nz
         do i=1,nx
-            deltay(i,ny,k)=deltay(i,ny-1,k)
-            delta1y(i,ny,k)=delta1y(i,ny-1,k)
+            deltay(i,ny,j)=deltay(i,ny-1,k)
+            delta1y(i,ny,j)=delta1y(i,ny-1,k)
         enddo
     enddo
     !
@@ -5361,20 +5361,20 @@ subroutine flanks_synced(rho,nx,ny,nz,ngrd,m, &
     !     do left and right panels
     !
     !$omp  parallel do
-    do  js=1,ny
-        ay=grd_ymin(ms)+sy*(js-1)
-        aj=1.+(ay-grd_ymin(mb))/dely
-        jb=aj
-        jb1=jb+1
-        dy=aj-jb
-        ddy=1.-dy
-	    do  ks=1,nz
-    	    az=grd_zmin(ms)+sz*(ks-1)
-        	ak=1.+(az-grd_zmin(mb))/delz
-	        kb=ak
-    	    kb1=kb+1
-        	dz=ak-kb
-	        ddz=1.-dz
+    do  ks=1,nz
+        az=grd_zmin(ms)+sz*(ks-1)
+        ak=1.+(az-grd_zmin(mb))/delz
+        kb=ak
+        kb1=kb+1
+        dz=ak-kb
+        ddz=1.-dz
+        do  js=1,ny
+            ay=grd_ymin(ms)+sy*(js-1)
+            aj=1.+(ay-grd_ymin(mb))/dely
+            jb=aj
+            jb1=jb+1
+            dy=aj-jb
+            ddy=1.-dy
             !
             rho(is_top,js,ks,ns)= &
             rho(ib_top,jb,kb,nb)*ddy*ddz &
@@ -6060,9 +6060,15 @@ subroutine set_speed_agrd( &
     csmax=0.
     alfmax=0.
     !
+    if(m.gt.1)then
+        vlim=1.8
+    else
+        vlim=1.0
+    endif
+
     vqlim=vlim
-    vhlim=1.4*vlim
-    volim=2.*vlim
+    vhlim=vlim
+    volim=vlim
     !
     !     vqlim=0.5*sqrt(1.+m)
     !     vhlim=0.5*sqrt(1.+m)
