@@ -2,12 +2,12 @@
 # if you install SHTOOLS in a different location.
 # To debug, run make debug and then use idb debug.x
 
-FC = ncargf90
+FC = ifort
 DEBUGGER = ifort
 FCFLAGS = -zero -save -openmp -liomp5
 DBFLAGS = -g -traceback
 DBLIBS += -L/usr/local/pkgs/ncarg/lib -L/usr/local/lib -lncarg -lncarg_gks -lncarg_c -lXpm -lX11 -lXext -lcairo -lfontconfig -lpixman-1 -lfreetype -lexpat -lpng -lz -lpthread -lbz2 -lXrender
-FILES = code/m_*.f90 code/3d_*.f90 code/s_*.f90 code/g_*.f90 code/c_*.f90 code/main.f90
+FILES = code/m_*.f90 code/3d_*.f90 code/s_*.f90 code/c_*.f90 code/main.f90
 #	LIBS is usually added to $PATH
 LIBS = -L/opt/intel/composer_xe_2013/lib/intel64
 TESTP = code/test.f90

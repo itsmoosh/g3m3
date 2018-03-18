@@ -219,6 +219,23 @@ contains
 				write(*,*)	'Warning: Dipole offset values not rigorously determined.'
 				write(*,*)	'Warning: torus_dist location unknown.'
 
+			case ("europa")
+				planet_orbit_rad = saturn_orbit_rad
+				planet_year = jupiter_year
+				planet_rad = eur_rad
+				planet_per = eur_per
+				planet_mass = eur_mass
+				planet_obliq = 0.0
+				planet_incl = eur_incl
+				r_lim = eur_rad
+				torus_infall = 0.0
+				torus_dist = 5*eur_rad	!	Arbitrary distance
+				planet_tilt = 0.00001
+				planet_init_long = eur_init_rot
+				planet_xdip = 0.0
+				planet_ydip = 0.0
+				planet_zdip = 1e-6
+
 			case default
 				write(*,*) 'Body name did not match valid options:'
 				write(*,*) 'jupiter, saturn, or earth'
@@ -299,6 +316,15 @@ contains
 				moon_mass = luna_mass
 				moon_incl = luna_incl
 				moon_init_rot = luna_init_rot
+
+			case ("none")
+				write(*,*) 'No moon selected for this body. Tracking a surface point.'
+				moon_orbit_rad = planet_rad
+				moon_per = planet_per
+				moon_rad = 1e-6
+				moon_mass = 1e-6
+				moon_incl = planet_obliq
+				moon_init_rot = planet_init_long
 
 			case default
 				write(*,*) 'Moon name did not match valid options:'

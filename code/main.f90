@@ -610,18 +610,19 @@ program multifluid
     !	Open ncargraphics
 	!	*****************
     !
-    call opngks
-    call gsclip(0)
+!	ncar graphics disabled.
+!    call opngks
+!    call gsclip(0)
     !
 	!	***************
     !	Set color table
 	!	***************
     !
-    call cpclrs
+!    call cpclrs
     !
-    call gselnt(0)
-    call gsplci(1)
-    call wtstr(.4,.975,'3d mutant code',2,0,0)
+!    call gselnt(0)
+!    call gsplci(1)
+!    call wtstr(.4,.975,'3d mutant code',2,0,0)
     !
 	!	*********************
     !	Read input parameters
@@ -849,29 +850,29 @@ program multifluid
 	!	*************************************
     !	Write important data to graphics file
 	!	*************************************
-		write(wd4,'(f6.3)')stepsz
-		!
-		title='stepsz = '//wd4
-		call wtstr(.75,.85,title,1,0,0)
-		!
-		write(wd1,'(f6.3)')xdip
-		write(wd2,'(f6.3)')ydip
-		write(wd3,'(f6.3)')zdip
-		!
-		title='xdip = '//wd1
-		call wtstr(.15,.82,title,1,0,0)
-		title='ydip = '//wd2
-		call wtstr(.35,.82,title,1,0,0)
-		title='zdip = '//wd3
-		call wtstr(.55,.82,title,1,0,0)
-		!
-		write(wd1,'(f5.1)')r_inner
-		!
-		title='r_inner = '//wd1
-		call wtstr(.15,.79,title,1,0,0)
-		!
-		!	Calculate effective magnetic field strength
-		!
+!		write(wd4,'(f6.3)')stepsz
+!		!
+!		title='stepsz = '//wd4
+!		call wtstr(.75,.85,title,1,0,0)
+!		!
+!		write(wd1,'(f6.3)')xdip
+!		write(wd2,'(f6.3)')ydip
+!		write(wd3,'(f6.3)')zdip
+!		!
+!		title='xdip = '//wd1
+!		call wtstr(.15,.82,title,1,0,0)
+!		title='ydip = '//wd2
+!		call wtstr(.35,.82,title,1,0,0)
+!		title='zdip = '//wd3
+!		call wtstr(.55,.82,title,1,0,0)
+!		!
+!		write(wd1,'(f5.1)')r_inner
+!		!
+!		title='r_inner = '//wd1
+!		call wtstr(.15,.79,title,1,0,0)
+!		!
+!		!	Calculate effective magnetic field strength
+!		!
 		erho = denh_inner * rmassh
 		b01 = alf_inner1 * sqrt(erho) * r_inner**3
 		b02 = alf_inner2 * sqrt(erho) * r_inner**3
@@ -886,74 +887,74 @@ program multifluid
 		write(wd3,'(f6.3)')alf_inner2
 		write(wd4,'(f5.1)')denh_inner
 		!
-		title='cs_inner = '//wd1
-		call wtstr(.15,.76,title,1,0,0)
-		title='alf_inner1= '//wd2
-		call wtstr(.35,.76,title,1,0,0)
-		title='alf_inner2= '//wd3
-		call wtstr(.55,.76,title,1,0,0)
-		title='denh_inner = '//wd4
-		call wtstr(.75,.76,title,1,0,0)
-		!
+!		title='cs_inner = '//wd1
+!		call wtstr(.15,.76,title,1,0,0)
+!		title='alf_inner1= '//wd2
+!		call wtstr(.35,.76,title,1,0,0)
+!		title='alf_inner2= '//wd3
+!		call wtstr(.55,.76,title,1,0,0)
+!		title='denh_inner = '//wd4
+!		call wtstr(.75,.76,title,1,0,0)
+!		!
 		write(wd1,'(f6.3)')o_conc
 		write(wd2,'(f6.3)')gravity
 		write(wd3,'(f6.3)')rmasso
 		!
-		title='o_conc = '//wd1
-		call wtstr(.15,.73,title,1,0,0)
-		title='gravity= '//wd2
-		call wtstr(.35,.73,title,1,0,0)
-		title='rmasso= '//wd2
-		call wtstr(.35,.73,title,1,0,0)
-		!
+!		title='o_conc = '//wd1
+!		call wtstr(.15,.73,title,1,0,0)
+!		title='gravity= '//wd2
+!		call wtstr(.35,.73,title,1,0,0)
+!		title='rmasso= '//wd2
+!		call wtstr(.35,.73,title,1,0,0)
+!		!
 		write(wd1,'(f6.3)')rho_wind1
 		write(wd2,'(f6.3)')rho_wind2
 		write(wd3,'(f6.3)')vx_wind1
 		write(wd4,'(f6.3)')vx_wind2
 		!
-		title='rho_wind1= '//wd1
-		call wtstr(.15,.7,title,1,0,0)
-		title='rho_wind2= '//wd2
-		call wtstr(.35,.7,title,1,0,0)
-		title='vx_wind1 = '//wd3
-		call wtstr(.55,.7,title,1,0,0)
-		title='vx_wind2 = '//wd4
-		call wtstr(.75,.7,title,1,0,0)
+!		title='rho_wind1= '//wd1
+!		call wtstr(.15,.7,title,1,0,0)
+!		title='rho_wind2= '//wd2
+!		call wtstr(.35,.7,title,1,0,0)
+!		title='vx_wind1 = '//wd3
+!		call wtstr(.55,.7,title,1,0,0)
+!		title='vx_wind2 = '//wd4
+!		call wtstr(.75,.7,title,1,0,0)
 		!
 		write(wd1,'(f6.3)')vy_wind1
 		write(wd2,'(f6.3)')vy_wind2
 		write(wd3,'(f6.3)')vz_wind1
 		write(wd4,'(f6.3)')vz_wind2
 		!
-		title='vy_wind1= '//wd1
-		call wtstr(.15,.67,title,1,0,0)
-		title='vy_wind2= '//wd2
-		call wtstr(.35,.67,title,1,0,0)
-		title='vz_wind1 = '//wd3
-		call wtstr(.55,.67,title,1,0,0)
-		title='vz_wind2 = '//wd4
-		call wtstr(.75,.67,title,1,0,0)
+!		title='vy_wind1= '//wd1
+!		call wtstr(.15,.67,title,1,0,0)
+!		title='vy_wind2= '//wd2
+!		call wtstr(.35,.67,title,1,0,0)
+!		title='vz_wind1 = '//wd3
+!		call wtstr(.55,.67,title,1,0,0)
+!		title='vz_wind2 = '//wd4
+!		call wtstr(.75,.67,title,1,0,0)
 		!
 		write(wd1,'(f6.3)')alfx_wind1
 		write(wd2,'(f6.3)')alfx_wind2
 		write(wd3,'(f6.3)')alfy_wind1
 		write(wd4,'(f6.3)')alfy_wind2
 		!
-		title='alfx1 = '//wd1
-		call wtstr(.15,.64,title,1,0,0)
-		title='alfx2 = '//wd2
-		call wtstr(.35,.64,title,1,0,0)
-		title='alfy1 = '//wd3
-		call wtstr(.55,.64,title,1,0,0)
-		title='alfy2 = '//wd4
-		call wtstr(.75,.64,title,1,0,0)
+!		title='alfx1 = '//wd1
+!		call wtstr(.15,.64,title,1,0,0)
+!		title='alfx2 = '//wd2
+!		call wtstr(.35,.64,title,1,0,0)
+!		title='alfy1 = '//wd3
+!		call wtstr(.55,.64,title,1,0,0)
+!		title='alfy2 = '//wd4
+!		call wtstr(.75,.64,title,1,0,0)
 		!
 		write(wd3,'(f6.3)')alfz_wind1
 		write(wd4,'(f6.3)')alfz_wind2
-		title='alfz1 = '//wd3
-		call wtstr(.55,.61,title,1,0,0)
-		title='alfz2 = '//wd4
-		call wtstr(.75,.61,title,1,0,0)
+!		title='alfz1 = '//wd3
+!		call wtstr(.55,.61,title,1,0,0)
+!		title='alfz2 = '//wd4
+!		call wtstr(.75,.61,title,1,0,0)
 		!
 		write(wd1,'(f5.1)')re_wind
 		write(wd2,'(f5.0)')reynolds
@@ -964,48 +965,48 @@ program multifluid
 		!	bfrac determines the percentage of the tangential magnetic
 		!		field allowed at earth's surface
 		!
-		title='re_wind = '//wd1
-		call wtstr(.15,.58,title,1,0,0)
-		title='reynolds = '//wd2
-		call wtstr(.35,.58,title,1,0,0)
-		title='resist = '//wd3
-		call wtstr(.55,.58,title,1,0,0)
+!		title='re_wind = '//wd1
+!		call wtstr(.15,.58,title,1,0,0)
+!		title='reynolds = '//wd2
+!		call wtstr(.35,.58,title,1,0,0)
+!		title='resist = '//wd3
+!		call wtstr(.55,.58,title,1,0,0)
 		!
 		write(wd1,'(f6.3)')bfrac
 		write(wd2,'(f6.3)')vfrac
-		title='bfrac = '//wd1
-		call wtstr(.35,.55,title,1,0,0)
-		title='vfrac = '//wd2
-		call wtstr(.55,.55,title,1,0,0)
+!		title='bfrac = '//wd1
+!		call wtstr(.35,.55,title,1,0,0)
+!		title='vfrac = '//wd2
+!		call wtstr(.55,.55,title,1,0,0)
 		!
 		write(wd1,'(f6.3)')chirho
 		write(wd2,'(f6.3)')chipxyz
 		write(wd3,'(f6.3)')chierg
 		!
-		title='chirho = '//wd1
-		call wtstr(.15,.52,title,1,0,0)
-		title='chipxyz = '//wd2
-		call wtstr(.35,.52,title,1,0,0)
-		title='chierg = '//wd3
-		call wtstr(.55,.52,title,1,0,0)
-		!
+!		title='chirho = '//wd1
+!		call wtstr(.15,.52,title,1,0,0)
+!		title='chipxyz = '//wd2
+!		call wtstr(.35,.52,title,1,0,0)
+!		title='chierg = '//wd3
+!		call wtstr(.55,.52,title,1,0,0)
+!		!
 		write(wd1,'(f6.3)')difrho
 		write(wd2,'(f6.3)')difpxyz
 		write(wd3,'(f6.3)')diferg
 		!
-		title='chirho = '//wd1
-		call wtstr(.15,.49,title,1,0,0)
-		title='chipxyz = '//wd2
-		call wtstr(.35,.49,title,1,0,0)
-		title='chierg = '//wd3
-		call wtstr(.55,.49,title,1,0,0)
-		!
-		write(wd1,'(f4.1)')tilt1
-		title='tilt1 = '//wd1
-		call wtstr(.15,.40,title,1,0,0)
-		write(wd1,'(f4.1)')tilt2
-		title='tilt2 = '//wd1
-		call wtstr(.30,.40,title,1,0,0)
+!		title='chirho = '//wd1
+!		call wtstr(.15,.49,title,1,0,0)
+!		title='chipxyz = '//wd2
+!		call wtstr(.35,.49,title,1,0,0)
+!		title='chierg = '//wd3
+!		call wtstr(.55,.49,title,1,0,0)
+!		!
+!		write(wd1,'(f4.1)')tilt1
+!		title='tilt1 = '//wd1
+!		call wtstr(.15,.40,title,1,0,0)
+!		write(wd1,'(f4.1)')tilt2
+!		title='tilt2 = '//wd1
+!		call wtstr(.30,.40,title,1,0,0)
 		!
 	!
 	!
@@ -1210,19 +1211,20 @@ program multifluid
 		!
         !	if(update)t=0.
         write(*,*)'Entering lores visual'
-        call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
-            qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
-            hrho,hpresx,hpresy,hpresz,hpresxy, &
-            hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
-            orho,opresx,opresy,opresz,opresxy, &
-            opresxz,opresyz,opx,opy,opz,rmasso, &
-            epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
-            curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
-            tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
-            nx,ny,nz,n_grids,xspac, &
-            cross,along,flat,xcraft,ncraft,re_equiv, &
-            grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
-            grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
+		write(*,*) 'Need matplotlib plotting code from Matt here!'
+!        call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
+!            qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
+!            hrho,hpresx,hpresy,hpresz,hpresxy, &
+!            hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
+!            orho,opresx,opresy,opresz,opresxy, &
+!            opresxz,opresyz,opx,opy,opz,rmasso, &
+!            epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
+!            curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
+!            tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
+!            nx,ny,nz,n_grids,xspac, &
+!            cross,along,flat,xcraft,ncraft,re_equiv, &
+!            grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
+!            grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
 		!
         ts1 = t + tsave
         tstep = tmax
@@ -1238,19 +1240,20 @@ program multifluid
             msrf,mmid,mzero,1.)
         !
         write(*,*)'Entering lores visual'
-        call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
-            qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
-            hrho,hpresx,hpresy,hpresz,hpresxy, &
-            hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
-            orho,opresx,opresy,opresz,opresxy, &
-            opresxz,opresyz,opx,opy,opz,rmasso, &
-            epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
-            curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
-            tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
-            nx,ny,nz,n_grids,xspac, &
-            cross,along,flat,xcraft,ncraft,re_equiv, &
-            grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
-            grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
+		write(*,*) 'Need matplotlib plotting code from Matt here!'
+!        call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
+!            qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
+!            hrho,hpresx,hpresy,hpresz,hpresxy, &
+!            hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
+!            orho,opresx,opresy,opresz,opresxy, &
+!            opresxz,opresyz,opx,opy,opz,rmasso, &
+!            epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
+!            curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
+!            tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
+!            nx,ny,nz,n_grids,xspac, &
+!            cross,along,flat,xcraft,ncraft,re_equiv, &
+!            grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
+!            grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
         !
     else
         !
@@ -3289,22 +3292,23 @@ program multifluid
             !	Calculate size of plotting stuff and ensure no distortions
             !		over desired scales
             !
-            call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
-                qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
-                hrho,hpresx,hpresy,hpresz,hpresxy, &
-                hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
-                orho,opresx,opresy,opresz,opresxy, &
-                opresxz,opresyz,opx,opy,opz,rmasso, &
-                epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
-                curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
-                tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
-                nx,ny,nz,n_grids,xspac, &
-                cross,along,flat,xcraft,ncraft,re_equiv, &
-                grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
-                grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
+			write(*,*) 'Need matplotlib plotting code from Matt here!'
+!            call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
+!                qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
+!                hrho,hpresx,hpresy,hpresz,hpresxy, &
+!                hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
+!                orho,opresx,opresy,opresz,opresxy, &
+!                opresxz,opresyz,opx,opy,opz,rmasso, &
+!                epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
+!                curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
+!                tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
+!                nx,ny,nz,n_grids,xspac, &
+!                cross,along,flat,xcraft,ncraft,re_equiv, &
+!                grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
+!                grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
             !
             tgraph=tgraph+deltg
-			write(*,*)'Graphics plotted.'
+			write(*,*)'Graphics plotted. Not!'
         endif !if(t.ge.tgraph)
 		!
         if(t.ge.tinj.and.ringo) then
@@ -3541,7 +3545,7 @@ program multifluid
             !
         endif	!end if(t.ge.ts1)
     enddo	!end do while(t.lt.tmax)
-    call clsgks
+!    call clsgks
 	!
 	write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
 	write(*,*) 'Run complete! t =', t, 'ut = ', ut

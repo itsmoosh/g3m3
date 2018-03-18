@@ -226,7 +226,7 @@ subroutine divb_correct_n(bx,by,bz,dbx,dby,dbz,poten, &
     !     original solutions done on small grid
     !     parameter (ntot=893101,nx=121,ny=121,nz=61,nband=7)
     !
-    !     store only non-zero bnads of matrix a in
+    !     store only non-zero bands of matrix a in
     !       array abd, and the position of these bands is
     !       stored in ipvt
     !       abd gives values of bands in matrix
@@ -430,7 +430,7 @@ subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
     !     original solutions done on small grid
     !     parameter (ntot=893101,nx=121,ny=121,nz=61,nband=7)
     !
-    !     store only non-zero bnads of matrix a in
+    !     store only non-zero bands of matrix a in
     !       array abd, and the position of these bands is
     !       stored in ipvt
     !       abd gives values of bands in matrix
@@ -609,10 +609,11 @@ subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
     dbx=0.
     dby=0.
     dbz=0.
-    call conflow(poten,dbx,dby,dbz,nx,ny,nz,1,box,box, &
-        xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-        ut,'divb in',3,11,1,2.0, &
-        tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2)
+	write(*,*) 'Calls to ncar graphics disabled. Use matplotlib'
+!    call conflow(poten,dbx,dby,dbz,nx,ny,nz,1,box,box, &
+!        xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
+!       ut,'divb in',3,11,1,2.0, &
+!       tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2)
     !
     call sparse(abd,nband,ntot,b,x,ipvt,rsq, &
         g,h,xi,xj,.false.)
@@ -663,10 +664,11 @@ subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
     h=0.
     xi=0.
     xj=0.
-    call conflow(poten,h,xi,xj,nx,ny,nz,1,box,box, &
-        xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-        ut,'divb out',3,11,1,2.0, &
-        tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2)
+	write(*,*) 'Calls to ncar graphics disabled.'
+!    call conflow(poten,h,xi,xj,nx,ny,nz,1,box,box, &
+!        xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
+!        ut,'divb out',3,11,1,2.0, &
+!        tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2)
     !
     !     modified magnetic field
     !
@@ -698,10 +700,11 @@ subroutine divb_correct_tst(bx,by,bz,dbx,dby,dbz,poten, &
     xj=0.
     write(*,*) 'plot divb final: box, nband, ntot, poten'
 	write(*,*) box,nband,ntot,poten(10,10,10)
-    call conflow(poten,h,xi,xj,nx,ny,nz,1,box,box, &
-        xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
-        ut,'divb fin',3,11,1,2.0, &
-        tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2)
+	write(*,*) 'Calls to ncar graphics disabled.'
+!    call conflow(poten,h,xi,xj,nx,ny,nz,1,box,box, &
+!        xmin,xmax,ymin,ymax,zmin,zmax,xcut, &
+!        ut,'divb fin',3,11,1,2.0, &
+!        tx,ty,tz,tg1,tt,work,mx,my,mz,mz2,muvwp2)
     !
     return
 end
