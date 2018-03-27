@@ -15,7 +15,7 @@ TESTP = code/test.f90
 TESTF = code/test.f90
 
 multifluid: $(OBJECTS)
-	$(FC) $(FCFLAGS) -o master.x $(FILES)
+	$(FC) $(FCFLAGS) -o europa.x $(FILES)
 
 clean:
 	rm -f *.o
