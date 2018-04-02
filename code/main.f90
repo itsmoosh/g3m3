@@ -1226,6 +1226,19 @@ program multifluid
 !            grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
 !            grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
 		!
+!		call write_graphing_data(qrho,qpresx,qpresy,qpresz,qpresxy, &
+!			qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
+!			hrho,hpresx,hpresy,hpresz,hpresxy, &
+!			hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
+!			orho,opresx,opresy,opresz,opresxy, &
+!			opresxz,opresyz,opx,opy,opz,rmasso, &
+!			epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
+!			curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
+!			tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
+!			nx,ny,nz,n_grids,xspac, &
+!			cross,along,flat,xcraft,ncraft,re_equiv, &
+!			grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
+!			grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
         ts1 = t + tsave
         tstep = tmax
         tmax = t + tmax

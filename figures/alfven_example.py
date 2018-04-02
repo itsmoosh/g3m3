@@ -19,7 +19,7 @@ import glob
 
 temp_equiv = 1.0437e4   # temp_equiv normalization from multifluid
 rho_equiv = 0.2e6       # temp_equiv normalization from multifluid
-N = 121                 # size of grids in multifluid
+N = 121                 # size of grids in multifluid, equal to 1 + 2*limit
 skip = 21               # number of skipped grid points for quiver/vectors
 mu0 = 4*np.pi*1.e-7     # vacuum permeability
 pmass = 1.67e-27        # proton mass
