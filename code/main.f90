@@ -178,11 +178,6 @@ program multifluid
 		alfx_wind1, alfx_wind2, alfy_wind1, alfy_wind2, alfz_wind1, alfz_wind2, &
 		den_wind1, den_wind2, &
 		reynolds, resist, o_conc, rho_frac, bfrac, vfrac
-		! group 'lunar'
-		real orbit_moon, theta_moon, cs_moon, &
-		qden_moon, hden_moon, oden_moon, &
-		alf_moon, ti_te_moon, &
-		xdip_moon, ydip_moon, zdip_moon, offset
 		! group 'physical' 
 		real re_equiv, b_equiv, v_equiv, rho_equiv
 		!real(dp) utstart	!	Some day.
@@ -512,10 +507,6 @@ program multifluid
 		alfz_wind1,alfz_wind2, &
 		den_wind1,den_wind2, &
 		reynolds,resist,o_conc,rho_frac,bfrac,vfrac
-		namelist/lunar/orbit_moon,theta_moon,cs_moon, &
-		qden_moon,hden_moon,oden_moon, &
-		alf_moon,ti_te_moon, &
-		xdip_moon,ydip_moon,zdip_moon,offset
 		namelist/physical/re_equiv,b_equiv,v_equiv,rho_equiv, &
 		spacecraft,input_fluid,warp,utstart,repeat_flybys
 		namelist/smooth/chirho,chipxyz,chierg, &
@@ -632,7 +623,6 @@ program multifluid
     read(input_f,planet)
     read(input_f,speeds)
     read(input_f,windy)
-    read(input_f,lunar)
     read(input_f,physical)
     read(input_f,smooth)
 	
@@ -645,7 +635,6 @@ program multifluid
     write(*,planet)
     write(*,speeds)
     write(*,windy)
-    write(*,lunar)
     write(*,physical)
     write(*,smooth)
 	!
@@ -2500,7 +2489,7 @@ program multifluid
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
                         nx,ny,nz,n_grids,box,0.5*delt,grav,re_equiv,reynolds, &
                         grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
-                        grid_minvals(3,:), grid_maxvals(3,:), ani_q,isotropic)
+                        grid_minvals(3,:), grid_maxvals(3,:), isotropic)
 					!
                     !write(*,*)'Entering subrout: push_ion (h), first pass'
                     call push_ion(wrkhrho,wrkhpresx,wrkhpresy,wrkhpresz, &
@@ -2515,7 +2504,7 @@ program multifluid
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
                         nx,ny,nz,n_grids,box,0.5*delt,grav,re_equiv,reynolds, &
                         grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
-                        grid_minvals(3,:), grid_maxvals(3,:), ani_h,isotropic)
+                        grid_minvals(3,:), grid_maxvals(3,:), isotropic)
                     !
                     !write(*,*)'Entering subroutine: push_ion (o), first pass'
                     call push_ion(wrkorho,wrkopresx,wrkopresy,wrkopresz, &
@@ -2530,7 +2519,7 @@ program multifluid
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
                         nx,ny,nz,n_grids,box,0.5*delt,grav,re_equiv,reynolds, &
                         grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
-                        grid_minvals(3,:), grid_maxvals(3,:), ani_o,isotropic)
+                        grid_minvals(3,:), grid_maxvals(3,:), isotropic)
                     !
                     !write(*,*)'Entering subroutine: push_bfld'
                     call push_bfld(wrkbx,wrkby,wrkbz,oldbx,oldby,oldbz, &
@@ -2744,7 +2733,7 @@ program multifluid
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
                         nx,ny,nz,n_grids,box,delt,grav,re_equiv,reynolds, &
                         grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
-                        grid_minvals(3,:), grid_maxvals(3,:), ani_q,isotropic)
+                        grid_minvals(3,:), grid_maxvals(3,:), isotropic)
                     !
 					call push_ion(hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
                         oldhrho,oldhpresx,oldhpresy,oldhpresz, &
@@ -2758,7 +2747,7 @@ program multifluid
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
                         nx,ny,nz,n_grids,box,delt,grav,re_equiv,reynolds, &
                         grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
-                        grid_minvals(3,:), grid_maxvals(3,:), ani_h,isotropic)
+                        grid_minvals(3,:), grid_maxvals(3,:), isotropic)
                     !
                     call push_ion(orho,opresx,opresy,opresz,opx,opy,opz, &
                         oldorho,oldopresx,oldopresy,oldopresz, &
@@ -2772,7 +2761,7 @@ program multifluid
                         vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
                         nx,ny,nz,n_grids,box,delt,grav,re_equiv,reynolds, &
                         grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
-                        grid_minvals(3,:), grid_maxvals(3,:), ani_o,isotropic)
+                        grid_minvals(3,:), grid_maxvals(3,:), isotropic)
                     !
                     call push_bfld(bx,by,bz,oldbx,oldby,oldbz, &
                         efldx,efldy,efldz,nx,ny,nz,n_grids,box,delt, &
@@ -3573,7 +3562,6 @@ program multifluid
 		write(inp_o_f,planet)
 		write(inp_o_f,speeds)
 		write(inp_o_f,windy)
-		write(inp_o_f,lunar)
 		write(inp_o_f,physical)
 		write(inp_o_f,smooth)
 	close(inp_o_f)

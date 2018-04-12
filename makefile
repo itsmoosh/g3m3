@@ -22,10 +22,10 @@ clean:
 	rm -f *.mod
 	rm -f *.x
 	rm -f *.log
-	rm -f gmeta
 	rm -f *.dat
 	rm -f fluid*
-	rm nohup.out
+	rm -f git_hash.txt
+	rm -f nohup.out
 
 test:
 	$(DEBUGGER) $(FCFLAGS) $(DBFLAGS) -o test.x $(TESTF) $(TESTP) $(DBLIBS)

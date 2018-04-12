@@ -32,14 +32,6 @@ $windy
 	bfrac=1.0 vfrac=1.0
 $end
 
-$lunar
-	orbit_moon=3.498 theta_moon=00.0 cs_moon=0.040 
-	qden_moon=6.00e3 hden_moon=6.0e4 oden_moon=1.8e3
-	alf_moon=0. ti_te_moon=4.0
-	xdip_moon=0. ydip_moon=0. zdip_moon=0.
-	offset=0.50
-$end
-
 $physical
 	re_equiv=0.20 b_equiv=20.79 v_equiv=1000. rho_equiv=0.2
 	spacecraft=.f. input_fluid=.f. warp=.f. utstart=0.0 repeat_flybys=.f.

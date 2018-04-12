@@ -131,7 +131,7 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
     qvx,qvy,qvz,tvx,tvy,tvz,gamma,gamma1, &
     nx,ny,nz,n_grids,box,delt,grav,re_equiv,reynolds, &
     grd_xmin,grd_xmax,grd_ymin,grd_ymax, &
-    grd_zmin,grd_zmax,ani,isotropic)
+    grd_zmin,grd_zmax,isotropic)
     !
     !      standard runge-kutta push for ion equations
     !
@@ -472,26 +472,5 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
         !
     enddo             ! i loop
     !
-    if(ani.lt.1.00.and.(.not.isotropic))then
-        !
-        !$omp  parallel do
-        do k=2,nz-1
-            do j=2,ny-1
-                do i=2,nx-1
-                    !
-                    apres=(qpresx(i,j,k,box)+qpresy(i,j,k,box)+qpresz(i,j,k,box))/3.0
-    				!
-                    qpresx(i,j,k,box)=ani*qpresx(i,j,k,box)+(1.-ani)*apres
-                    qpresy(i,j,k,box)=ani*qpresy(i,j,k,box)+(1.-ani)*apres
-                    qpresz(i,j,k,box)=ani*qpresz(i,j,k,box)+(1.-ani)*apres
-                    qpresxy(i,j,k,box)=ani*qpresxy(i,j,k,box)
-                    qpresxz(i,j,k,box)=ani*qpresxz(i,j,k,box)
-                    qpresyz(i,j,k,box)=ani*qpresyz(i,j,k,box)
-                    !
-                enddo             ! k loop
-            enddo             ! j loop
-        enddo             ! i loop
-        !
-    endif
     return
 end
