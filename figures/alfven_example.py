@@ -62,12 +62,12 @@ yi = np.linspace(y.min(),y.max(),N)
 zi = scipy.interpolate.griddata((x,y),flowspd/alfspd,(xi[None,:],yi[:,None]),method='cubic')
 
 # uncomment to plot vector field
-plt.quiver(x[::skip],y[::skip],0.333e6*(qvx[::skip]+hvx[::skip]+ovx[::skip]),0.333e6*(qvy[::skip]+hvy[::skip]+ovy[::skip]),scale=2.e6,headwidth=5)
+#plt.quiver(x[::skip],y[::skip],0.333e6*(qvx[::skip]+hvx[::skip]+ovx[::skip]),0.333e6*(qvy[::skip]+hvy[::skip]+ovy[::skip]),scale=2.e6,headwidth=5,color='blue')
 
 # uncomment to plot contours
-#plt.contour(xi,yi,zi,colors='k',linewidths=0.2,levels=np.arange(0.,8.,1.))
+plt.contour(xi,yi,zi,colors='blue',linewidths=0.2,levels=np.arange(0.,8.,1.))
 
-plt.imshow(zi,origin='lower',vmin=0.0,vmax=8.,extent=[-96.,96.,-96.,96.],cmap='gnuplot',interpolation='bicubic')
+plt.imshow(zi,origin='lower',vmin=0.0,vmax=8.,extent=[-96.,96.,-96.,96.],cmap='afmhot',interpolation='bicubic')
 ax1.add_artist( plt.Circle((0,0), 2., color='k'))
 ax1.set_title(r'Aniso Alfv$\'{e}$n Mach',fontsize=16)
 plt.tick_params(axis='both', which='minor', labelsize=12,direction='in')
