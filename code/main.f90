@@ -170,13 +170,13 @@ program multifluid
 		! group 'speeds'
 		real cs_inner, alf_inner1, alf_inner2, &
 		alpha_e, denh_inner, denq_torus, denh_torus, deno_torus, &
-		gravity, ti_te, gamma, reduct, t_torus, aniso_factor, &
+		gravity, ti_te, gamma, reduct, t_torus, aniso_factor
 		logical ringo, update, reload, divb_lores, divb_hires
 		! group 'windy'
 		real re_wind, cs_wind, &
 		vx_wind1, vx_wind2, vy_wind1, vy_wind2, vz_wind1, vz_wind2, &
-		alfx_wind1, alfx_wind2, alfy_wind1, alfy_wind2, alfz_wind1, alfz_wind2, &
-		den_wind1, den_wind2, &
+		alfx_wind1, alfx_wind2, alfy_wind1, alfy_wind2, alfz_wind1, &
+		alfz_wind2, den_wind1, den_wind2, &
 		reynolds, resist, o_conc, rho_frac, bfrac, vfrac
 		! group 'physical' 
 		real re_equiv, v_equiv, rho_equiv
@@ -1253,9 +1253,9 @@ program multifluid
 			bsx,bsy,bsz, &
 			rmassq,rmassh,rmasso, &
 			reynolds, resistive, resist, &
-			curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
+			curx,cury,curz,tvx,tvy,tvz, &
 			ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
-			ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
+			ti_te, rho_equiv, r_equiv, planet_rad, planet_per, moon_rad, &
 			run_name, dummy_f, nplots)
 		!
         ts1 = t + tsave

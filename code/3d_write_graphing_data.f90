@@ -22,13 +22,13 @@ subroutine write_graphing_data( &
 	bsx,bsy,bsz, &
 	rmassq,rmassh,rmasso, &
 	reynolds, resistive, resist, &
-	curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
+	curx,cury,curz,tvx,tvy,tvz, &
 	ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
-	ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
+	ti_te, rho_equiv, r_equiv, planet_rad, planet_per, moon_rad, &
 	run_name, dummy_f, nplots)
 
-	implicit none
 	use astrometry
+	implicit none
 
 	!	double precision
 	integer, parameter :: dp = kind(1.d0)
@@ -99,11 +99,10 @@ subroutine write_graphing_data( &
 	real, intent(in) :: rmassq, rmassh, rmasso, &
 		reynolds, resistive, resist
 	real, intent(in) :: curx(nx,ny,nz), cury(nx,ny,nz), curz(nx,ny,nz)
-	real, intent(in) :: efldx(nx,ny,nz), efldy(nx,ny,nz), efldz(nx,ny,nz)
 	real, intent(in) :: tvx(nx,ny,nz), tvy(nx,ny,nz), tvz(nx,ny,nz)
 	integer, intent(in) :: ncraft
 	real, intent(in) :: xcraft(4,ncraft), re_equiv, b_equiv, v_equiv, &
-		t_equiv, ti_te, rho_equiv, planet_rad, planet_per, moon_rad
+		t_equiv, ti_te, rho_equiv, r_equiv, planet_rad, planet_per, moon_rad
 	character*8, intent(in) :: run_name
 	integer, intent(in) :: dummy_f
 
@@ -133,7 +132,6 @@ subroutine write_graphing_data( &
 	!      rcraft is the position of the spacecraft for which
 	!           IMF is reference. NO alteration from boundary conditions applied
 	!
-	real xcraft(4,ncraft),zcraft(4,ncraft),rcraft(3)
 
 !	physics plasma quantities
 	real qpara(nx,ny,nz,n_grids), qperp(nx,ny,nz,n_grids), &
@@ -153,6 +151,8 @@ subroutine write_graphing_data( &
 
 	real evelx(nx,ny,nz,n_grids), evely(nx,ny,nz,n_grids), &
 		evelz(nx,ny,nz,n_grids)
+	real efldx(nx,ny,nz,n_grids), efldy(nx,ny,nz,n_grids), &
+		efldz(nx,ny,nz,n_grids)
 
 	real evx(nx,ny,nz), evy(nx,ny,nz), evz(nx,ny,nz)
 	real vvx(nx,ny,nz), vvy(nx,ny,nz), vvz(nx,ny,nz)
@@ -312,8 +312,7 @@ subroutine write_graphing_data( &
 !        ncore -> grid gets all the information from this grid no.
 !        nbdry -> which grid data will be applied to this grid no. for bndry
 
-	write(*,*) 'Calculating graphing quantities."
-	write(*,*) 'UT = ',ut
+	write(*,*) "Calculating graphing quantities."
 
 	!~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~**~*~*~*~*~*~*~*~*~*~
 	do box=1,n_grids
@@ -445,7 +444,7 @@ subroutine write_graphing_data( &
 		inquire(file=trim(dummy_fname), exist=dummy_exists)
 		if(dummy_exists) call system ('rm '//trim(dummy_fname))
 		
-		data_grep = trim(run_name)//'_'//trim(fname_plas)//'_1'//trim(cut_label(1))//'_t???.dat'
+		data_grep = trim(run_name)//'_'//trim(fname1)//'_1'//trim(cut_label(1))//'_t???.dat'
 		call system("ls 2>/dev/null -1q "//trim(python_data)//trim(data_grep)//" | wc -l > "//trim(dummy_fname))
 
 		write(*,*) "Debug: nplots before: ", nplots
@@ -463,7 +462,7 @@ subroutine write_graphing_data( &
 		!	****************************************************
 		!	Make a data cube for post-processing with matplotlib
 		!	****************************************************
-		write(*,*,advance='no') "Writing data to files..."
+		write(*,*) "Writing data to files..."
 
 
 		!	********************
@@ -475,24 +474,24 @@ subroutine write_graphing_data( &
 			write(boxchar,'(I1)') box
 			write(nplots_char,'(I0.3)') nplots
 
-			fname_ending(:) = '_'//trim(adjustl(boxchar))//trim(cut_label(:))//'_t'//trim(adjustl(nplots_char))//'.dat'
-
-			wd1(:) = trim(run_name)//'_'//trim(fname1)//trim(fname_ending(:))
-			wd2(:) = trim(run_name)//'_'//trim(fname2)//trim(fname_ending(:))
-			wd3(:) = trim(run_name)//'_'//trim(fname3)//trim(fname_ending(:))
-			wd4(:) = trim(run_name)//'_'//trim(fname4)//trim(fname_ending(:))
-			wd5(:) = trim(run_name)//'_'//trim(fname5)//trim(fname_ending(:))
-			wd6(:) = trim(run_name)//'_'//trim(fname6)//trim(fname_ending(:))
-			wd7(:) = trim(run_name)//'_'//trim(fname7)//trim(fname_ending(:))
-
 			do m=1,n_cuts
-			open(plas_f(m),file=wd1(m),status='replace',form='formatted')
-			open(flow_f(m),file=wd2(m),status='replace',form='formatted')
-			open(bfld_f(m),file=wd3(m),status='replace',form='formatted')
-			open(rad_f(m),file=wd4(m),status='replace',form='formatted')
-			open(model_f(m),file=wd5(m),status='replace',form='formatted')
-			open(efld_f(m),file=wd6(m),status='replace',form='formatted')
-			open(pres_f(m),file=wd7(m),status='replace',form='formatted')			
+				fname_ending(m) = '_'//trim(adjustl(boxchar))//trim(cut_label(m))//'_t'//trim(adjustl(nplots_char))//'.dat'
+
+				wd1(m) = trim(run_name)//'_'//trim(fname1)//trim(fname_ending(m))
+				wd2(m) = trim(run_name)//'_'//trim(fname2)//trim(fname_ending(m))
+				wd3(m) = trim(run_name)//'_'//trim(fname3)//trim(fname_ending(m))
+				wd4(m) = trim(run_name)//'_'//trim(fname4)//trim(fname_ending(m))
+				wd5(m) = trim(run_name)//'_'//trim(fname5)//trim(fname_ending(m))
+				wd6(m) = trim(run_name)//'_'//trim(fname6)//trim(fname_ending(m))
+				wd7(m) = trim(run_name)//'_'//trim(fname7)//trim(fname_ending(m))
+
+				open(plas_f(m),file=wd1(m),status='replace',form='formatted')
+				open(flow_f(m),file=wd2(m),status='replace',form='formatted')
+				open(bfld_f(m),file=wd3(m),status='replace',form='formatted')
+				open(rad_f(m),file=wd4(m),status='replace',form='formatted')
+				open(model_f(m),file=wd5(m),status='replace',form='formatted')
+				open(efld_f(m),file=wd6(m),status='replace',form='formatted')
+				open(pres_f(m),file=wd7(m),status='replace',form='formatted')			
 			enddo
 
 				call calcur(bx,by,bz,nx,ny,nz,n_grids,box, &
@@ -738,7 +737,7 @@ subroutine write_graphing_data( &
 		enddo ! loop over box
 
 	endif
-	write(*,*) 'done.'
+	write(*,*) 'Done writing grpahing data files.'
 
 !	call system("python3 "//trim(python_dir)//trim(python_plotter))
 
