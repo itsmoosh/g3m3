@@ -11,12 +11,17 @@
 !
 !	Distances are in km
 !	Times are in hours
+!	Everything else in SI
 !	Unless otherwise specified
 !
 module astrometry
 
 	!	General
 	real,parameter :: pi		= 4.0*atan(1.0)
+	real,parameter :: mu0		= 4.E-7*pi
+	real,parameter :: m_prot	= 1.67262E-27
+	real,parameter :: q_elec	= 1.60218E-19
+	real,parameter :: k_B		= 1.38065E-23
 	real,parameter :: J2000		= 2451545.0
 	real,parameter :: vsmall	= 1E-5
 	real,parameter :: zero		= 0.

@@ -32,6 +32,7 @@
 !		60-89	Spacecraft data recording
 !		100		git hash file
 !		101		dummy craft file
+!		110-150	Figure plotting
 !
 program multifluid
 	!
@@ -170,7 +171,6 @@ program multifluid
 		real cs_inner, alf_inner1, alf_inner2, &
 		alpha_e, denh_inner, denq_torus, denh_torus, deno_torus, &
 		gravity, ti_te, gamma, reduct, t_torus, aniso_factor, &
-		ani_q, ani_h, ani_o
 		logical ringo, update, reload, divb_lores, divb_hires
 		! group 'windy'
 		real re_wind, cs_wind, &
@@ -179,7 +179,7 @@ program multifluid
 		den_wind1, den_wind2, &
 		reynolds, resist, o_conc, rho_frac, bfrac, vfrac
 		! group 'physical' 
-		real re_equiv, b_equiv, v_equiv, rho_equiv
+		real re_equiv, v_equiv, rho_equiv
 		!real(dp) utstart	!	Some day.
 		real utstart
 		logical spacecraft, input_fluid, warp, repeat_flybys
@@ -202,6 +202,7 @@ program multifluid
 		!		60-89	Spacecraft data recording
 		!		100		Git hash file
 		!		101		Dummy craft file
+		!		110-150	Figure plotting
 		integer,parameter :: input_f=1
 		integer,parameter :: inp_o_f=2
 		integer :: fluxs_f=21
@@ -289,6 +290,7 @@ program multifluid
 	!	**********************
     !	Unperturbed quantities
 	!	**********************
+		real b_equiv
 		real bx0(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids),bz0(nx,ny,nz,n_grids)
 		!
 		real efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz), &
@@ -344,6 +346,7 @@ program multifluid
 		integer n, m, ms, nn, box	!	Loop counters
 		integer m_smallest, m_step, cbox	!	Placeholders
 		integer mating_index, next_box	!	For checking grid mating
+		integer nplots	!	Keeps count of time ID for graphing data
 		real grid_diff	!	For checking grid mating
 		real smallest_step, fastest
 		!
@@ -499,7 +502,6 @@ program multifluid
 		alpha_e,denh_inner,denq_torus,denh_torus,deno_torus, &
 		gravity,ti_te,gamma,ringo,update,reload, &
 		divb_lores,divb_hires,reduct,t_torus,aniso_factor, &
-		ani_q,ani_h,ani_o
 		namelist/windy/re_wind,cs_wind,vx_wind1,vx_wind2, &
 		vy_wind1,vy_wind2,vz_wind1,vz_wind2, &
 		alfx_wind1,alfx_wind2, &
@@ -507,7 +509,7 @@ program multifluid
 		alfz_wind1,alfz_wind2, &
 		den_wind1,den_wind2, &
 		reynolds,resist,o_conc,rho_frac,bfrac,vfrac
-		namelist/physical/re_equiv,b_equiv,v_equiv,rho_equiv, &
+		namelist/physical/re_equiv,v_equiv,rho_equiv, &
 		spacecraft,input_fluid,warp,utstart,repeat_flybys
 		namelist/smooth/chirho,chipxyz,chierg, &
 		difrho,difpxyz,diferg
@@ -759,7 +761,7 @@ program multifluid
 	!	Calculate inner boundary sizes
 	!	******************************
 		!
-		!	Calculates approx. number of grid point volume units in each region
+		!	Calculates approx. number of grid point volume units in each region. 1.2 is fudge factor to make sure we include enough working points.
 		msrf  = 1.2 * 1.33*pi*(srf_bndry**3 - mid_bndry**3)/xspac(mbndry)**3
 		mmid  = 1.2 * 1.33*pi*(mid_bndry**3 - zero_bndry**3)/xspac(mbndry)**3
 		mzero = 1.2 * 1.33*pi*(zero_bndry**3)/xspac(mbndry)**3
@@ -1014,9 +1016,24 @@ program multifluid
     !		temperature proportional to (r)**alpha_e
     !		with total pressure constant which is needed for equilibrium
     !
+    !
+	!	*****************
+	!	Find equiv values
+	!	*****************
+	!
+	! Sim units are in units of equiv values. These quantities are
+	!	typically in SI times a power of 10, and are important for
+	!	keeping simulation calculations as close to unity as possible.
+	! Numerical factors appear for the following conversions:
+	! rho_equiv is in cm^-3 of rmassq species
+	! v_equiv is in km/s
+	!
+	b_equiv = v_equiv*1.e3 * sqrt(mu0 * rho_equiv*1.e6*m_prot) *1.e9 ! in nT
+	write(*,*) "Debug: b_equiv should be ~20.79, it is: ", b_equiv
+
     !	Now, find the equivalent pressure of magnetosphere for the given
     !		sound speed
-    !
+	!
     gamma1 = gamma - 1.
     epress = cs_inner**2 * erho / gamma
     eerg = epress / gamma1
@@ -1199,8 +1216,9 @@ program multifluid
         endif  ! end divb_lores
 		!
         !	if(update)t=0.
-        write(*,*)'Entering lores visual'
-		write(*,*) 'Need matplotlib plotting code from Matt here!'
+        write(*,*) 'Entering lores visual'
+		write(*,*) 'Writing data to graphing files.'
+		if(spacecraft) write(*,*) 'Spacecraft positions not yet initialized.'
 !        call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
 !            qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
 !            hrho,hpresx,hpresy,hpresz,hpresxy, &
@@ -1215,19 +1233,31 @@ program multifluid
 !            grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
 !            grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
 		!
-!		call write_graphing_data(qrho,qpresx,qpresy,qpresz,qpresxy, &
-!			qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
-!			hrho,hpresx,hpresy,hpresz,hpresxy, &
-!			hpresxz,hpresyz,hpx,hpy,hpz,rmassh, &
-!			orho,opresx,opresy,opresz,opresxy, &
-!			opresxz,opresyz,opx,opy,opz,rmasso, &
-!			epres,bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz, &
-!			curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
-!			tx,ty,tz,tg1,tg2,tt,work,mx,my,mz,mz2,muvwp2, &
-!			nx,ny,nz,n_grids,xspac, &
-!			cross,along,flat,xcraft,ncraft,re_equiv, &
-!			grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
-!			grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
+		call write_graphing_data( &
+			nx,ny,nz,n_grids, limit, &
+			mbndry, num_zqt, msrf, mmid, mzero, &
+			xspac, grid_minvals, grid_maxvals, ut, &
+			t, &
+			qrho,qpx,qpy,qpz, &
+			qpresx,qpresy,qpresz, &
+			qpresxy,qpresxz,qpresyz, &
+			hrho,hpx,hpy,hpz, &
+			hpresx,hpresy,hpresz, &
+			hpresxy,hpresxz,hpresyz, &
+			orho,opx,opy,opz, &
+			opresx,opresy,opresz, &
+			opresxy,opresxz,opresyz, &
+			bx,by,bz,epres,bx0,by0,bz0, &
+			parm_srf,parm_mid,parm_zero, &
+			ijzero,numzero,ijmid,nummid,ijsrf,numsrf, &
+			bsx,bsy,bsz, &
+			rmassq,rmassh,rmasso, &
+			reynolds, resistive, resist, &
+			curx,cury,curz,efldx,efldy,efldz,tvx,tvy,tvz, &
+			ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
+			ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
+			run_name, dummy_f, nplots)
+		!
         ts1 = t + tsave
         tstep = tmax
         tmax = t + tmax
@@ -1274,6 +1304,7 @@ program multifluid
         tinj = t + deltinj
         tdiv = t
 		fluid_f = fluid_f + 1
+		nplots = 0
 		!
 		!	***************
 		!	Rotation timing

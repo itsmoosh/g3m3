@@ -18,7 +18,6 @@ $speeds
 	ringo=.f. update=.f. reload=.f.
 	divb_lores=.t. divb_hires=.f. reduct=1.
 	t_torus=0.25 aniso_factor=0.0625
-	ani_q=1.00 ani_h=1.00 ani_o=1.00
 $end
 
 $windy
@@ -33,7 +32,7 @@ $windy
 $end
 
 $physical
-	re_equiv=0.20 b_equiv=20.79 v_equiv=1000. rho_equiv=0.2
+	re_equiv=0.20 v_equiv=1000. rho_equiv=0.2
 	spacecraft=.f. input_fluid=.f. warp=.f. utstart=0.0 repeat_flybys=.f.
 $end
 

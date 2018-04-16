@@ -8,8 +8,12 @@ subroutine totfld(bx,bx0,btx,nx,ny,nz,n_grids,box)
     !     calculates the total magnetic field from the perturbed and
     !        stationary magnetic field
     !
-    integer box
-    dimension bx(nx,ny,nz,n_grids),bx0(nx,ny,nz,n_grids),btx(nx,ny,nz)
+    integer, intent(in) :: nx, ny, nz, n_grids, box
+    real, intent(in) :: bx(nx,ny,nz,n_grids), bx0(nx,ny,nz,n_grids)
+
+	real, intent(out) :: btx(nx,ny,nz)
+
+	integer i,j,k
     !
     !$omp parallel do
     do k=1,nz
@@ -31,8 +35,13 @@ subroutine tot_b(btot,bsx,bsy,bsz,nx,ny,nz)
     !
     !      initialize static magnetic field along entire grid
     !
-    dimension bsx(nx,ny,nz),bsy(nx,ny,nz),bsz(nx,ny,nz), &
-        btot(nx,ny,nz)
+	integer, intent(in) :: nx, ny, nz
+	real, intent(in) :: bsx(nx,ny,nz), bsy(nx,ny,nz), bsz(nx,ny,nz)
+
+	real, intent(out) :: btot(nx,ny,nz)
+
+	integer i,j,k
+	real atot
     !
     do k=1,nz
         do j=1,ny
