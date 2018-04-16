@@ -1029,7 +1029,6 @@ program multifluid
 	! v_equiv is in km/s
 	!
 	b_equiv = v_equiv*1.e3 * sqrt(mu0 * rho_equiv*1.e6*m_prot) *1.e9 ! in nT
-	write(*,*) "Debug: b_equiv should be ~20.79, it is: ", b_equiv
 
     !	Now, find the equivalent pressure of magnetosphere for the given
     !		sound speed
@@ -1216,9 +1215,9 @@ program multifluid
         endif  ! end divb_lores
 		!
         !	if(update)t=0.
-        write(*,*) 'Entering lores visual'
 		write(*,*) 'Writing data to graphing files.'
 		if(spacecraft) write(*,*) 'Spacecraft positions not yet initialized.'
+!        write(*,*) 'Entering lores visual'
 !        call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
 !            qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
 !            hrho,hpresx,hpresy,hpresz,hpresxy, &
@@ -1522,9 +1521,9 @@ program multifluid
         enddo	! end boxes loop
         !
         write(*,*) 'Interior and zero points:'
-		write(*,*) 'box ','srf ','mid ','zero'
+		write(*,'(4(A12))') 'box','srf','mid','zero'
         do box=1,mbndry
-            write(*,*) box,numsrf(box),nummid(box),numzero(box)
+            write(*,'(4(I12))') box,numsrf(box),nummid(box),numzero(box)
         enddo
         !
         !	Initialize solar wind plasma. Inserted beyond
@@ -3318,6 +3317,7 @@ program multifluid
         !     write(*,999)t
         ! 999 format(' step 2 complete at t= ',1pe12.5)
         !
+		tgraph=4.
         if(t.ge.tgraph) then
             !
             !	Plot plasma properties
@@ -3325,7 +3325,31 @@ program multifluid
             !	Calculate size of plotting stuff and ensure no distortions
             !		over desired scales
             !
-			write(*,*) 'Need matplotlib plotting code from Matt here!'
+			write(*,*) 'Writing data to graphing files.'
+			call write_graphing_data( &
+				nx,ny,nz,n_grids, limit, &
+				mbndry, num_zqt, msrf, mmid, mzero, &
+				xspac, grid_minvals, grid_maxvals, ut, &
+				t, &
+				qrho,qpx,qpy,qpz, &
+				qpresx,qpresy,qpresz, &
+				qpresxy,qpresxz,qpresyz, &
+				hrho,hpx,hpy,hpz, &
+				hpresx,hpresy,hpresz, &
+				hpresxy,hpresxz,hpresyz, &
+				orho,opx,opy,opz, &
+				opresx,opresy,opresz, &
+				opresxy,opresxz,opresyz, &
+				bx,by,bz,epres,bx0,by0,bz0, &
+				parm_srf,parm_mid,parm_zero, &
+				ijzero,numzero,ijmid,nummid,ijsrf,numsrf, &
+				bsx,bsy,bsz, &
+				rmassq,rmassh,rmasso, &
+				reynolds, resistive, resist, &
+				curx,cury,curz,tvx,tvy,tvz, &
+				ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
+				ti_te, rho_equiv, r_equiv, planet_rad, planet_per, moon_rad, &
+				run_name, dummy_f, nplots)
 !            call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
 !                qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
 !                hrho,hpresx,hpresy,hpresz,hpresxy, &
@@ -3341,7 +3365,7 @@ program multifluid
 !                grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
             !
             tgraph=tgraph+deltg
-			write(*,*)'Graphics plotted. Not!'
+			write(*,*)'Graphics plotted.'
         endif !if(t.ge.tgraph)
 		!
         if(t.ge.tinj.and.ringo) then

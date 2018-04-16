@@ -69,6 +69,7 @@ subroutine write_graphing_data( &
 	integer, intent(in) :: nx, ny, nz, n_grids
 	real, intent(in) :: limit, xspac(n_grids), &
 		grid_minvals(3,n_grids), grid_maxvals(3,n_grids)
+	integer, intent(in) :: mbndry, num_zqt, msrf, mmid, mzero
 	!	physics sim quantities
 	real(dp), intent(in) :: ut, t
 	real, intent(in) ::	qrho(nx,ny,nz,n_grids), qpx(nx,ny,nz,n_grids), &
@@ -97,7 +98,7 @@ subroutine write_graphing_data( &
 		ijsrf(mbndry,3,msrf), numsrf(mbndry)
 	real, intent(in) :: bsx(nx,ny,nz), bsy(nx,ny,nz), bsz(nx,ny,nz)
 	real, intent(in) :: rmassq, rmassh, rmasso, &
-		reynolds, resistive, resist
+		reynolds, resistive(nx,ny,nz,mbndry), resist
 	real, intent(in) :: curx(nx,ny,nz), cury(nx,ny,nz), curz(nx,ny,nz)
 	real, intent(in) :: tvx(nx,ny,nz), tvy(nx,ny,nz), tvz(nx,ny,nz)
 	integer, intent(in) :: ncraft
@@ -228,7 +229,7 @@ subroutine write_graphing_data( &
 
 	integer nx1, nx2, ny1, ny2, nz1, nz2
 
-	character*1 cut, boxchar
+	character*1 boxchar
 	character*3 nplots_char
 
 	character*64 wd1(n_cuts), wd2(n_cuts), wd3(n_cuts), wd4(n_cuts), &
@@ -294,8 +295,6 @@ subroutine write_graphing_data( &
 	pres_equiv = rho_equiv*1.e6*m_prot * (v_equiv*1.e3)**2	! In Pa
 	cur_equiv = b_equiv*1.e-9 / mu0 / (planet_rad*1.e3 * r_equiv)	! In A/m^2
 
-	cut='y'
-
 !      open input data file
 !*******************************************************************
 
@@ -324,7 +323,7 @@ subroutine write_graphing_data( &
 
 		call calcur(bx,by,bz,nx,ny,nz,n_grids,box, &
 			curx,cury,curz,rx,ry,rz)
-
+	write(*,*) "Debug1"
 		do k=1,nz
 			do j=1,ny
 				do i=1,nx
@@ -334,7 +333,7 @@ subroutine write_graphing_data( &
 				enddo
 			enddo
 		enddo
-
+	write(*,*) "Debug2"
 		call totfld(bx,bx0,bxt,nx,ny,nz,n_grids,box)
 		call totfld(by,by0,byt,nx,ny,nz,n_grids,box)
 		call totfld(bz,bz0,bzt,nx,ny,nz,n_grids,box)
@@ -342,19 +341,19 @@ subroutine write_graphing_data( &
 		!	Find magnitude of B
 		!
 		call tot_b(btot,bxt,byt,bzt,nx,ny,nz)
-
+	write(*,*) "Debug3"
 		call fnd_evel(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
 			opx,opy,opz,orho,curx,cury,curz, &
 			evx,evy,evz,tvx,tvy,tvz, &
 			nx,ny,nz,n_grids,box,rmassq,rmassh,rmasso,reynolds)
-
+	write(*,*) "Debug4"
 		call bande(ex,ey,ez,bxt,byt,bzt, &
 			curx,cury,curz,evx,evy,evz,btot, &
 			epres,qrho,hrho,orho,resistive,resist,reynolds, &
 			nx,ny,nz,n_grids,box,rmassq,rmassh,rmasso, &
 			ijmid,nummid,ijzero,numzero,mbndry,mmid,mzero, &
 			rx,ry,rz)
-
+	write(*,*) "Debug5"
 		do k=1,nz
 			do j=1,ny
 				do i=1,nx
@@ -435,316 +434,314 @@ subroutine write_graphing_data( &
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	if(cut == "y") then
+	write(*,*) "Got here"
+	!	Check number of data files printed for this run_name,
+	!		and increment it: the only output from this subroutine.
 
-		!	Check number of data files printed for this run_name,
-		!		and increment it: the only output from this subroutine.
+	dummy_fname = trim(python_data)//"dummy.txt"
+	inquire(file=trim(dummy_fname), exist=dummy_exists)
+	if(dummy_exists) call system ('rm '//trim(dummy_fname))
+	
+	data_grep = trim(run_name)//'_'//trim(fname1)//'_1'//trim(cut_label(1))//'_t???.dat'
+	call system("ls 2>/dev/null -1q "//trim(python_data)//trim(data_grep)//" | wc -l > "//trim(dummy_fname))
 
-		dummy_fname = trim(python_data)//"dummy.txt"
-		inquire(file=trim(dummy_fname), exist=dummy_exists)
-		if(dummy_exists) call system ('rm '//trim(dummy_fname))
-		
-		data_grep = trim(run_name)//'_'//trim(fname1)//'_1'//trim(cut_label(1))//'_t???.dat'
-		call system("ls 2>/dev/null -1q "//trim(python_data)//trim(data_grep)//" | wc -l > "//trim(dummy_fname))
+	write(*,*) "Debug: nplots before: ", nplots
 
-		write(*,*) "Debug: nplots before: ", nplots
+	open(dummy_f,file=trim(dummy_fname),status='unknown',form='formatted')
+		read(dummy_f,*) nplots
+	close(dummy_f)
+	call system ('rm '//trim(dummy_fname))
 
-		open(dummy_f,file=trim(dummy_fname),status='unknown',form='formatted')
-			read(dummy_f,*) nplots
-		close(dummy_f)
-		call system ('rm '//trim(dummy_fname))
+	nplots = nplots + 1
+	if(nplots .gt. 999) write(*,*) "ERROR: 1000 plots created for this run_name. Max is 999."
 
-		nplots = nplots + 1
-		if(nplots .gt. 999) write(*,*) "ERROR: 1000 plots created for this run_name. Max is 999."
-
-		write(*,*) "Debug: nplots after: ", nplots	
-		
-		!	****************************************************
-		!	Make a data cube for post-processing with matplotlib
-		!	****************************************************
-		write(*,*) "Writing data to files..."
-
-
-		!	********************
-		!		Low Res Data
-		!	********************
+	write(*,*) "Debug: nplots after: ", nplots	
+	
+	!	****************************************************
+	!	Make a data cube for post-processing with matplotlib
+	!	****************************************************
+	write(*,*) "Writing data to files..."
 
 
-		do box=1,n_grids
-			write(boxchar,'(I1)') box
-			write(nplots_char,'(I0.3)') nplots
-
-			do m=1,n_cuts
-				fname_ending(m) = '_'//trim(adjustl(boxchar))//trim(cut_label(m))//'_t'//trim(adjustl(nplots_char))//'.dat'
-
-				wd1(m) = trim(run_name)//'_'//trim(fname1)//trim(fname_ending(m))
-				wd2(m) = trim(run_name)//'_'//trim(fname2)//trim(fname_ending(m))
-				wd3(m) = trim(run_name)//'_'//trim(fname3)//trim(fname_ending(m))
-				wd4(m) = trim(run_name)//'_'//trim(fname4)//trim(fname_ending(m))
-				wd5(m) = trim(run_name)//'_'//trim(fname5)//trim(fname_ending(m))
-				wd6(m) = trim(run_name)//'_'//trim(fname6)//trim(fname_ending(m))
-				wd7(m) = trim(run_name)//'_'//trim(fname7)//trim(fname_ending(m))
-
-				open(plas_f(m),file=wd1(m),status='replace',form='formatted')
-				open(flow_f(m),file=wd2(m),status='replace',form='formatted')
-				open(bfld_f(m),file=wd3(m),status='replace',form='formatted')
-				open(rad_f(m),file=wd4(m),status='replace',form='formatted')
-				open(model_f(m),file=wd5(m),status='replace',form='formatted')
-				open(efld_f(m),file=wd6(m),status='replace',form='formatted')
-				open(pres_f(m),file=wd7(m),status='replace',form='formatted')			
-			enddo
-
-				call calcur(bx,by,bz,nx,ny,nz,n_grids,box, &
-					curx,cury,curz,rx,ry,rz)
-
-				do k=1, nz
-					do j=1, ny
-						do i=1, nx
-
-				!	******************
-				!	Choose slice here:
-				!	******************
-
-				!	For limit=60., choosing k=31 gives the z=0 plane.
-				!	For limit=60., choosing i=61 or j=61 gives the x=0
-				!		or y=0 plane, respectively.
-
-							cuts_vals(1) = int(limit/2.+1)
-							cuts_vals(2) = int(limit+1)
-							cuts_vals(3) = int(limit+1)
-
-							!	Booleans to decide whether we calculate data
-							cuts(1) = k .eq. cuts_vals(1)
-							cuts(2) = j .eq. cuts_vals(2)
-							cuts(3) = i .eq. cuts_vals(3)
-
-							if( cuts(1) .or. cuts(2) .or. cuts(3) ) then
-								! Only evaluate gridded data if we will
-								!	be writing to disk for this grid point
-
-								curx_all(i,j,k,box) = curx(i,j,k)
-								cury_all(i,j,k,box) = cury(i,j,k)
-								curz_all(i,j,k,box) = curz(i,j,k)
-
-								aqpres=amax1(0.0000001,0.333*(qpresx(i,j,k,box)+ &
-									qpresy(i,j,k,box)+qpresz(i,j,k,box)))
-								ahpres=amax1(0.0000001,0.333*(hpresx(i,j,k,box)+ &
-									hpresy(i,j,k,box)+hpresz(i,j,k,box)))
-								aopres=amax1(0.0000001,0.333*(opresx(i,j,k,box)+ &
-									opresy(i,j,k,box)+opresz(i,j,k,box)))
-								aepres=amax1(0.0000001,epres(i,j,k,box))
-
-								qden=amax1(qrho(i,j,k,box),0.000001)
-								hden=amax1(0.0001,hrho(i,j,k,box))
-								oden=amax1(0.0001,orho(i,j,k,box))
-
-								qden=qden/rmassq*rho_equiv
-								hden=hden/rmassh*rho_equiv
-								oden=oden/rmasso*rho_equiv
-								eden=oden+hden+qden+0.0001
-
-								qtemp=amax1(0.00001,aqpres/qden)
-								htemp=ahpres/hden
-								otemp=aopres/oden
-								etemp=aepres/eden
-
-								qdens=alog10(qden)
-								hdens=alog10(hden)
-								odens=alog10(oden)
-								edens=alog10(eden)
-
-								abx=b_equiv*(bx(i,j,k,box) + bx0(i,j,k,box))
-								aby=b_equiv*(by(i,j,k,box) + by0(i,j,k,box))
-								abz=b_equiv*(bz(i,j,k,box) + bz0(i,j,k,box))
-
-								ri = grid_minvals(1,box) + (xspac(box)*real(i-1))
-								ri = ri*re_equiv
-								rj = grid_minvals(2,box) + (xspac(box)*real(j-1))
-								rj = rj*re_equiv
-								rk = grid_minvals(3,box) + (xspac(box)*real(k-1))
-								rk = rk*re_equiv
-
-								rad = sqrt( ri**2 + rj**2 + rk**2 )
-
-								bsurmag = sqrt((bx0(i,j,k,box)*bx0(i,j,k,box)) &
-									+ (by0(i,j,k,box)*by0(i,j,k,box)) &
-									+ (bz0(i,j,k,box)*bz0(i,j,k,box)))
-								bsurmag = bsurmag*b_equiv
-
-								abx=b_equiv*(bx(i,j,k,box))
-								abx2=b_equiv*(bx0(i,j,k,box))
-								aby=b_equiv*(by(i,j,k,box))
-								aby2=b_equiv*(by0(i,j,k,box))
-								abz=b_equiv*(bz(i,j,k,box))
-								abz2=b_equiv*(bz0(i,j,k,box))
+	!	********************
+	!		Low Res Data
+	!	********************
 
 
-								!	~~~~~~~~~~~~~~~
-								!	Cut 1: xy-plane
-								!	~~~~~~~~~~~~~~~
+	do box=1,n_grids
+		write(boxchar,'(I1)') box
+		write(nplots_char,'(I0.3)') nplots
 
-								if( k .eq. cuts_vals(1) ) then
+		do m=1,n_cuts
+			fname_ending(m) = '_'//trim(adjustl(boxchar))//trim(cut_label(m))//'_t'//trim(adjustl(nplots_char))//'.dat'
 
-									! MAT - temp not normalized
-									write(plas_f(1),'(3(f9.2),8(es14.6))') &
-										ri,rj,rk,&
-										qdens,qtemp,hdens,htemp, &
-										odens,otemp,edens,etemp
+			wd1(m) = trim(run_name)//'_'//trim(fname1)//trim(fname_ending(m))
+			wd2(m) = trim(run_name)//'_'//trim(fname2)//trim(fname_ending(m))
+			wd3(m) = trim(run_name)//'_'//trim(fname3)//trim(fname_ending(m))
+			wd4(m) = trim(run_name)//'_'//trim(fname4)//trim(fname_ending(m))
+			wd5(m) = trim(run_name)//'_'//trim(fname5)//trim(fname_ending(m))
+			wd6(m) = trim(run_name)//'_'//trim(fname6)//trim(fname_ending(m))
+			wd7(m) = trim(run_name)//'_'//trim(fname7)//trim(fname_ending(m))
 
-									! MAT - not normalized
-									write(flow_f(1),'(3(f9.2),9(es14.6))') &
-										ri,rj,rk, &
-										qvx(i,j,k,box),qvy(i,j,k,box), &
-										qvz(i,j,k,box),ovx(i,j,k,box),ovy(i,j,k,box), &
-										ovz(i,j,k,box),hvx(i,j,k,box),hvy(i,j,k,box), &
-										hvz(i,j,k,box)
+			open(plas_f(m),file=wd1(m),status='replace',form='formatted')
+			open(flow_f(m),file=wd2(m),status='replace',form='formatted')
+			open(bfld_f(m),file=wd3(m),status='replace',form='formatted')
+			open(rad_f(m),file=wd4(m),status='replace',form='formatted')
+			open(model_f(m),file=wd5(m),status='replace',form='formatted')
+			open(efld_f(m),file=wd6(m),status='replace',form='formatted')
+			open(pres_f(m),file=wd7(m),status='replace',form='formatted')			
+		enddo
 
-									! MAT - cur not normalized
-									write(bfld_f(1),'(3(f9.2),6(es14.6))') &
-										ri,rj,rk, &
-										abx,aby,abz,curx_all(i,j,k,box), &
-										cury_all(i,j,k,box),curz_all(i,j,k,box)
+			call calcur(bx,by,bz,nx,ny,nz,n_grids,box, &
+				curx,cury,curz,rx,ry,rz)
 
-									write(rad_f(1),'(5(es14.6))') &
-										rad,bsurmag,ri,rj,rk
+			do k=1, nz
+				do j=1, ny
+					do i=1, nx
 
-									write(model_f(1),'(3(f9.2),6(es14.6))') &
-										ri,rj,rk,&
-										abx,aby,abz,abx2,aby2,abz2
+			!	******************
+			!	Choose slice here:
+			!	******************
 
-									! MAT - E field not normalized
-									write(efld_f(1),'(3(f9.2),3(es14.6))') &
-										ri,rj,rk, &
-										efldx(i,j,k,box),efldy(i,j,k,box),efldz(i,j,k,box)
+			!	For limit=60., choosing k=31 gives the z=0 plane.
+			!	For limit=60., choosing i=61 or j=61 gives the x=0
+			!		or y=0 plane, respectively.
 
-									! MAT - pres not normalized
-									write(pres_f(1),'(3(f9.2),10(es14.6))') &
-										ri,rj,rk, &
-										qpara(i,j,k,box),qperp(i,j,k,box), &
-										qcross(i,j,k,box),hpara(i,j,k,box),hperp(i,j,k,box), &
-										hcross(i,j,k,box),opara(i,j,k,box),operp(i,j,k,box), &
-										ocross(i,j,k,box),epres(i,j,k,box)
-								endif	! Cut 1
+						cuts_vals(1) = int(limit/2.+1)
+						cuts_vals(2) = int(limit+1)
+						cuts_vals(3) = int(limit+1)
 
-								!	~~~~~~~~~~~~~~~
-								!	Cut 2: xz-plane
-								!	~~~~~~~~~~~~~~~
+						!	Booleans to decide whether we calculate data
+						cuts(1) = k .eq. cuts_vals(1)
+						cuts(2) = j .eq. cuts_vals(2)
+						cuts(3) = i .eq. cuts_vals(3)
 
-								if( j .eq. cuts_vals(2) ) then
+						if( cuts(1) .or. cuts(2) .or. cuts(3) ) then
+							! Only evaluate gridded data if we will
+							!	be writing to disk for this grid point
 
-									! MAT - temp not normalized
-									write(plas_f(2),'(3(f9.2),8(es14.6))') &
-										ri,rj,rk,&
-										qdens,qtemp,hdens,htemp, &
-										odens,otemp,edens,etemp
+							curx_all(i,j,k,box) = curx(i,j,k)
+							cury_all(i,j,k,box) = cury(i,j,k)
+							curz_all(i,j,k,box) = curz(i,j,k)
 
-									! MAT - not normalized
-									write(flow_f(2),'(3(f9.2),9(es14.6))') &
-										ri,rj,rk, &
-										qvx(i,j,k,box),qvy(i,j,k,box), &
-										qvz(i,j,k,box),ovx(i,j,k,box),ovy(i,j,k,box), &
-										ovz(i,j,k,box),hvx(i,j,k,box),hvy(i,j,k,box), &
-										hvz(i,j,k,box)
+							aqpres=amax1(0.0000001,0.333*(qpresx(i,j,k,box)+ &
+								qpresy(i,j,k,box)+qpresz(i,j,k,box)))
+							ahpres=amax1(0.0000001,0.333*(hpresx(i,j,k,box)+ &
+								hpresy(i,j,k,box)+hpresz(i,j,k,box)))
+							aopres=amax1(0.0000001,0.333*(opresx(i,j,k,box)+ &
+								opresy(i,j,k,box)+opresz(i,j,k,box)))
+							aepres=amax1(0.0000001,epres(i,j,k,box))
 
-									! MAT - cur not normalized
-									write(bfld_f(2),'(3(f9.2),6(es14.6))') &
-										ri,rj,rk, &
-										abx,aby,abz,curx_all(i,j,k,box), &
-										cury_all(i,j,k,box),curz_all(i,j,k,box)
+							qden=amax1(qrho(i,j,k,box),0.000001)
+							hden=amax1(0.0001,hrho(i,j,k,box))
+							oden=amax1(0.0001,orho(i,j,k,box))
 
-									write(rad_f(2),'(5(es14.6))') &
-										rad,bsurmag,ri,rj,rk
+							qden=qden/rmassq*rho_equiv
+							hden=hden/rmassh*rho_equiv
+							oden=oden/rmasso*rho_equiv
+							eden=oden+hden+qden+0.0001
 
-									write(model_f(2),'(3(f9.2),6(es14.6))') &
-										ri,rj,rk,&
-										abx,aby,abz,abx2,aby2,abz2
+							qtemp=amax1(0.00001,aqpres/qden)
+							htemp=ahpres/hden
+							otemp=aopres/oden
+							etemp=aepres/eden
 
-									! MAT - E field not normalized
-									write(efld_f(2),'(3(f9.2),3(es14.6))') &
-										ri,rj,rk, &
-										efldx(i,j,k,box),efldy(i,j,k,box),efldz(i,j,k,box)
+							qdens=alog10(qden)
+							hdens=alog10(hden)
+							odens=alog10(oden)
+							edens=alog10(eden)
 
-									! MAT - pres not normalized
-									write(pres_f(2),'(3(f9.2),10(es14.6))') &
-										ri,rj,rk, &
-										qpara(i,j,k,box),qperp(i,j,k,box), &
-										qcross(i,j,k,box),hpara(i,j,k,box),hperp(i,j,k,box), &
-										hcross(i,j,k,box),opara(i,j,k,box),operp(i,j,k,box), &
-										ocross(i,j,k,box),epres(i,j,k,box)
-								endif	! Cut 2
+							abx=b_equiv*(bx(i,j,k,box) + bx0(i,j,k,box))
+							aby=b_equiv*(by(i,j,k,box) + by0(i,j,k,box))
+							abz=b_equiv*(bz(i,j,k,box) + bz0(i,j,k,box))
 
-								!	~~~~~~~~~~~~~~~
-								!	Cut 3: yz-plane
-								!	~~~~~~~~~~~~~~~
+							ri = grid_minvals(1,box) + (xspac(box)*real(i-1))
+							ri = ri*re_equiv
+							rj = grid_minvals(2,box) + (xspac(box)*real(j-1))
+							rj = rj*re_equiv
+							rk = grid_minvals(3,box) + (xspac(box)*real(k-1))
+							rk = rk*re_equiv
 
-								if( i .eq. cuts_vals(3) ) then
+							rad = sqrt( ri**2 + rj**2 + rk**2 )
 
-									! MAT - temp not normalized
-									write(plas_f(3),'(3(f9.2),8(es14.6))') &
-										ri,rj,rk,&
-										qdens,qtemp,hdens,htemp, &
-										odens,otemp,edens,etemp
+							bsurmag = sqrt((bx0(i,j,k,box)*bx0(i,j,k,box)) &
+								+ (by0(i,j,k,box)*by0(i,j,k,box)) &
+								+ (bz0(i,j,k,box)*bz0(i,j,k,box)))
+							bsurmag = bsurmag*b_equiv
 
-									! MAT - not normalized
-									write(flow_f(3),'(3(f9.2),9(es14.6))') &
-										ri,rj,rk, &
-										qvx(i,j,k,box),qvy(i,j,k,box), &
-										qvz(i,j,k,box),ovx(i,j,k,box),ovy(i,j,k,box), &
-										ovz(i,j,k,box),hvx(i,j,k,box),hvy(i,j,k,box), &
-										hvz(i,j,k,box)
+							abx=b_equiv*(bx(i,j,k,box))
+							abx2=b_equiv*(bx0(i,j,k,box))
+							aby=b_equiv*(by(i,j,k,box))
+							aby2=b_equiv*(by0(i,j,k,box))
+							abz=b_equiv*(bz(i,j,k,box))
+							abz2=b_equiv*(bz0(i,j,k,box))
 
-									! MAT - cur not normalized
-									write(bfld_f(3),'(3(f9.2),6(es14.6))') &
-										ri,rj,rk, &
-										abx,aby,abz,curx_all(i,j,k,box), &
-										cury_all(i,j,k,box),curz_all(i,j,k,box)
 
-									write(rad_f(3),'(5(es14.6))') &
-										rad,bsurmag,ri,rj,rk
+							!	~~~~~~~~~~~~~~~
+							!	Cut 1: xy-plane
+							!	~~~~~~~~~~~~~~~
 
-									write(model_f(3),'(3(f9.2),6(es14.6))') &
-										ri,rj,rk,&
-										abx,aby,abz,abx2,aby2,abz2
+							if( k .eq. cuts_vals(1) ) then
 
-									! MAT - E field not normalized
-									write(efld_f(3),'(3(f9.2),3(es14.6))') &
-										ri,rj,rk, &
-										efldx(i,j,k,box),efldy(i,j,k,box),efldz(i,j,k,box)
+								! MAT - temp not normalized
+								write(plas_f(1),'(3(f9.2),8(es14.6))') &
+									ri,rj,rk,&
+									qdens,qtemp,hdens,htemp, &
+									odens,otemp,edens,etemp
 
-									! MAT - pres not normalized
-									write(pres_f(3),'(3(f9.2),10(es14.6))') &
-										ri,rj,rk, &
-										qpara(i,j,k,box),qperp(i,j,k,box), &
-										qcross(i,j,k,box),hpara(i,j,k,box),hperp(i,j,k,box), &
-										hcross(i,j,k,box),opara(i,j,k,box),operp(i,j,k,box), &
-										ocross(i,j,k,box),epres(i,j,k,box)
-								endif	! Cut 3
-							endif	! Writing to disk?
-						enddo
+								! MAT - not normalized
+								write(flow_f(1),'(3(f9.2),9(es14.6))') &
+									ri,rj,rk, &
+									qvx(i,j,k,box),qvy(i,j,k,box), &
+									qvz(i,j,k,box),ovx(i,j,k,box),ovy(i,j,k,box), &
+									ovz(i,j,k,box),hvx(i,j,k,box),hvy(i,j,k,box), &
+									hvz(i,j,k,box)
+
+								! MAT - cur not normalized
+								write(bfld_f(1),'(3(f9.2),6(es14.6))') &
+									ri,rj,rk, &
+									abx,aby,abz,curx_all(i,j,k,box), &
+									cury_all(i,j,k,box),curz_all(i,j,k,box)
+
+								write(rad_f(1),'(5(es14.6))') &
+									rad,bsurmag,ri,rj,rk
+
+								write(model_f(1),'(3(f9.2),6(es14.6))') &
+									ri,rj,rk,&
+									abx,aby,abz,abx2,aby2,abz2
+
+								! MAT - E field not normalized
+								write(efld_f(1),'(3(f9.2),3(es14.6))') &
+									ri,rj,rk, &
+									efldx(i,j,k,box),efldy(i,j,k,box),efldz(i,j,k,box)
+
+								! MAT - pres not normalized
+								write(pres_f(1),'(3(f9.2),10(es14.6))') &
+									ri,rj,rk, &
+									qpara(i,j,k,box),qperp(i,j,k,box), &
+									qcross(i,j,k,box),hpara(i,j,k,box),hperp(i,j,k,box), &
+									hcross(i,j,k,box),opara(i,j,k,box),operp(i,j,k,box), &
+									ocross(i,j,k,box),epres(i,j,k,box)
+							endif	! Cut 1
+
+							!	~~~~~~~~~~~~~~~
+							!	Cut 2: xz-plane
+							!	~~~~~~~~~~~~~~~
+
+							if( j .eq. cuts_vals(2) ) then
+
+								! MAT - temp not normalized
+								write(plas_f(2),'(3(f9.2),8(es14.6))') &
+									ri,rj,rk,&
+									qdens,qtemp,hdens,htemp, &
+									odens,otemp,edens,etemp
+
+								! MAT - not normalized
+								write(flow_f(2),'(3(f9.2),9(es14.6))') &
+									ri,rj,rk, &
+									qvx(i,j,k,box),qvy(i,j,k,box), &
+									qvz(i,j,k,box),ovx(i,j,k,box),ovy(i,j,k,box), &
+									ovz(i,j,k,box),hvx(i,j,k,box),hvy(i,j,k,box), &
+									hvz(i,j,k,box)
+
+								! MAT - cur not normalized
+								write(bfld_f(2),'(3(f9.2),6(es14.6))') &
+									ri,rj,rk, &
+									abx,aby,abz,curx_all(i,j,k,box), &
+									cury_all(i,j,k,box),curz_all(i,j,k,box)
+
+								write(rad_f(2),'(5(es14.6))') &
+									rad,bsurmag,ri,rj,rk
+
+								write(model_f(2),'(3(f9.2),6(es14.6))') &
+									ri,rj,rk,&
+									abx,aby,abz,abx2,aby2,abz2
+
+								! MAT - E field not normalized
+								write(efld_f(2),'(3(f9.2),3(es14.6))') &
+									ri,rj,rk, &
+									efldx(i,j,k,box),efldy(i,j,k,box),efldz(i,j,k,box)
+
+								! MAT - pres not normalized
+								write(pres_f(2),'(3(f9.2),10(es14.6))') &
+									ri,rj,rk, &
+									qpara(i,j,k,box),qperp(i,j,k,box), &
+									qcross(i,j,k,box),hpara(i,j,k,box),hperp(i,j,k,box), &
+									hcross(i,j,k,box),opara(i,j,k,box),operp(i,j,k,box), &
+									ocross(i,j,k,box),epres(i,j,k,box)
+							endif	! Cut 2
+
+							!	~~~~~~~~~~~~~~~
+							!	Cut 3: yz-plane
+							!	~~~~~~~~~~~~~~~
+
+							if( i .eq. cuts_vals(3) ) then
+
+								! MAT - temp not normalized
+								write(plas_f(3),'(3(f9.2),8(es14.6))') &
+									ri,rj,rk,&
+									qdens,qtemp,hdens,htemp, &
+									odens,otemp,edens,etemp
+
+								! MAT - not normalized
+								write(flow_f(3),'(3(f9.2),9(es14.6))') &
+									ri,rj,rk, &
+									qvx(i,j,k,box),qvy(i,j,k,box), &
+									qvz(i,j,k,box),ovx(i,j,k,box),ovy(i,j,k,box), &
+									ovz(i,j,k,box),hvx(i,j,k,box),hvy(i,j,k,box), &
+									hvz(i,j,k,box)
+
+								! MAT - cur not normalized
+								write(bfld_f(3),'(3(f9.2),6(es14.6))') &
+									ri,rj,rk, &
+									abx,aby,abz,curx_all(i,j,k,box), &
+									cury_all(i,j,k,box),curz_all(i,j,k,box)
+
+								write(rad_f(3),'(5(es14.6))') &
+									rad,bsurmag,ri,rj,rk
+
+								write(model_f(3),'(3(f9.2),6(es14.6))') &
+									ri,rj,rk,&
+									abx,aby,abz,abx2,aby2,abz2
+
+								! MAT - E field not normalized
+								write(efld_f(3),'(3(f9.2),3(es14.6))') &
+									ri,rj,rk, &
+									efldx(i,j,k,box),efldy(i,j,k,box),efldz(i,j,k,box)
+
+								! MAT - pres not normalized
+								write(pres_f(3),'(3(f9.2),10(es14.6))') &
+									ri,rj,rk, &
+									qpara(i,j,k,box),qperp(i,j,k,box), &
+									qcross(i,j,k,box),hpara(i,j,k,box),hperp(i,j,k,box), &
+									hcross(i,j,k,box),opara(i,j,k,box),operp(i,j,k,box), &
+									ocross(i,j,k,box),epres(i,j,k,box)
+							endif	! Cut 3
+						endif	! Writing to disk?
 					enddo
 				enddo
-
-			do m=1,n_cuts
-			close(plas_f(m))
-			close(flow_f(m))
-			close(bfld_f(m))
-			close(rad_f(m))
-			close(model_f(m))
-			close(efld_f(m))
-			close(pres_f(m))
 			enddo
 
-		enddo ! loop over box
+		do m=1,n_cuts
+		close(plas_f(m))
+		close(flow_f(m))
+		close(bfld_f(m))
+		close(rad_f(m))
+		close(model_f(m))
+		close(efld_f(m))
+		close(pres_f(m))
+		enddo
 
-	endif
+	enddo ! loop over box
+
 	write(*,*) 'Done writing grpahing data files.'
 
 !	call system("python3 "//trim(python_dir)//trim(python_plotter))
 
 	if(mod(nplots,10) .eq. 0) then
-	!	MJS: Make gifs out of time sequences here (and overwrite)
+		! MJS: Make gifs out of time sequences here (and overwrite)
+		write(*,*) 'Gifs updated.'
 	endif
 
-	write(*,*) 'Graphics plotted.'
 	return
 end subroutine write_graphing_data
