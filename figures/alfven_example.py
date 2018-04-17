@@ -39,9 +39,9 @@ f,axes = plt.subplots(1,1,figsize=(6,5),sharex=True,sharey=True)
 # read in data files
 #
 
-x,y,qdens,qtemp,hdens,htemp,odens,otemp,edens,etemp = np.genfromtxt(r'./data/denstemp.dat',unpack=True)
-x,y,qvx,qvy,qvz,ovx,ovy,ovz,hvx,hvy,hvz = np.genfromtxt(r'./data/flowdata.dat',unpack=True)
-x,y,bx,by,bz,curx,cury,curz = np.genfromtxt(r'./data/fielddata.dat',unpack=True)
+x,y,qdens,qtemp,hdens,htemp,odens,otemp,edens,etemp = np.genfromtxt(r'./data/denstemp.dat',unpack=True,skip_header=1)
+x,y,qvx,qvy,qvz,ovx,ovy,ovz,hvx,hvy,hvz = np.genfromtxt(r'./data/flowdata.dat',unpack=True,skip_header=1)
+x,y,bx,by,bz,curx,cury,curz = np.genfromtxt(r'./data/fielddata.dat',unpack=True,skip_header=1)
 
 #
 # calculate equatorial flow speed and alfven speed

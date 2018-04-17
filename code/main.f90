@@ -31,7 +31,7 @@
 !		30-59	Spacecraft position/trajectory input files
 !		60-89	Spacecraft data recording
 !		100		git hash file
-!		101		dummy craft file
+!		100-109	dummy files
 !		110-150	Figure plotting
 !
 program multifluid
@@ -145,6 +145,7 @@ program multifluid
 		real vt
 		real abtot
 		real scale
+		real alf_lim
 		!
 		integer nrot_planet, nrot_moon	!	Number of full rotations for planet and moon
 		real rot_hrs, rot_hrs_moon	!	Number of hours into current local day/lunar orbit
@@ -201,7 +202,7 @@ program multifluid
 		!		30-59	Spacecraft position/trajectory input files
 		!		60-89	Spacecraft data recording
 		!		100		Git hash file
-		!		101		Dummy craft file
+		!		100-109	Dummy files
 		!		110-150	Figure plotting
 		integer,parameter :: input_f=1
 		integer,parameter :: inp_o_f=2
@@ -216,6 +217,7 @@ program multifluid
 		integer,parameter :: scout=60
 		integer,parameter :: git_f=100
 		integer,parameter :: dummy_f=101
+		integer,parameter :: dummy_fg=102
 		!
 		character*5,parameter	:: fname_input='input'
 		character*9,parameter	:: fname_inp_o='input_out'
@@ -346,7 +348,7 @@ program multifluid
 		integer n, m, ms, nn, box	!	Loop counters
 		integer m_smallest, m_step, cbox	!	Placeholders
 		integer mating_index, next_box	!	For checking grid mating
-		integer nplots	!	Keeps count of time ID for graphing data
+		integer :: nplots=0	!	Keeps count of time ID for graphing data
 		real grid_diff	!	For checking grid mating
 		real smallest_step, fastest
 		!
@@ -370,6 +372,7 @@ program multifluid
 		real sbx_wind, sby_wind, sbz_wind
 		!
 		real deltg, deltinj, delt
+		real b01, b02
 		!
 		real	:: tgraph = 0.
 		real	:: tinj = 0.
@@ -870,7 +873,6 @@ program multifluid
 		alf_lim = 6.00 * alf_inner1
 		b0 = b01
 		write(*,*)'b0: ',b0
-		bmax = b02
 		delb0 = (b02 - b01) / tmax	! Never used as of 08/27/17. MJS
 		!
 		write(wd1,'(f6.3)')cs_inner
@@ -1254,8 +1256,8 @@ program multifluid
 			reynolds, resistive, resist, &
 			curx,cury,curz,tvx,tvy,tvz, &
 			ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
-			ti_te, rho_equiv, r_equiv, planet_rad, planet_per, moon_rad, &
-			run_name, dummy_f, nplots)
+			ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
+			run_name, dummy_fg, nplots)
 		!
         ts1 = t + tsave
         tstep = tmax
@@ -3062,7 +3064,7 @@ program multifluid
                             ijsrf,numsrf,ijmid,nummid,ijzero,numzero, &
                             mbndry,msrf,mmid,mzero, &
                             erho,epress,alpha_e,ti_te,o_conc, &
-                            sbx_wind,spress, &
+                            re_equiv,r_inner,sbx_wind,spress, &
                             grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
                             grid_minvals(3,:), grid_maxvals(3,:) )
                     endif
@@ -3348,8 +3350,8 @@ program multifluid
 				reynolds, resistive, resist, &
 				curx,cury,curz,tvx,tvy,tvz, &
 				ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
-				ti_te, rho_equiv, r_equiv, planet_rad, planet_per, moon_rad, &
-				run_name, dummy_f, nplots)
+				ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
+				run_name, dummy_fg, nplots)
 !            call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
 !                qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
 !                hrho,hpresx,hpresy,hpresz,hpresxy, &

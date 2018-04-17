@@ -1057,7 +1057,7 @@ subroutine bndry_inner( &
     !
     aheight=r_inner+2.
     !
-    box=1
+    box=mbndry
     dx=(grd_xmax(box)-grd_xmin(box))/(nx-1.)
     dy=(grd_ymax(box)-grd_ymin(box))/(ny-1.)
     dz=(grd_zmax(box)-grd_zmin(box))/(nz-1.)
