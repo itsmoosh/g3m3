@@ -746,7 +746,7 @@ subroutine interpolate(plas_int,plas,box,xpos,ypos,zpos, &
 		+ plas(ii,jj,kk,m)*dx*dy*dz &
 		+ plas(ii,j,k,m)*dx*(1.0 - dy)*(1.0 - dz) &
 		+ plas(i,jj,k,m)*(1.0 - dx)*dy*(1.0 - dz) &
-		+ plas(i,j,k,mk)*(1.0 - dx)*(1.0 - dy)*dz &
+		+ plas(i,j,kk,m)*(1.0 - dx)*(1.0 - dy)*dz &
 		+ plas(ii,jj,k,m)*dx*dy*(1.0 - dz) &
 		+ plas(ii,j,kk,m)*dx*(1.0 - dy)*dz &
 		+ plas(i,jj,kk,m)*(1.0 - dx)*dy*dz
