@@ -3319,7 +3319,6 @@ program multifluid
         !     write(*,999)t
         ! 999 format(' step 2 complete at t= ',1pe12.5)
         !
-		tgraph=4.
         if(t.ge.tgraph) then
             !
             !	Plot plasma properties
@@ -3367,7 +3366,7 @@ program multifluid
 !                grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
             !
             tgraph=tgraph+deltg
-			write(*,*)'Graphics plotted.'
+			write(*,*) 'Graphics plotted.'
         endif !if(t.ge.tgraph)
 		!
         if(t.ge.tinj.and.ringo) then
