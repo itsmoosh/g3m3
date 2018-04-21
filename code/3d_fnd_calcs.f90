@@ -108,6 +108,7 @@ subroutine fnd_evel(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
     !     converts momentum into velocity for graphics
     !
     integer box
+	real tot_numden
     dimension qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids), &
         qpz(nx,ny,nz,n_grids),qrho(nx,ny,nz,n_grids), &
         hpx(nx,ny,nz,n_grids),hpy(nx,ny,nz,n_grids), &
@@ -123,26 +124,26 @@ subroutine fnd_evel(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
     do k=1,nz
         do j=1,ny
             do i=1,nx
-                !      eden=amax1(qrho(i,j,k,box)+hrho(i,j,k,box)+orho(i,j,k,box),
-                !    +                 0.0001)
+
                 qden=(qrho(i,j,k,box)+0.000001)/rmassq
                 hden=(hrho(i,j,k,box)+0.000001)/rmassh
                 oden=(orho(i,j,k,box)+0.000001)/rmasso
-                tden=qden+hden+oden
+                tot_numden=qden+hden+oden
+				tden = qrho(i,j,k,box) + hrho(i,j,k,box) + orho(i,j,k,box)
                 !
-                !      keep sepearate the ion and current components
+                !      keep separate the ion and current components
                 !
-                tvx(i,j,k)=(qpx(i,j,k,box)/rmassq+hpx(i,j,k,box)/rmassh &
-                    +opx(i,j,k,box)/rmasso)/tden
-                evx(i,j,k)= tvx(i,j,k) - curx(i,j,k)/tden/reynolds
+                tvx(i,j,k) = ( qpx(i,j,k,box) + hpx(i,j,k,box) &
+                    + opx(i,j,k,box) ) / tden
+                evx(i,j,k) = tvx(i,j,k) - curx(i,j,k)/tot_numden/reynolds
                 !
-                tvy(i,j,k)=(qpy(i,j,k,box)/rmassq+hpy(i,j,k,box)/rmassh &
-                    +opy(i,j,k,box)/rmasso)/tden
-                evy(i,j,k)= tvy(i,j,k) - cury(i,j,k)/tden/reynolds
+                tvy(i,j,k) = ( qpy(i,j,k,box) + hpy(i,j,k,box) &
+                    + opy(i,j,k,box) ) / tden
+                evy(i,j,k) = tvy(i,j,k) - cury(i,j,k)/tot_numden/reynolds
                 !
-                tvz(i,j,k)=(qpz(i,j,k,box)/rmassq+hpz(i,j,k,box)/rmassh &
-                    +opz(i,j,k,box)/rmasso)/tden
-                evz(i,j,k)= tvz(i,j,k)  -curz(i,j,k)/tden/reynolds
+                tvz(i,j,k) = ( qpz(i,j,k,box) + hpz(i,j,k,box) &
+                    + opz(i,j,k,box) ) / tden
+                evz(i,j,k) = tvz(i,j,k) - curz(i,j,k)/tot_numden/reynolds
             enddo
         enddo
     enddo
