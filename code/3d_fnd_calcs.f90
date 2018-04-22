@@ -36,10 +36,14 @@ subroutine fnd_vel(px,py,pz,rho,vx,vy,vz,nx,ny,nz,n_grids,box)
     !
     !     converts momentum into velocity for graphics
     !
-    integer box
-    dimension px(nx,ny,nz,n_grids),py(nx,ny,nz,n_grids), &
-        pz(nx,ny,nz,n_grids),rho(nx,ny,nz,n_grids), &
-        vx(nx,ny,nz),vy(nx,ny,nz),vz(nx,ny,nz)
+	implicit none
+    integer, intent(in) :: nx, ny, nz, n_grids, box
+	real, intent(in) :: px(nx,ny,nz,n_grids),py(nx,ny,nz,n_grids), &
+        pz(nx,ny,nz,n_grids),rho(nx,ny,nz,n_grids)
+	real, intent(out) :: vx(nx,ny,nz),vy(nx,ny,nz),vz(nx,ny,nz)
+
+	integer i,j,k
+	real arho
     !
     !$omp  parallel do
     do k=1,nz
@@ -54,7 +58,7 @@ subroutine fnd_vel(px,py,pz,rho,vx,vy,vz,nx,ny,nz,n_grids,box)
     enddo
     !
     return
-end
+end subroutine fnd_vel
 !
 !
 !	******************************************
@@ -66,15 +70,19 @@ subroutine fnd_vtot(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
     !
     !     converts momentum into velocity for graphics
     !
-    integer box
-	real tden
-    dimension qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids), &
+	implicit none
+	integer, intent(in) :: nx, ny, nz, n_grids, box
+	real, intent(in) :: qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids), &
         qpz(nx,ny,nz,n_grids),qrho(nx,ny,nz,n_grids), &
         hpx(nx,ny,nz,n_grids),hpy(nx,ny,nz,n_grids), &
         hpz(nx,ny,nz,n_grids),hrho(nx,ny,nz,n_grids), &
         opx(nx,ny,nz,n_grids),opy(nx,ny,nz,n_grids), &
-        opz(nx,ny,nz,n_grids),orho(nx,ny,nz,n_grids), &
-        vx(nx,ny,nz),vy(nx,ny,nz),vz(nx,ny,nz)
+        opz(nx,ny,nz,n_grids),orho(nx,ny,nz,n_grids)
+	real, intent(in) :: rmassq, rmassh, rmasso
+	real, intent(out) :: vx(nx,ny,nz),vy(nx,ny,nz),vz(nx,ny,nz)
+
+	integer i,j,k
+	real tden
     !
     !
     !$omp  parallel do
@@ -83,18 +91,18 @@ subroutine fnd_vtot(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
             do i=1,nx
                 tden = qrho(i,j,k,box) + hrho(i,j,k,box) + orho(i,j,k,box)
                 !
-                vx(i,j,k)=( qpx(i,j,k,box)+hpx(i,j,k,box) &
-                    +opx(i,j,k,box) ) / tden
-                vy(i,j,k)=( qpy(i,j,k,box)+hpy(i,j,k,box) &
-                    +opy(i,j,k,box) ) / tden
-                vz(i,j,k)=( qpz(i,j,k,box)+hpz(i,j,k,box) &
-                    +opz(i,j,k,box) ) / tden
+                vx(i,j,k) = ( qpx(i,j,k,box) + hpx(i,j,k,box) &
+                    + opx(i,j,k,box) ) / tden
+                vy(i,j,k) = ( qpy(i,j,k,box) + hpy(i,j,k,box) &
+                    + opy(i,j,k,box) ) / tden
+                vz(i,j,k) = ( qpz(i,j,k,box) + hpz(i,j,k,box) &
+                    + opz(i,j,k,box) ) / tden
             enddo
         enddo
     enddo
     !
     return
-end
+end subroutine fnd_vtot
 !
 !
 !	******************************************
@@ -107,17 +115,21 @@ subroutine fnd_evel(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
     !
     !     converts momentum into velocity for graphics
     !
-    integer box
-	real tot_numden
-    dimension qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids), &
+	implicit none
+	integer, intent(in) :: nx, ny, nz, n_grids, box
+	real, intent(in) :: qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids), &
         qpz(nx,ny,nz,n_grids),qrho(nx,ny,nz,n_grids), &
         hpx(nx,ny,nz,n_grids),hpy(nx,ny,nz,n_grids), &
         hpz(nx,ny,nz,n_grids),hrho(nx,ny,nz,n_grids), &
         opx(nx,ny,nz,n_grids),opy(nx,ny,nz,n_grids), &
         opz(nx,ny,nz,n_grids),orho(nx,ny,nz,n_grids), &
-        curx(nx,ny,nz),cury(nx,ny,nz),curz(nx,ny,nz), &
-        tvx(nx,ny,nz),tvy(nx,ny,nz),tvz(nx,ny,nz), &
-        evx(nx,ny,nz),evy(nx,ny,nz),evz(nx,ny,nz)
+        curx(nx,ny,nz),cury(nx,ny,nz),curz(nx,ny,nz)
+	real, intent(in) :: rmassq, rmassh, rmasso, reynolds
+	real, intent(out) :: evx(nx,ny,nz),evy(nx,ny,nz),evz(nx,ny,nz), &
+		tvx(nx,ny,nz),tvy(nx,ny,nz),tvz(nx,ny,nz)
+
+	integer i,j,k
+	real tot_numden, tden, qden, hden, oden
     !
     !
     !$omp  parallel do
@@ -125,10 +137,10 @@ subroutine fnd_evel(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
         do j=1,ny
             do i=1,nx
 
-                qden=(qrho(i,j,k,box)+0.000001)/rmassq
-                hden=(hrho(i,j,k,box)+0.000001)/rmassh
-                oden=(orho(i,j,k,box)+0.000001)/rmasso
-                tot_numden=qden+hden+oden
+                qden=(qrho(i,j,k,box)+0.000001) / rmassq
+                hden=(hrho(i,j,k,box)+0.000001) / rmassh
+                oden=(orho(i,j,k,box)+0.000001) / rmasso
+                tot_numden = qden + hden + oden
 				tden = qrho(i,j,k,box) + hrho(i,j,k,box) + orho(i,j,k,box)
                 !
                 !      keep separate the ion and current components
@@ -149,7 +161,7 @@ subroutine fnd_evel(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
     enddo
     !
     return
-end
+end subroutine fnd_evel
 !
 !
 !	******************************************
@@ -199,18 +211,20 @@ subroutine fnd_pres(px,py,pz,pxy,pxz,pyz,p_para,p_perp,p_cross, &
 	vvx,vvy,vvz,bxt,byt,bzt,nx,ny,nz,n_grids,box)
 
 	! This subroutine is only used in write_graphing_data.
+	implicit none
 
-	dimension px(nx,ny,nz,n_grids),py(nx,ny,nz,n_grids),pz(nx,ny,nz,n_grids), &
-		pxy(nx,ny,nz,n_grids),pxz(nx,ny,nz,n_grids),pyz(nx,ny,nz,n_grids), &
-		p_para(nx,ny,nz,n_grids),p_perp(nx,ny,nz,n_grids),p_cross(nx,ny,nz,n_grids), &
-		vvx(nx,ny,nz),vvy(nx,ny,nz),vvz(nx,ny,nz),bxt(nx,ny,nz), &
-		byt(nx,ny,nz),bzt(nx,ny,nz)
+	integer, intent(in) :: nx, ny, nz, n_grids, box
+	real, intent(in) :: px(nx,ny,nz,n_grids), py(nx,ny,nz,n_grids), &
+		pz(nx,ny,nz,n_grids), pxy(nx,ny,nz,n_grids), &
+		pxz(nx,ny,nz,n_grids), pyz(nx,ny,nz,n_grids), &
+		vvx(nx,ny,nz), vvy(nx,ny,nz), vvz(nx,ny,nz), &
+		bxt(nx,ny,nz), byt(nx,ny,nz), bzt(nx,ny,nz)
+	real, intent(out) :: p_para(nx,ny,nz,n_grids), p_perp(nx,ny,nz,n_grids), &
+		p_cross(nx,ny,nz,n_grids)
 
-	integer, intent(in) :: box
-
+	integer i,j,k
 	real abx,aby,abz,bmag,avx,avy,avz,vmag
 	real vcbx,vcby,vcbz,vcmag
-	real p_para,p_perp,p_cross
 	real presx,presy,presz,presmag
 	real presxy,presxz,presyz
 

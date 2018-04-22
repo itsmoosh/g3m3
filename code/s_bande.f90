@@ -8,22 +8,26 @@ subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
     !      calculates the surface magnetic field bs
     !      and the body electric field eb
     !
-    dimension bsx(nx,ny,nz),bsy(nx,ny,nz),bsz(nx,ny,nz), &
-    efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz), &
-    curx(nx,ny,nz),cury(nx,ny,nz),curz(nx,ny,nz), &
-    evx(nx,ny,nz),evy(nx,ny,nz),evz(nx,ny,nz), &
-    qrho(nx,ny,nz,n_grids),hrho(nx,ny,nz,n_grids),orho(nx,ny,nz,n_grids), &
-    epres(nx,ny,nz,n_grids),btot(nx,ny,nz)
-    dimension rst(nx,ny,nz,mbndry)
-    integer box
-    integer ijmid(mbndry,3,mmid),ijzero(mbndry,3,mzero)
-    integer nummid(mbndry),numzero(mbndry)
-    !
-    !      ohm's law: ve = vi-j/ne
-    !
-    ! parallelizes loop. RW, oct. 23, 2002
-    !$omp  parallel do
-    do k=1,nz
+	implicit none
+	integer, intent(in) :: nx, ny, nz, n_grids, box, mbndry, mmid, mzero
+	real, intent(in) :: bsx(nx,ny,nz), bsy(nx,ny,nz), bsz(nx,ny,nz), &
+		curx(nx,ny,nz), cury(nx,ny,nz), curz(nx,ny,nz), &
+		evx(nx,ny,nz), evy(nx,ny,nz), evz(nx,ny,nz), btot(nx,ny,nz), &
+		epres(nx,ny,nz,n_grids), qrho(nx,ny,nz,n_grids), hrho(nx,ny,nz,n_grids), &
+		orho(nx,ny,nz,n_grids), rst(nx,ny,nz,mbndry), resist, reynolds
+	real, intent(in) :: rmassq, rmassh, rmasso, rx, ry, rz
+	integer, intent(in) :: ijmid(mbndry,3,mmid), nummid(mbndry), &
+		ijzero(mbndry,3,mzero), numzero(mbndry)
+	real, intent(out) :: efldx(nx,ny,nz), efldy(nx,ny,nz), efldz(nx,ny,nz)
+
+	integer i,j,k,n, ip,im,jp,jm,kp,km, nx1,ny1,nz1
+	real avx,avy,avz, abx,aby,abz, dxt,dyt,dzt, arho, eden
+	!
+	!      ohm's law: ve = vi-j/ne
+	!
+	! parallelizes loop. RW, oct. 23, 2002
+	!$omp  parallel do
+	do k=1,nz
         do j=1,ny
             do i=1,nx
                 !
@@ -118,7 +122,7 @@ subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
     !       enddo
     !      endif
     !
-    !      set flank bounday conditions
+    !      set flank boundary conditions
     !
     nx1=nx-1
     ny1=ny-1
@@ -164,4 +168,4 @@ subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
     enddo
     !
     return
-end
+end subroutine bande

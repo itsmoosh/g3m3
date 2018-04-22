@@ -4,9 +4,15 @@ subroutine calcur(bx,by,bz,nx,ny,nz,n_grids,box,curx,cury,curz, &
     !     this calculates the current associated with the perturbed b field
     !          i.e. curz= dby/dx - dbx/dy
     !
-    integer box
-    dimension bx(nx,ny,nz,n_grids),by(nx,ny,nz,n_grids),bz(nx,ny,nz,n_grids), &
-    curx(nx,ny,nz),cury(nx,ny,nz),curz(nx,ny,nz)
+	implicit none
+	integer, intent(in) :: nx, ny, nz, n_grids, box
+	real, intent(in) :: bx(nx,ny,nz,n_grids), by(nx,ny,nz,n_grids), &
+		bz(nx,ny,nz,n_grids)
+	real, intent(in) :: rx, ry, rz
+	real, intent(out) :: curx(nx,ny,nz), cury(nx,ny,nz), curz(nx,ny,nz)
+
+	integer i,j,k, im,ip,jm,jp,km,kp, nx1,ny1,nz1
+	real dxt, dyt, dzt
     !
     dxt=2.*rx
     dyt=2.*ry
@@ -187,4 +193,4 @@ subroutine calcur(bx,by,bz,nx,ny,nz,n_grids,box,curx,cury,curz, &
     +curz(nx1,ny,nz))/3.
     !
     return
-end
+end subroutine calcur

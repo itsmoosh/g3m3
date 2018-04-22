@@ -164,10 +164,6 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
     grd_ymin(n_grids),grd_ymax(n_grids), &
     grd_zmin(n_grids),grd_zmax(n_grids)
     !
-    !       maximum ion cyclotron frequency in normalized units
-    !           that can be resolved
-    bmax=0.20*rmassq/delt/reynolds
-    !
     !        set distance scales
     !
     ddx=(grd_xmax(box)-grd_xmin(box))/(nx-1)
