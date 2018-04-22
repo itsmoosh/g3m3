@@ -1217,7 +1217,6 @@ program multifluid
         endif  ! end divb_lores
 		!
         !	if(update)t=0.
-		write(*,*) 'Writing data to graphing files.'
 		if(spacecraft) write(*,*) 'Spacecraft positions not yet initialized.'
 !        write(*,*) 'Entering lores visual'
 !        call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
@@ -1233,7 +1232,21 @@ program multifluid
 !            cross,along,flat,xcraft,ncraft,re_equiv, &
 !            grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
 !            grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
-		!
+
+        ts1 = t + tsave
+        tstep = tmax
+        tmax = t + tmax
+        tgraph = t + deltg
+        tinj = t + deltinj
+        tdiv = t
+        !
+        !	Initialize plasma resistivity
+        !
+        call set_resist(resistive,nx,ny,nz,mbndry,resist, &
+            ijzero,numzero,ijmid,nummid,ijsrf,numsrf, &
+            msrf,mmid,mzero,1.)
+        !
+		write(*,*) 'Graphing data.'
 		call write_graphing_data( &
 			nx,ny,nz,n_grids, limit, &
 			mbndry, num_zqt, msrf, mmid, mzero, &
@@ -1254,26 +1267,10 @@ program multifluid
 			bsx,bsy,bsz, &
 			rmassq,rmassh,rmasso, &
 			reynolds, resistive, resist, &
-			curx,cury,curz,tvx,tvy,tvz, &
+			curx,cury,curz, &
 			ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
 			ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
 			run_name, dummy_fg, nplots)
-		!
-        ts1 = t + tsave
-        tstep = tmax
-        tmax = t + tmax
-        tgraph = t + deltg
-        tinj = t + deltinj
-        tdiv = t
-        !
-        !	Initialize plasma resistivity
-        !
-        call set_resist(resistive,nx,ny,nz,mbndry,resist, &
-            ijzero,numzero,ijmid,nummid,ijsrf,numsrf, &
-            msrf,mmid,mzero,1.)
-        !
-        write(*,*)'Entering lores visual'
-		write(*,*) 'Need matplotlib plotting code from Matt here!'
 !        call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
 !            qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
 !            hrho,hpresx,hpresy,hpresz,hpresxy, &
@@ -3326,7 +3323,7 @@ program multifluid
             !	Calculate size of plotting stuff and ensure no distortions
             !		over desired scales
             !
-			write(*,*) 'Writing data to graphing files.'
+			write(*,*) 'Graphing data.'
 			call write_graphing_data( &
 				nx,ny,nz,n_grids, limit, &
 				mbndry, num_zqt, msrf, mmid, mzero, &
@@ -3347,7 +3344,7 @@ program multifluid
 				bsx,bsy,bsz, &
 				rmassq,rmassh,rmasso, &
 				reynolds, resistive, resist, &
-				curx,cury,curz,tvx,tvy,tvz, &
+				curx,cury,curz, &
 				ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
 				ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
 				run_name, dummy_fg, nplots)
