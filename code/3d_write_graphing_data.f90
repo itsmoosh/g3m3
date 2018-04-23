@@ -172,7 +172,7 @@ subroutine write_graphing_data( &
 		ri, rj, rk, rad, bmag, bdipmag, time, ub0x, ub0y, ub0z, &
 		ri_moon, rj_moon, rk_moon, aoden, aqden, ahden, aeden, &
 		aotemp, ahtemp, aqtemp, aetemp, aefldx, aefldy, aefldz, &
-		net_flow, v_alf, alfven_mach
+		net_flow, v_alf, alfven_mach, unetx, unety, unetz
 
 	character*1 boxchar
 	character*3 nplots_char
@@ -325,7 +325,7 @@ subroutine write_graphing_data( &
 				'  box, cut:      '// boxchar//', '// cut_label(m)//'-plane'//new_line('A')// &
 				'  ut, #in seq: '// ut_string// ', '//nplots_char
 			write(flow_header,'(A)') header_intro//new_line('A')// &
-				"  Flow velocity components for each species, and net flow speed, in km/s."//new_line('A')// &
+				"  Flow velocity components for each species and net flow, in km/s."//new_line('A')// &
 				'  run name:      '// run_name//new_line('A')// &
 				'  box, cut:      '// boxchar//', '// cut_label(m)//'-plane'//new_line('A')// &
 				'  ut, #in seq: '// ut_string// ', '//nplots_char
@@ -360,10 +360,11 @@ subroutine write_graphing_data( &
 			write(plas_f(m),'(3(A9),8(A14))') 'x(R_E)','y(R_E)','z(R_E)', &
 				'log(qdens/cc)','qtemp(eV)', 'log(hdens/cc)','htemp(eV)', &	! Densities are in units of # per cc
 				'log(odens/cc)','otemp(eV)', 'log(edens/cc)','etemp(eV)'
-			write(flow_f(m),'(3(A9),10(A14))') 'x(R_E)','y(R_E)','z(R_E)', &
+			write(flow_f(m),'(3(A9),12(A14))') 'x(R_E)','y(R_E)','z(R_E)', &
 				'qvx(km/s)','qvy(km/s)','qvz(km/s)', &
 				'hvx(km/s)','hvy(km/s)','hvz(km/s)', &
-				'ovx(km/s)','ovy(km/s)','ovz(km/s)', 'u_net(km/s)'
+				'ovx(km/s)','ovy(km/s)','ovz(km/s)', &
+				'u_netx(km/s)','u_nety(km/s)','u_netz(km/s)'
 			write(bfld_f(m),'(3(A9),8(A14))') 'x(R_E)','y(R_E)','z(R_E)', &
 				'Bx(nT)','By(nT)','Bz(nT)','|Btot|(nT)', &
 				'Jx(nA/m^2)','Jy(nA/m^2)','Jz(nA/m^2)', '|v|/V_Alf'
@@ -457,8 +458,11 @@ subroutine write_graphing_data( &
 					if( cuts(1) .or. cuts(2) .or. cuts(3) ) then
 						! Only evaluate grid-point data if we will
 						!	be writing to disk for this grid point
-					
-						net_flow = sqrt(tvx(i,j,k)**2 + tvy(i,j,k)**2 + tvz(i,j,k)**2) * v_equiv
+
+						unetx = tvx(i,j,k) * v_equiv
+						unetx = tvx(i,j,k) * v_equiv
+						unetx = tvx(i,j,k) * v_equiv
+						net_flow = sqrt(unetx**2 + unety**2 + unetz**2)
 
 						curx_all = curx(i,j,k)*cur_equiv
 						cury_all = cury(i,j,k)*cur_equiv
@@ -553,10 +557,10 @@ subroutine write_graphing_data( &
 								qdens,qtemp, hdens,htemp, &
 								odens,otemp, edens,etemp
 
-							write(flow_f(1),'(3(f9.2),10(es14.6))') &
+							write(flow_f(1),'(3(f9.2),12(es14.6))') &
 								ri,rj,rk, &
 								qvx,qvy,qvz, hvx,hvy,hvz, ovx,ovy,ovz, &
-								net_flow
+								unetx,unety,unetz
 
 							write(bfld_f(1),'(3(f9.2),8(es14.6))') &
 								ri,rj,rk, &
@@ -589,10 +593,10 @@ subroutine write_graphing_data( &
 								qdens,qtemp, hdens,htemp, &
 								odens,otemp, edens,etemp
 
-							write(flow_f(2),'(3(f9.2),10(es14.6))') &
+							write(flow_f(2),'(3(f9.2),12(es14.6))') &
 								ri,rj,rk, &
 								qvx,qvy,qvz, hvx,hvy,hvz, ovx,ovy,ovz, &
-								net_flow
+								unetx,unety,unetz
 
 							write(bfld_f(2),'(3(f9.2),8(es14.6))') &
 								ri,rj,rk, &
@@ -625,10 +629,10 @@ subroutine write_graphing_data( &
 								qdens,qtemp, hdens,htemp, &
 								odens,otemp, edens,etemp
 
-							write(flow_f(3),'(3(f9.2),10(es14.6))') &
+							write(flow_f(3),'(3(f9.2),12(es14.6))') &
 								ri,rj,rk, &
 								qvx,qvy,qvz, hvx,hvy,hvz, ovx,ovy,ovz, &
-								net_flow
+								unetx,unety,unetz
 
 							write(bfld_f(3),'(3(f9.2),8(es14.6))') &
 								ri,rj,rk, &
