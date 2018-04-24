@@ -47,21 +47,19 @@ subroutine write_graphing_data( &
 	character*2, parameter :: cut_label(n_cuts) = ['xy', 'xz', 'yz']
 	character*5, parameter :: fname1 = 'plas'
 	character*5, parameter :: fname2 = 'flow'
-	character*5, parameter :: fname3 = 'bfld'
-	character*5, parameter :: fname4 = 'model'
-	character*5, parameter :: fname5 = 'efld'
-	character*5, parameter :: fname6 = 'pres'
+	character*5, parameter :: fname3 = 'pres'
+	character*5, parameter :: fname4 = 'bande'
+	character*5, parameter :: fname5 = 'model'
 
 	!	file IDs
 	integer, parameter :: plas_f(n_cuts) = [111, 121, 131]
 	integer, parameter :: flow_f(n_cuts) = [112, 122, 132]
-	integer, parameter :: bfld_f(n_cuts) = [113, 123, 133]
-	integer, parameter :: model_f(n_cuts) = [114, 124, 134]
-	integer, parameter :: efld_f(n_cuts) = [115, 125, 135]
-	integer, parameter :: pres_f(n_cuts) = [116, 126, 136]
+	integer, parameter :: pres_f(n_cuts) = [113, 123, 133]
+	integer, parameter :: bande_f(n_cuts) = [114, 124, 134]
+	integer, parameter :: model_f(n_cuts) = [115, 125, 135]
 
 !       header information
-	character*300 plas_header, flow_header, bfld_header, model_header, &
+	character*300 plas_header, flow_header, bande_header, model_header, &
 		efld_header, pres_header
 	character*53, parameter :: header_intro = "This file contains data for the following quantities:"
 	character*10 ut_string
@@ -172,7 +170,7 @@ subroutine write_graphing_data( &
 		ri, rj, rk, rad, bmag, bdipmag, time, ub0x, ub0y, ub0z, &
 		ri_moon, rj_moon, rk_moon, aoden, aqden, ahden, aeden, &
 		aotemp, ahtemp, aqtemp, aetemp, aefldx, aefldy, aefldz, &
-		net_flow, v_alf, alfven_mach, unetx, unety, unetz
+		net_flow, v_alf, alfven_mach, unetx, unety, unetz, emag
 
 	character*1 boxchar
 	character*3 nplots_char
@@ -306,14 +304,12 @@ subroutine write_graphing_data( &
 			wd3(m) = trim(fname_starting)//trim(fname3)//trim(fname_ending(m))
 			wd4(m) = trim(fname_starting)//trim(fname4)//trim(fname_ending(m))
 			wd5(m) = trim(fname_starting)//trim(fname5)//trim(fname_ending(m))
-			wd6(m) = trim(fname_starting)//trim(fname6)//trim(fname_ending(m))
 
 			open(plas_f(m),file=wd1(m),status='replace',form='formatted')
 			open(flow_f(m),file=wd2(m),status='replace',form='formatted')
-			open(bfld_f(m),file=wd3(m),status='replace',form='formatted')
-			open(model_f(m),file=wd4(m),status='replace',form='formatted')
-			open(efld_f(m),file=wd5(m),status='replace',form='formatted')
-			open(pres_f(m),file=wd6(m),status='replace',form='formatted')
+			open(pres_f(m),file=wd3(m),status='replace',form='formatted')
+			open(bande_f(m),file=wd4(m),status='replace',form='formatted')
+			open(model_f(m),file=wd5(m),status='replace',form='formatted')
 
 			!	****************
 			!	Generate headers
@@ -325,22 +321,7 @@ subroutine write_graphing_data( &
 				'  box, cut:      '// boxchar//', '// cut_label(m)//'-plane'//new_line('A')// &
 				'  ut, #in seq: '// ut_string// ', '//nplots_char
 			write(flow_header,'(A)') header_intro//new_line('A')// &
-				"  Flow velocity components for each species and net flow, in km/s."//new_line('A')// &
-				'  run name:      '// run_name//new_line('A')// &
-				'  box, cut:      '// boxchar//', '// cut_label(m)//'-plane'//new_line('A')// &
-				'  ut, #in seq: '// ut_string// ', '//nplots_char
-			write(bfld_header,'(A)') header_intro//new_line('A')// &
-				"  Net magnetic field components and magnitude, current density components, in nT and nA/m^2, and Alfven Mach number."//new_line('A')// &
-				'  run name:      '// run_name//new_line('A')// &
-				'  box, cut:      '// boxchar//', '// cut_label(m)//'-plane'//new_line('A')// &
-				'  ut, #in seq: '// ut_string// ', '//nplots_char
-			write(model_header,'(A)') header_intro//new_line('A')// &
-				"  Planetocentric distance in planetary radii, magnetic field components for perturbed and background field, and background magnitude, all in nT."//new_line('A')// &
-				'  run name:      '// run_name//new_line('A')// &
-				'  box, cut:      '// boxchar//', '// cut_label(m)//'-plane'//new_line('A')// &
-				'  ut, #in seq: '// ut_string// ', '//nplots_char
-			write(efld_header,'(A)') header_intro//new_line('A')// &
-				"  Electric field components, in nV/m."//new_line('A')// &
+				"  Flow velocity components for each species and net flow, in km/s, and Alfven Mach number."//new_line('A')// &
 				'  run name:      '// run_name//new_line('A')// &
 				'  box, cut:      '// boxchar//', '// cut_label(m)//'-plane'//new_line('A')// &
 				'  ut, #in seq: '// ut_string// ', '//nplots_char
@@ -349,35 +330,44 @@ subroutine write_graphing_data( &
 				'  run name:      '// run_name//new_line('A')// &
 				'  box, cut:      '// boxchar//', '// cut_label(m)//'-plane'//new_line('A')// &
 				'  ut, #in seq: '// ut_string// ', '//nplots_char
+			write(bande_header,'(A)') header_intro//new_line('A')// &
+				"  Net magnetic and electric field components and magnitudes, and current density components, in nT, nV/m, and nA/m^2,."//new_line('A')// &
+				'  run name:      '// run_name//new_line('A')// &
+				'  box, cut:      '// boxchar//', '// cut_label(m)//'-plane'//new_line('A')// &
+				'  ut, #in seq: '// ut_string// ', '//nplots_char
+			write(model_header,'(A)') header_intro//new_line('A')// &
+				"  Planetocentric distance in planetary radii, magnetic field comps for perturbed and background, and BG magnitude, all in nT."//new_line('A')// &
+				'  run name:      '// run_name//new_line('A')// &
+				'  box, cut:      '// boxchar//', '// cut_label(m)//'-plane'//new_line('A')// &
+				'  ut, #in seq: '// ut_string// ', '//nplots_char
 
 			write(plas_f(m),'(A)') trim(plas_header)
 			write(flow_f(m),'(A)') trim(flow_header)
-			write(bfld_f(m),'(A)') trim(bfld_header)
-			write(model_f(m),'(A)') trim(model_header)
-			write(efld_f(m),'(A)') trim(efld_header)
 			write(pres_f(m),'(A)') trim(pres_header)
+			write(bande_f(m),'(A)') trim(bande_header)
+			write(model_f(m),'(A)') trim(model_header)
 
-			write(plas_f(m),'(3(A9),8(A14))') 'x(R_E)','y(R_E)','z(R_E)', &
+			write(plas_f(m),'(8(A14))') &
 				'log(qdens/cc)','qtemp(eV)', 'log(hdens/cc)','htemp(eV)', &	! Densities are in units of # per cc
 				'log(odens/cc)','otemp(eV)', 'log(edens/cc)','etemp(eV)'
-			write(flow_f(m),'(3(A9),12(A14))') 'x(R_E)','y(R_E)','z(R_E)', &
+			write(flow_f(m),'(13(A14))') &
 				'qvx(km/s)','qvy(km/s)','qvz(km/s)', &
 				'hvx(km/s)','hvy(km/s)','hvz(km/s)', &
 				'ovx(km/s)','ovy(km/s)','ovz(km/s)', &
-				'u_netx(km/s)','u_nety(km/s)','u_netz(km/s)'
-			write(bfld_f(m),'(3(A9),8(A14))') 'x(R_E)','y(R_E)','z(R_E)', &
-				'Bx(nT)','By(nT)','Bz(nT)','|Btot|(nT)', &
-				'Jx(nA/m^2)','Jy(nA/m^2)','Jz(nA/m^2)', '|v|/V_Alf'
-			write(model_f(m),'(4(A9),7(A14))') 'x(R_E)','y(R_E)','z(R_E)','rad(R_E)', &
-				'Bdx(nT)','Bdy(nT)','Bdz(nT)', &
-				'Bdipx(nT)','Bdipy(nT)','Bdipz(nT)','|Bdip|(nT)'
-			write(efld_f(m),'(3(A9),3(A14))') 'x(R_E)','y(R_E)','z(R_E)', &
-				'Ex(nV/m)','Ey(nV/m)','Ez(nV/m)'
-			write(pres_f(m),'(3(A9),10(A14))') 'x(R_E)','y(R_E)','z(R_E)', &
+				'u_netx(km/s)','u_nety(km/s)','u_netz(km/s)', &
+				'|v|/V_Alf'
+			write(pres_f(m),'(10(A14))') &
 				'log_qpar(nPa)','log_qprp(nPa)','log_qcrs(nPa)', &
 				'log_hpar(nPa)','log_hprp(nPa)','log_hcrs(nPa)', &
 				'log_opar(nPa)','log_oprp(nPa)','log_ocrs(nPa)', &
 				'log_eprs(nPa)'
+			write(bande_f(m),'(11(A14))') &
+				'Bx(nT)','By(nT)','Bz(nT)','|Btot|(nT)', &
+				'Ex(nV/m)','Ey(nV/m)','Ez(nV/m)','|Etot|(nV/m)', &
+				'Jx(nA/m^2)','Jy(nA/m^2)','Jz(nA/m^2)'
+			write(model_f(m),'(4(A9),7(A14))') 'x(R_E)','y(R_E)','z(R_E)','rad(R_E)', &
+				'Bdx(nT)','Bdy(nT)','Bdz(nT)', &
+				'Bdipx(nT)','Bdipy(nT)','Bdipz(nT)','|Bdip|(nT)'
 		enddo
 
 		!	Whole-box calcs
@@ -519,6 +509,7 @@ subroutine write_graphing_data( &
 						aefldx = ex(i,j,k) * e_equiv
 						aefldy = ey(i,j,k) * e_equiv
 						aefldz = ez(i,j,k) * e_equiv
+						emag = sqrt( aefldx**2 + aefldy**2 + aefldz**2 )
 
 						ri = grid_minvals(1,box) + (xspac(box)*real(i-1))
 						ri = ri*re_equiv
@@ -552,34 +543,27 @@ subroutine write_graphing_data( &
 
 						if( k .eq. cuts_vals(1) ) then
 
-							write(plas_f(1),'(3(f9.2),8(es14.6))') &
-								ri,rj,rk, &
+							write(plas_f(1),'(8(es14.6))') &
 								qdens,qtemp, hdens,htemp, &
 								odens,otemp, edens,etemp
 
-							write(flow_f(1),'(3(f9.2),12(es14.6))') &
-								ri,rj,rk, &
+							write(flow_f(1),'(13(es14.6))') &
 								qvx,qvy,qvz, hvx,hvy,hvz, ovx,ovy,ovz, &
-								unetx,unety,unetz
+								unetx,unety,unetz, alfven_mach
 
-							write(bfld_f(1),'(3(f9.2),8(es14.6))') &
-								ri,rj,rk, &
-								abx,aby,abz,bmag, curx_all,cury_all,curz_all, &
-								alfven_mach
-
-							write(model_f(1),'(4(f9.2),7(es14.6))') &
-								ri,rj,rk,rad, &
-								bdx,bdy,bdz, ub0x,ub0y,ub0z,bdipmag
-
-							write(efld_f(1),'(3(f9.2),3(es14.6))') &
-								ri,rj,rk, aefldx,aefldy,aefldz
-
-							write(pres_f(1),'(3(f9.2),10(es14.6))') &
-								ri,rj,rk, &
+							write(pres_f(1),'(10(es14.6))') &
 								lqpara,lqperp,lqcross, &
 								lhpara,lhperp,lhcross, &
 								lopara,loperp,locross, &
 								aepres
+
+							write(bande_f(1),'(11(es14.6))') &
+								abx,aby,abz,bmag, aefldx,aefldy,aefldz,emag, &
+								curx_all,cury_all,curz_all
+								
+							write(model_f(1),'(4(f9.2),7(es14.6))') &
+								ri,rj,rk,rad, &
+								bdx,bdy,bdz, ub0x,ub0y,ub0z,bdipmag
 						endif	! Cut 1 end
 
 						!	~~~~~~~~~~~~~~~
@@ -588,34 +572,27 @@ subroutine write_graphing_data( &
 
 						if( j .eq. cuts_vals(2) ) then
 
-							write(plas_f(2),'(3(f9.2),8(es14.6))') &
-								ri,rj,rk, &
+							write(plas_f(2),'(8(es14.6))') &
 								qdens,qtemp, hdens,htemp, &
 								odens,otemp, edens,etemp
 
-							write(flow_f(2),'(3(f9.2),12(es14.6))') &
-								ri,rj,rk, &
+							write(flow_f(2),'(13(es14.6))') &
 								qvx,qvy,qvz, hvx,hvy,hvz, ovx,ovy,ovz, &
-								unetx,unety,unetz
+								unetx,unety,unetz, alfven_mach
 
-							write(bfld_f(2),'(3(f9.2),8(es14.6))') &
-								ri,rj,rk, &
-								abx,aby,abz,bmag, curx_all,cury_all,curz_all, &
-								alfven_mach
-
-							write(model_f(2),'(4(f9.2),7(es14.6))') &
-								ri,rj,rk,rad, &
-								bdx,bdy,bdz, ub0x,ub0y,ub0z,bdipmag
-
-							write(efld_f(2),'(3(f9.2),3(es14.6))') &
-								ri,rj,rk, aefldx,aefldy,aefldz
-
-							write(pres_f(2),'(3(f9.2),10(es14.6))') &
-								ri,rj,rk, &
+							write(pres_f(2),'(10(es14.6))') &
 								lqpara,lqperp,lqcross, &
 								lhpara,lhperp,lhcross, &
 								lopara,loperp,locross, &
 								aepres
+
+							write(bande_f(2),'(11(es14.6))') &
+								abx,aby,abz,bmag, aefldx,aefldy,aefldz,emag, &
+								curx_all,cury_all,curz_all
+								
+							write(model_f(2),'(4(f9.2),7(es14.6))') &
+								ri,rj,rk,rad, &
+								bdx,bdy,bdz, ub0x,ub0y,ub0z,bdipmag
 						endif	! Cut 2 end
 
 						!	~~~~~~~~~~~~~~~
@@ -624,34 +601,27 @@ subroutine write_graphing_data( &
 
 						if( i .eq. cuts_vals(3) ) then
 
-							write(plas_f(3),'(3(f9.2),8(es14.6))') &
-								ri,rj,rk, &
+							write(plas_f(3),'(8(es14.6))') &
 								qdens,qtemp, hdens,htemp, &
 								odens,otemp, edens,etemp
 
-							write(flow_f(3),'(3(f9.2),12(es14.6))') &
-								ri,rj,rk, &
+							write(flow_f(3),'(13(es14.6))') &
 								qvx,qvy,qvz, hvx,hvy,hvz, ovx,ovy,ovz, &
-								unetx,unety,unetz
+								unetx,unety,unetz, alfven_mach
 
-							write(bfld_f(3),'(3(f9.2),8(es14.6))') &
-								ri,rj,rk, &
-								abx,aby,abz,bmag, curx_all,cury_all,curz_all, &
-								alfven_mach
-
-							write(model_f(3),'(4(f9.2),7(es14.6))') &
-								ri,rj,rk,rad, &
-								bdx,bdy,bdz, ub0x,ub0y,ub0z,bdipmag
-
-							write(efld_f(3),'(3(f9.2),3(es14.6))') &
-								ri,rj,rk, aefldx,aefldy,aefldz
-
-							write(pres_f(3),'(3(f9.2),10(es14.6))') &
-								ri,rj,rk, &
+							write(pres_f(3),'(10(es14.6))') &
 								lqpara,lqperp,lqcross, &
 								lhpara,lhperp,lhcross, &
 								lopara,loperp,locross, &
 								aepres
+
+							write(bande_f(3),'(11(es14.6))') &
+								abx,aby,abz,bmag, aefldx,aefldy,aefldz,emag, &
+								curx_all,cury_all,curz_all
+								
+							write(model_f(3),'(4(f9.2),7(es14.6))') &
+								ri,rj,rk,rad, &
+								bdx,bdy,bdz, ub0x,ub0y,ub0z,bdipmag
 						endif	! Cut 3 end
 					endif	! Writing to disk?
 				enddo
@@ -661,10 +631,9 @@ subroutine write_graphing_data( &
 		do m=1, n_cuts
 			close(plas_f(m))
 			close(flow_f(m))
-			close(bfld_f(m))
-			close(model_f(m))
-			close(efld_f(m))
 			close(pres_f(m))
+			close(bande_f(m))
+			close(model_f(m))
 		enddo
 
 	enddo ! loop over box
