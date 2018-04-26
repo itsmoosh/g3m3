@@ -275,19 +275,6 @@ subroutine write_graphing_data( &
 	!		Low Res Data
 	!	********************
 
-	!	******************
-	!	Choose slice here:
-	!	******************
-
-	!	For limit=60., choosing k=31 gives the z=0 plane.
-	!	For limit=60., choosing i=61 or j=61 gives the x=0
-	!		or y=0 plane, respectively, assuming the box
-	!		is symmetric about the origin.
-
-	cuts_vals(1) = int(limit/2.+1)
-	cuts_vals(2) = int(limit+1)
-	cuts_vals(3) = int(limit-14)	!	Box is not centered on the origin
-
 	do box=1,n_grids
 		write(boxchar,'(I1)') box
 		write(nplots_char,'(I0.3)') nplots
@@ -348,8 +335,8 @@ subroutine write_graphing_data( &
 			write(model_f(m),'(A)') trim(model_header)
 
 			write(plas_f(m),'(8(A14))') &
-				'log(qdens/cc)','qtemp(eV)', 'log(hdens/cc)','htemp(eV)', &	! Densities are in units of # per cc
-				'log(odens/cc)','otemp(eV)', 'log(edens/cc)','etemp(eV)'
+				'log(qden/cc)','qtemp(eV)', 'log(hden/cc)','htemp(eV)', &	! Densities are in units of # per cc
+				'log(oden/cc)','otemp(eV)', 'log(eden/cc)','etemp(eV)'
 			write(flow_f(m),'(13(A14))') &
 				'qvx(km/s)','qvy(km/s)','qvz(km/s)', &
 				'hvx(km/s)','hvy(km/s)','hvz(km/s)', &
@@ -436,195 +423,386 @@ subroutine write_graphing_data( &
 		ovy = vvy(i,j,k)*v_equiv
 		ovz = vvz(i,j,k)*v_equiv
 
+
+		!	******************
+		!	Choose slice here:
+		!	******************
+
+		!	For limit=60., choosing k=31 gives the z=0 plane.
+		!	For limit=60., choosing i=61 or j=61 gives the x=0
+		!		or y=0 plane, respectively, assuming the box
+		!		is symmetric about the origin.
+
+		cuts_vals(1) = int(limit/2.+1)
+		cuts_vals(2) = int(limit+1)
+		cuts_vals(3) = int(limit-14)	!	Box is not centered on the origin
+
+		!	*****************
+		!		Cut 1: xy
+		!	*****************
+
+		k=cuts_vals(1)
+		do j=1, ny
+			do i=1, nx
+				unetx = tvx(i,j,k) * v_equiv
+				unety = tvy(i,j,k) * v_equiv
+				unetz = tvz(i,j,k) * v_equiv
+				net_flow = sqrt(unetx**2 + unety**2 + unetz**2)
+
+				curx_all = curx(i,j,k)*cur_equiv
+				cury_all = cury(i,j,k)*cur_equiv
+				curz_all = curz(i,j,k)*cur_equiv
+
+				aqpres = amax1(  0.0000001, 0.333*( qpresx(i,j,k,box) +  &
+					qpresy(i,j,k,box) + qpresz(i,j,k,box) )  )
+				ahpres = amax1(  0.0000001, 0.333*( hpresx(i,j,k,box) + &
+					hpresy(i,j,k,box) + hpresz(i,j,k,box) )  )
+				aopres = amax1(  0.0000001, 0.333*( opresx(i,j,k,box) + &
+					opresy(i,j,k,box) + opresz(i,j,k,box) )  )
+				aepres = amax1( 0.0000001, epres(i,j,k,box) )
+
+				lqpara = alog10( qpara(i,j,k,box) * pres_equiv )
+				lqperp = alog10( qperp(i,j,k,box) * pres_equiv )
+				lqcross = alog10( qcross(i,j,k,box) * pres_equiv )
+				lhpara = alog10( hpara(i,j,k,box) * pres_equiv )
+				lhperp = alog10( hperp(i,j,k,box) * pres_equiv )
+				lhcross = alog10( hcross(i,j,k,box) * pres_equiv )
+				lopara = alog10( opara(i,j,k,box) * pres_equiv )
+				loperp = alog10( operp(i,j,k,box) * pres_equiv )
+				locross = alog10( ocross(i,j,k,box) * pres_equiv )
+
+				qden = amax1(qrho(i,j,k,box),0.000001)
+				hden = amax1(0.0001,hrho(i,j,k,box))
+				oden = amax1(0.0001,orho(i,j,k,box))
+
+				tden = ( qrho(i,j,k,box) + hrho(i,j,k,box) + orho(i,j,k,box) ) * rho_equiv
+
+				qden = qden / rmassq * rho_equiv
+				hden = hden / rmassh * rho_equiv
+				oden = oden / rmasso * rho_equiv
+				eden = oden + hden + qden + 0.0001
+
+				qtemp = amax1(0.00001,aqpres/qden) * temp_equiv
+				htemp = ahpres / hden * temp_equiv
+				otemp = aopres / oden * temp_equiv
+				etemp = aepres / eden * temp_equiv
+
+				qdens = alog10(qden)
+				hdens = alog10(hden)
+				odens = alog10(oden)
+				edens = alog10(eden)
+
+				aqpres = alog10( aqpres * pres_equiv )
+				ahpres = alog10( ahpres * pres_equiv )
+				aopres = alog10( aopres * pres_equiv )
+				aepres = alog10( aepres * pres_equiv )
+
+				abx = b_equiv * ( bx(i,j,k,box) + bx0(i,j,k,box) )
+				aby = b_equiv * ( by(i,j,k,box) + by0(i,j,k,box) )
+				abz = b_equiv * ( bz(i,j,k,box) + bz0(i,j,k,box) )
+
+				aefldx = ex(i,j,k) * e_equiv
+				aefldy = ey(i,j,k) * e_equiv
+				aefldz = ez(i,j,k) * e_equiv
+				emag = sqrt( aefldx**2 + aefldy**2 + aefldz**2 )
+
+				ri = grid_minvals(1,box) + (xspac(box)*real(i-1))
+				ri = ri*re_equiv
+				rj = grid_minvals(2,box) + (xspac(box)*real(j-1))
+				rj = rj*re_equiv
+				rk = grid_minvals(3,box) + (xspac(box)*real(k-1))
+				rk = rk*re_equiv
+
+				rad = sqrt( ri**2 + rj**2 + rk**2 )
+
+				bdipmag = sqrt( (bx0(i,j,k,box)**2) &
+					+ (by0(i,j,k,box)**2) &
+					+ (bz0(i,j,k,box)**2) )
+				bdipmag = bdipmag*b_equiv
+				bmag = sqrt( abx**2 + aby**2 + abz**2 )
+
+				v_alf = bmag*1.e-9 / sqrt(mu0 * tden*1.e6 * m_prot)
+				alfven_mach = net_flow*1.e3 / v_alf
+
+				! Perturbed and unperturbed quantities
+				bdx=b_equiv*(bx(i,j,k,box))
+				ub0x=b_equiv*(bx0(i,j,k,box))
+				bdy=b_equiv*(by(i,j,k,box))
+				ub0y=b_equiv*(by0(i,j,k,box))
+				bdz=b_equiv*(bz(i,j,k,box))
+				ub0z=b_equiv*(bz0(i,j,k,box))
+
+				!	~~~~~~~~~~~
+				!	Cut 1 print
+				!	~~~~~~~~~~~
+
+				write(plas_f(1),'(8(es14.6))') &
+					qdens,qtemp, hdens,htemp, &
+					odens,otemp, edens,etemp
+
+				write(flow_f(1),'(13(es14.6))') &
+					qvx,qvy,qvz, hvx,hvy,hvz, ovx,ovy,ovz, &
+					unetx,unety,unetz, alfven_mach
+
+				write(pres_f(1),'(10(es14.6))') &
+					lqpara,lqperp,lqcross, &
+					lhpara,lhperp,lhcross, &
+					lopara,loperp,locross, &
+					aepres
+
+				write(bande_f(1),'(11(es14.6))') &
+					abx,aby,abz,bmag, aefldx,aefldy,aefldz,emag, &
+					curx_all,cury_all,curz_all
+					
+				write(model_f(1),'(4(f9.2),7(es14.6))') &
+					ri,rj,rk,rad, &
+					bdx,bdy,bdz, ub0x,ub0y,ub0z,bdipmag
+			enddo
+		enddo
+
+		!	*****************
+		!		Cut 2: xz
+		!	*****************
+
+		j=cuts_vals(2)
+		do k=1, nz
+			do i=1, nx
+				unetx = tvx(i,j,k) * v_equiv
+				unety = tvy(i,j,k) * v_equiv
+				unetz = tvz(i,j,k) * v_equiv
+				net_flow = sqrt(unetx**2 + unety**2 + unetz**2)
+
+				curx_all = curx(i,j,k)*cur_equiv
+				cury_all = cury(i,j,k)*cur_equiv
+				curz_all = curz(i,j,k)*cur_equiv
+
+				aqpres = amax1(  0.0000001, 0.333*( qpresx(i,j,k,box) +  &
+					qpresy(i,j,k,box) + qpresz(i,j,k,box) )  )
+				ahpres = amax1(  0.0000001, 0.333*( hpresx(i,j,k,box) + &
+					hpresy(i,j,k,box) + hpresz(i,j,k,box) )  )
+				aopres = amax1(  0.0000001, 0.333*( opresx(i,j,k,box) + &
+					opresy(i,j,k,box) + opresz(i,j,k,box) )  )
+				aepres = amax1( 0.0000001, epres(i,j,k,box) )
+
+				lqpara = alog10( qpara(i,j,k,box) * pres_equiv )
+				lqperp = alog10( qperp(i,j,k,box) * pres_equiv )
+				lqcross = alog10( qcross(i,j,k,box) * pres_equiv )
+				lhpara = alog10( hpara(i,j,k,box) * pres_equiv )
+				lhperp = alog10( hperp(i,j,k,box) * pres_equiv )
+				lhcross = alog10( hcross(i,j,k,box) * pres_equiv )
+				lopara = alog10( opara(i,j,k,box) * pres_equiv )
+				loperp = alog10( operp(i,j,k,box) * pres_equiv )
+				locross = alog10( ocross(i,j,k,box) * pres_equiv )
+
+				qden = amax1(qrho(i,j,k,box),0.000001)
+				hden = amax1(0.0001,hrho(i,j,k,box))
+				oden = amax1(0.0001,orho(i,j,k,box))
+
+				tden = ( qrho(i,j,k,box) + hrho(i,j,k,box) + orho(i,j,k,box) ) * rho_equiv
+
+				qden = qden / rmassq * rho_equiv
+				hden = hden / rmassh * rho_equiv
+				oden = oden / rmasso * rho_equiv
+				eden = oden + hden + qden + 0.0001
+
+				qtemp = amax1(0.00001,aqpres/qden) * temp_equiv
+				htemp = ahpres / hden * temp_equiv
+				otemp = aopres / oden * temp_equiv
+				etemp = aepres / eden * temp_equiv
+
+				qdens = alog10(qden)
+				hdens = alog10(hden)
+				odens = alog10(oden)
+				edens = alog10(eden)
+
+				aqpres = alog10( aqpres * pres_equiv )
+				ahpres = alog10( ahpres * pres_equiv )
+				aopres = alog10( aopres * pres_equiv )
+				aepres = alog10( aepres * pres_equiv )
+
+				abx = b_equiv * ( bx(i,j,k,box) + bx0(i,j,k,box) )
+				aby = b_equiv * ( by(i,j,k,box) + by0(i,j,k,box) )
+				abz = b_equiv * ( bz(i,j,k,box) + bz0(i,j,k,box) )
+
+				aefldx = ex(i,j,k) * e_equiv
+				aefldy = ey(i,j,k) * e_equiv
+				aefldz = ez(i,j,k) * e_equiv
+				emag = sqrt( aefldx**2 + aefldy**2 + aefldz**2 )
+
+				ri = grid_minvals(1,box) + (xspac(box)*real(i-1))
+				ri = ri*re_equiv
+				rj = grid_minvals(2,box) + (xspac(box)*real(j-1))
+				rj = rj*re_equiv
+				rk = grid_minvals(3,box) + (xspac(box)*real(k-1))
+				rk = rk*re_equiv
+
+				rad = sqrt( ri**2 + rj**2 + rk**2 )
+
+				bdipmag = sqrt( (bx0(i,j,k,box)**2) &
+					+ (by0(i,j,k,box)**2) &
+					+ (bz0(i,j,k,box)**2) )
+				bdipmag = bdipmag*b_equiv
+				bmag = sqrt( abx**2 + aby**2 + abz**2 )
+
+				v_alf = bmag*1.e-9 / sqrt(mu0 * tden*1.e6 * m_prot)
+				alfven_mach = net_flow*1.e3 / v_alf
+
+				! Perturbed and unperturbed quantities
+				bdx=b_equiv*(bx(i,j,k,box))
+				ub0x=b_equiv*(bx0(i,j,k,box))
+				bdy=b_equiv*(by(i,j,k,box))
+				ub0y=b_equiv*(by0(i,j,k,box))
+				bdz=b_equiv*(bz(i,j,k,box))
+				ub0z=b_equiv*(bz0(i,j,k,box))
+
+				!	~~~~~~~~~~~
+				!	Cut 2 print
+				!	~~~~~~~~~~~
+
+				write(plas_f(2),'(8(es14.6))') &
+					qdens,qtemp, hdens,htemp, &
+					odens,otemp, edens,etemp
+
+				write(flow_f(2),'(13(es14.6))') &
+					qvx,qvy,qvz, hvx,hvy,hvz, ovx,ovy,ovz, &
+					unetx,unety,unetz, alfven_mach
+
+				write(pres_f(2),'(10(es14.6))') &
+					lqpara,lqperp,lqcross, &
+					lhpara,lhperp,lhcross, &
+					lopara,loperp,locross, &
+					aepres
+
+				write(bande_f(2),'(11(es14.6))') &
+					abx,aby,abz,bmag, aefldx,aefldy,aefldz,emag, &
+					curx_all,cury_all,curz_all
+					
+				write(model_f(2),'(4(f9.2),7(es14.6))') &
+					ri,rj,rk,rad, &
+					bdx,bdy,bdz, ub0x,ub0y,ub0z,bdipmag
+			enddo
+		enddo
+
+		!	*****************
+		!		Cut 3: yz
+		!	*****************
+
+		i=cuts_vals(3)
 		do k=1, nz
 			do j=1, ny
-				do i=1, nx
+				unetx = tvx(i,j,k) * v_equiv
+				unety = tvy(i,j,k) * v_equiv
+				unetz = tvz(i,j,k) * v_equiv
+				net_flow = sqrt(unetx**2 + unety**2 + unetz**2)
 
-					!	Booleans to decide whether we calculate data
-					cuts(1) = k .eq. cuts_vals(1)
-					cuts(2) = j .eq. cuts_vals(2)
-					cuts(3) = i .eq. cuts_vals(3)
+				curx_all = curx(i,j,k)*cur_equiv
+				cury_all = cury(i,j,k)*cur_equiv
+				curz_all = curz(i,j,k)*cur_equiv
 
-					if( cuts(1) .or. cuts(2) .or. cuts(3) ) then
-						! Only evaluate grid-point data if we will
-						!	be writing to disk for this grid point
+				aqpres = amax1(  0.0000001, 0.333*( qpresx(i,j,k,box) +  &
+					qpresy(i,j,k,box) + qpresz(i,j,k,box) )  )
+				ahpres = amax1(  0.0000001, 0.333*( hpresx(i,j,k,box) + &
+					hpresy(i,j,k,box) + hpresz(i,j,k,box) )  )
+				aopres = amax1(  0.0000001, 0.333*( opresx(i,j,k,box) + &
+					opresy(i,j,k,box) + opresz(i,j,k,box) )  )
+				aepres = amax1( 0.0000001, epres(i,j,k,box) )
 
-						unetx = tvx(i,j,k) * v_equiv
-						unetx = tvx(i,j,k) * v_equiv
-						unetx = tvx(i,j,k) * v_equiv
-						net_flow = sqrt(unetx**2 + unety**2 + unetz**2)
+				lqpara = alog10( qpara(i,j,k,box) * pres_equiv )
+				lqperp = alog10( qperp(i,j,k,box) * pres_equiv )
+				lqcross = alog10( qcross(i,j,k,box) * pres_equiv )
+				lhpara = alog10( hpara(i,j,k,box) * pres_equiv )
+				lhperp = alog10( hperp(i,j,k,box) * pres_equiv )
+				lhcross = alog10( hcross(i,j,k,box) * pres_equiv )
+				lopara = alog10( opara(i,j,k,box) * pres_equiv )
+				loperp = alog10( operp(i,j,k,box) * pres_equiv )
+				locross = alog10( ocross(i,j,k,box) * pres_equiv )
 
-						curx_all = curx(i,j,k)*cur_equiv
-						cury_all = cury(i,j,k)*cur_equiv
-						curz_all = curz(i,j,k)*cur_equiv
+				qden = amax1(qrho(i,j,k,box),0.000001)
+				hden = amax1(0.0001,hrho(i,j,k,box))
+				oden = amax1(0.0001,orho(i,j,k,box))
 
-						aqpres = amax1(  0.0000001, 0.333*( qpresx(i,j,k,box) +  &
-							qpresy(i,j,k,box) + qpresz(i,j,k,box) )  )
-						ahpres = amax1(  0.0000001, 0.333*( hpresx(i,j,k,box) + &
-							hpresy(i,j,k,box) + hpresz(i,j,k,box) )  )
-						aopres = amax1(  0.0000001, 0.333*( opresx(i,j,k,box) + &
-							opresy(i,j,k,box) + opresz(i,j,k,box) )  )
-						aepres = amax1( 0.0000001, epres(i,j,k,box) )
+				tden = ( qrho(i,j,k,box) + hrho(i,j,k,box) + orho(i,j,k,box) ) * rho_equiv
 
-						lqpara = alog10( qpara(i,j,k,box) * pres_equiv )
-						lqperp = alog10( qperp(i,j,k,box) * pres_equiv )
-						lqcross = alog10( qcross(i,j,k,box) * pres_equiv )
-						lhpara = alog10( hpara(i,j,k,box) * pres_equiv )
-						lhperp = alog10( hperp(i,j,k,box) * pres_equiv )
-						lhcross = alog10( hcross(i,j,k,box) * pres_equiv )
-						lopara = alog10( opara(i,j,k,box) * pres_equiv )
-						loperp = alog10( operp(i,j,k,box) * pres_equiv )
-						locross = alog10( ocross(i,j,k,box) * pres_equiv )
+				qden = qden / rmassq * rho_equiv
+				hden = hden / rmassh * rho_equiv
+				oden = oden / rmasso * rho_equiv
+				eden = oden + hden + qden + 0.0001
 
-						qden = amax1(qrho(i,j,k,box),0.000001)
-						hden = amax1(0.0001,hrho(i,j,k,box))
-						oden = amax1(0.0001,orho(i,j,k,box))
+				qtemp = amax1(0.00001,aqpres/qden) * temp_equiv
+				htemp = ahpres / hden * temp_equiv
+				otemp = aopres / oden * temp_equiv
+				etemp = aepres / eden * temp_equiv
 
-						tden = ( qrho(i,j,k,box) + hrho(i,j,k,box) + orho(i,j,k,box) ) * rho_equiv
+				qdens = alog10(qden)
+				hdens = alog10(hden)
+				odens = alog10(oden)
+				edens = alog10(eden)
 
-						qden = qden / rmassq * rho_equiv
-						hden = hden / rmassh * rho_equiv
-						oden = oden / rmasso * rho_equiv
-						eden = oden + hden + qden + 0.0001
+				aqpres = alog10( aqpres * pres_equiv )
+				ahpres = alog10( ahpres * pres_equiv )
+				aopres = alog10( aopres * pres_equiv )
+				aepres = alog10( aepres * pres_equiv )
 
-						qtemp = amax1(0.00001,aqpres/qden) * temp_equiv
-						htemp = ahpres / hden * temp_equiv
-						otemp = aopres / oden * temp_equiv
-						etemp = aepres / eden * temp_equiv
+				abx = b_equiv * ( bx(i,j,k,box) + bx0(i,j,k,box) )
+				aby = b_equiv * ( by(i,j,k,box) + by0(i,j,k,box) )
+				abz = b_equiv * ( bz(i,j,k,box) + bz0(i,j,k,box) )
 
-						qdens = alog10(qden)
-						hdens = alog10(hden)
-						odens = alog10(oden)
-						edens = alog10(eden)
+				aefldx = ex(i,j,k) * e_equiv
+				aefldy = ey(i,j,k) * e_equiv
+				aefldz = ez(i,j,k) * e_equiv
+				emag = sqrt( aefldx**2 + aefldy**2 + aefldz**2 )
 
-						aqpres = alog10( aqpres * pres_equiv )
-						ahpres = alog10( ahpres * pres_equiv )
-						aopres = alog10( aopres * pres_equiv )
-						aepres = alog10( aepres * pres_equiv )
+				ri = grid_minvals(1,box) + (xspac(box)*real(i-1))
+				ri = ri*re_equiv
+				rj = grid_minvals(2,box) + (xspac(box)*real(j-1))
+				rj = rj*re_equiv
+				rk = grid_minvals(3,box) + (xspac(box)*real(k-1))
+				rk = rk*re_equiv
 
-						abx = b_equiv * ( bx(i,j,k,box) + bx0(i,j,k,box) )
-						aby = b_equiv * ( by(i,j,k,box) + by0(i,j,k,box) )
-						abz = b_equiv * ( bz(i,j,k,box) + bz0(i,j,k,box) )
+				rad = sqrt( ri**2 + rj**2 + rk**2 )
 
-						aefldx = ex(i,j,k) * e_equiv
-						aefldy = ey(i,j,k) * e_equiv
-						aefldz = ez(i,j,k) * e_equiv
-						emag = sqrt( aefldx**2 + aefldy**2 + aefldz**2 )
+				bdipmag = sqrt( (bx0(i,j,k,box)**2) &
+					+ (by0(i,j,k,box)**2) &
+					+ (bz0(i,j,k,box)**2) )
+				bdipmag = bdipmag*b_equiv
+				bmag = sqrt( abx**2 + aby**2 + abz**2 )
 
-						ri = grid_minvals(1,box) + (xspac(box)*real(i-1))
-						ri = ri*re_equiv
-						rj = grid_minvals(2,box) + (xspac(box)*real(j-1))
-						rj = rj*re_equiv
-						rk = grid_minvals(3,box) + (xspac(box)*real(k-1))
-						rk = rk*re_equiv
+				v_alf = bmag*1.e-9 / sqrt(mu0 * tden*1.e6 * m_prot)
+				alfven_mach = net_flow*1.e3 / v_alf
 
-						rad = sqrt( ri**2 + rj**2 + rk**2 )
+				! Perturbed and unperturbed quantities
+				bdx=b_equiv*(bx(i,j,k,box))
+				ub0x=b_equiv*(bx0(i,j,k,box))
+				bdy=b_equiv*(by(i,j,k,box))
+				ub0y=b_equiv*(by0(i,j,k,box))
+				bdz=b_equiv*(bz(i,j,k,box))
+				ub0z=b_equiv*(bz0(i,j,k,box))
 
-						bdipmag = sqrt( (bx0(i,j,k,box)**2) &
-							+ (by0(i,j,k,box)**2) &
-							+ (bz0(i,j,k,box)**2) )
-						bdipmag = bdipmag*b_equiv
-						bmag = sqrt( abx**2 + aby**2 + abz**2 )
+				!	~~~~~~~~~~~
+				!	Cut 3 print
+				!	~~~~~~~~~~~
 
-						v_alf = bmag*1.e-9 / sqrt(mu0 * tden*1.e6 * m_prot)
-						alfven_mach = net_flow*1.e3 / v_alf
+				write(plas_f(3),'(8(es14.6))') &
+					qdens,qtemp, hdens,htemp, &
+					odens,otemp, edens,etemp
 
-						! Perturbed and unperturbed quantities
-						bdx=b_equiv*(bx(i,j,k,box))
-						ub0x=b_equiv*(bx0(i,j,k,box))
-						bdy=b_equiv*(by(i,j,k,box))
-						ub0y=b_equiv*(by0(i,j,k,box))
-						bdz=b_equiv*(bz(i,j,k,box))
-						ub0z=b_equiv*(bz0(i,j,k,box))
+				write(flow_f(3),'(13(es14.6))') &
+					qvx,qvy,qvz, hvx,hvy,hvz, ovx,ovy,ovz, &
+					unetx,unety,unetz, alfven_mach
 
-						!	~~~~~~~~~~~~~~~
-						!	Cut 1: xy-plane
-						!	~~~~~~~~~~~~~~~
+				write(pres_f(3),'(10(es14.6))') &
+					lqpara,lqperp,lqcross, &
+					lhpara,lhperp,lhcross, &
+					lopara,loperp,locross, &
+					aepres
 
-						if( k .eq. cuts_vals(1) ) then
-
-							write(plas_f(1),'(8(es14.6))') &
-								qdens,qtemp, hdens,htemp, &
-								odens,otemp, edens,etemp
-
-							write(flow_f(1),'(13(es14.6))') &
-								qvx,qvy,qvz, hvx,hvy,hvz, ovx,ovy,ovz, &
-								unetx,unety,unetz, alfven_mach
-
-							write(pres_f(1),'(10(es14.6))') &
-								lqpara,lqperp,lqcross, &
-								lhpara,lhperp,lhcross, &
-								lopara,loperp,locross, &
-								aepres
-
-							write(bande_f(1),'(11(es14.6))') &
-								abx,aby,abz,bmag, aefldx,aefldy,aefldz,emag, &
-								curx_all,cury_all,curz_all
-								
-							write(model_f(1),'(4(f9.2),7(es14.6))') &
-								ri,rj,rk,rad, &
-								bdx,bdy,bdz, ub0x,ub0y,ub0z,bdipmag
-						endif	! Cut 1 end
-
-						!	~~~~~~~~~~~~~~~
-						!	Cut 2: xz-plane
-						!	~~~~~~~~~~~~~~~
-
-						if( j .eq. cuts_vals(2) ) then
-
-							write(plas_f(2),'(8(es14.6))') &
-								qdens,qtemp, hdens,htemp, &
-								odens,otemp, edens,etemp
-
-							write(flow_f(2),'(13(es14.6))') &
-								qvx,qvy,qvz, hvx,hvy,hvz, ovx,ovy,ovz, &
-								unetx,unety,unetz, alfven_mach
-
-							write(pres_f(2),'(10(es14.6))') &
-								lqpara,lqperp,lqcross, &
-								lhpara,lhperp,lhcross, &
-								lopara,loperp,locross, &
-								aepres
-
-							write(bande_f(2),'(11(es14.6))') &
-								abx,aby,abz,bmag, aefldx,aefldy,aefldz,emag, &
-								curx_all,cury_all,curz_all
-								
-							write(model_f(2),'(4(f9.2),7(es14.6))') &
-								ri,rj,rk,rad, &
-								bdx,bdy,bdz, ub0x,ub0y,ub0z,bdipmag
-						endif	! Cut 2 end
-
-						!	~~~~~~~~~~~~~~~
-						!	Cut 3: yz-plane
-						!	~~~~~~~~~~~~~~~
-
-						if( i .eq. cuts_vals(3) ) then
-
-							write(plas_f(3),'(8(es14.6))') &
-								qdens,qtemp, hdens,htemp, &
-								odens,otemp, edens,etemp
-
-							write(flow_f(3),'(13(es14.6))') &
-								qvx,qvy,qvz, hvx,hvy,hvz, ovx,ovy,ovz, &
-								unetx,unety,unetz, alfven_mach
-
-							write(pres_f(3),'(10(es14.6))') &
-								lqpara,lqperp,lqcross, &
-								lhpara,lhperp,lhcross, &
-								lopara,loperp,locross, &
-								aepres
-
-							write(bande_f(3),'(11(es14.6))') &
-								abx,aby,abz,bmag, aefldx,aefldy,aefldz,emag, &
-								curx_all,cury_all,curz_all
-								
-							write(model_f(3),'(4(f9.2),7(es14.6))') &
-								ri,rj,rk,rad, &
-								bdx,bdy,bdz, ub0x,ub0y,ub0z,bdipmag
-						endif	! Cut 3 end
-					endif	! Writing to disk?
-				enddo
+				write(bande_f(3),'(11(es14.6))') &
+					abx,aby,abz,bmag, aefldx,aefldy,aefldz,emag, &
+					curx_all,cury_all,curz_all
+					
+				write(model_f(3),'(4(f9.2),7(es14.6))') &
+					ri,rj,rk,rad, &
+					bdx,bdy,bdz, ub0x,ub0y,ub0z,bdipmag
 			enddo
 		enddo
 
