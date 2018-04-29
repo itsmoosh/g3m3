@@ -131,6 +131,9 @@ ax.set_ylabel('y'+r_units)
 ax.set_ylim(ymin, ymax)
 ax.set_zlabel('z'+r_units)
 ax.set_zlim(zmin, 3*zmax)
+ax.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(deltax/8))
+ax.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(deltay/8))
+ax.zaxis.set_major_locator(matplotlib.ticker.MultipleLocator(deltaz/4))
 #ax.view_init(elev=20., azim=-70)
 
 # Alfven speed:
