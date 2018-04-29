@@ -25,7 +25,7 @@ subroutine write_graphing_data( &
 	curx,cury,curz, &
 	ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
 	ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
-	run_name, dummy_f, nplots)
+	r_inner, run_name, dummy_f, nplots)
 
 	use astrometry
 	implicit none
@@ -39,11 +39,13 @@ subroutine write_graphing_data( &
 	integer, parameter :: skip=1 ! Sample skip for flythrough data
 	integer, parameter :: vbins=100 ! Number of energy/velocity bins on Y-axis
 	integer, parameter :: phi_res=10 ! Number of angle bins on Y-axis
+	integer, parameter :: x_adj = [0, 0, 0, 0, -15]	! Position offset for offset boxes
 
 	!	file naming
 	character*32, parameter :: python_dir = "figures/"
 	character*32, parameter :: python_data = "figures/data/"
-	character*32, parameter :: python_plotter = "plot_data.py"
+	character*32, parameter :: image_dir = "figures/images/"
+	character*32, parameter :: python_plotter = "print_gfx.py"
 	character*2, parameter :: cut_label(n_cuts) = ['xy', 'xz', 'yz']
 	character*5, parameter :: fname1 = 'plas'
 	character*5, parameter :: fname2 = 'flow'
@@ -105,6 +107,7 @@ subroutine write_graphing_data( &
 	integer, intent(in) :: ncraft
 	real, intent(in) :: xcraft(4,ncraft), re_equiv, b_equiv, v_equiv, &
 		t_equiv, ti_te, rho_equiv, planet_rad, planet_per, moon_rad
+	real, intent(in) :: r_inner
 	character*8, intent(in) :: run_name
 	integer, intent(in) :: dummy_f
 
@@ -175,11 +178,13 @@ subroutine write_graphing_data( &
 
 	character*1 boxchar
 	character*3 nplots_char
+	character*5 :: update_gifs = 'False'
 
 	character*64 wd1(n_cuts), wd2(n_cuts), wd3(n_cuts), wd4(n_cuts), &
 		wd5(n_cuts), wd6(n_cuts), wd7(n_cuts), wd8(n_cuts), &
 		wd9(n_cuts), wd0(n_cuts)
-	character*64 dummy_fname, data_grep
+	character*64 dummy_fname, data_grep, fig_grep
+	character*80 args, argfmt
 	logical dummy_exists
 	logical cuts(n_cuts)
 	integer cuts_vals(n_cuts)
@@ -435,7 +440,7 @@ subroutine write_graphing_data( &
 
 		cuts_vals(1) = int(limit/2.+1)
 		cuts_vals(2) = int(limit+1)
-		cuts_vals(3) = int(limit-14)	!	Box is not centered on the origin
+		cuts_vals(3) = int(limit+1 + x_adj(box))	!	Box 5 is not centered on the origin
 
 		!	*****************
 		!		Cut 1: xy
@@ -824,12 +829,11 @@ subroutine write_graphing_data( &
 
 	write(*,'(A11,I0.3,A1)') "Done with t", nplots, '.'
 
-!	call system("python3 "//trim(python_dir)//trim(python_plotter))
+	argfmt = '(A, 1X, I1, 1X, I0.3, 1X, I3, 1X, f5.2, 1X, f8.3, 1X, A)'
 
-	if(mod(nplots,10) .eq. 0) then
-		! MJS: Make gifs out of time sequences here (and overwrite)
-		write(*,*) "gifs updated."
-	endif
+	if(mod(nplots,10) .eq. 0) update_gifs = 'True'
+	write(args, argfmt) trim(run_name), n_grids, nplots, limit, r_inner*re_equiv, ut, update_gifs
+	call system( "python3 " // trim(python_dir) // trim(python_plotter) // trim(args) )
 
 	return
 end subroutine write_graphing_data

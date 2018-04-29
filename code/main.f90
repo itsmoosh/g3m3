@@ -1270,7 +1270,7 @@ program multifluid
 			curx,cury,curz, &
 			ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
 			ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
-			run_name, dummy_fg, nplots)
+			r_inner, run_name, dummy_fg, nplots)
 !        call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
 !            qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
 !            hrho,hpresx,hpresy,hpresz,hpresxy, &
@@ -3347,7 +3347,7 @@ program multifluid
 				curx,cury,curz, &
 				ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
 				ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
-				run_name, dummy_fg, nplots)
+				r_inner, run_name, dummy_fg, nplots)
 !            call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
 !                qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
 !                hrho,hpresx,hpresy,hpresz,hpresxy, &
