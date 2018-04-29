@@ -1,3 +1,15 @@
+"""
+Generates diagnostic plots from data files, output during multifluid runs. Handles all cuts at once, plotting them all on common xyz axes.
+Required arguments:
+	run_name
+	n_grids
+	nplots (I0.3 format)
+	limit
+	ut
+
+Example from terminal: python3 ./figures/diag_gfx.py debug 5 001 60 8.4
+"""
+
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
