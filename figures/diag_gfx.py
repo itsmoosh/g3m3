@@ -20,7 +20,6 @@ from mpl_toolkits.mplot3d import axes3d
 import scipy.interpolate
 import glob
 import sys
-import pandas as pn
 
 # physical constants
 mu0 = 4.e-7*np.pi		# vacuum permeability
@@ -47,20 +46,36 @@ cbar_pos = [0.9,0.2,0.024,0.4]	# Bottom-left corner x,y, w,h for colorbar, in % 
 # contour level definitions
 alfmax = [1., 2., 6., 10., 10.]
 
-run_name = 'debug'
-n_grids_str = '4'
-fname_end = '_t' + '018' + '.dat'
-fig_end = '_t' + '018' + '.' + xtn
+run_name = sys.argv[1]
+n_grids_str = sys.argv[2]
+fname_end = '_t' + sys.argv[3] + '.dat'
+fig_end = '_t' + sys.argv[3] + '.' + xtn
 
-limit = int('60')
+limit = int(sys.argv[4])
 nx = limit*2 + 1
 ny = limit*2 + 1
 nz = limit + 1
 
-ut = float('8.57')
+ut = float(sys.argv[5])
 
 fname_start = run_name + "_"
 n_grids = int(n_grids_str)
+
+# Create figure pane and 3D axes with appropriate labeling:
+fig = plt.figure(figsize=fig_size)
+# Roughly figure dimensions times these numbers determines the bounding box size.
+# Uncomment here to see crop box for adjusting purposes.
+#ax_crop = fig.add_axes([0.25, 0.1, 0.675, 0.625])
+ax = fig.gca(projection='3d')
+ax.set_aspect('equal')	# Has no effect in matplotlib v2.2.2 due to a bug.
+gp = 0.65	# Gray % to fill in axes backgrounds on 3D plots
+ax.w_xaxis.set_pane_color((gp+0.14,gp+0.14,gp+0.14,gp+0.14))
+ax.w_zaxis.set_pane_color((gp+0.07,gp+0.07,gp+0.07,gp+0.07))
+ax.w_yaxis.set_pane_color((gp,gp,gp,gp))
+ax.set_xlabel('x'+r_units+r', wind $\rightarrow$')
+ax.set_ylabel('y'+r_units)
+ax.set_zlabel('z'+r_units)
+
 
 box = 4
 # construct filenames
@@ -126,22 +141,9 @@ dbl_y = np.transpose(dbl_y)
 dbl_z = np.repeat(zi, nx)
 dbl_z = np.reshape(dbl_z,[nz,nx])
 
-fig = plt.figure(figsize=fig_size)
-# Roughly figure dimensions times these numbers determines the bounding box size.
-# Uncomment here to see crop box for adjusting purposes.
-#ax_crop = fig.add_axes([0.25, 0.1, 0.675, 0.625])
-
-ax = fig.gca(projection='3d')
-ax.set_aspect('equal')	# Has no effect in matplotlib v2.2.2 due to a bug.
-gp = 0.65	# Gray % to fill in axes backgrounds on 3D plots
-ax.w_xaxis.set_pane_color((gp+0.14,gp+0.14,gp+0.14,gp+0.14))
-ax.w_zaxis.set_pane_color((gp+0.07,gp+0.07,gp+0.07,gp+0.07))
-ax.w_yaxis.set_pane_color((gp,gp,gp,gp))
-ax.set_xlabel('x'+r_units+r', wind $\rightarrow$')
+# Set axis display limits and ticks:
 ax.set_xlim(xmin, xmax)
-ax.set_ylabel('y'+r_units)
 ax.set_ylim(ymin, ymax)
-ax.set_zlabel('z'+r_units)
 ax.set_zlim(zmin, 3*zmax)
 ax.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(deltax/8))
 ax.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(deltay/8))
@@ -168,6 +170,7 @@ ax.scatter( 0,ymax-1,0, s=8*np.pi, c=planet_color)	# Not visible due to a bug in
 conyz = ax.contourf(hi3, dbl_y, dbl_z, zdir='x', offset=xmin, cmap=colormap, vmin=0., vmax=10., levels=fine_lvls)
 ax.scatter( xmin+1,0,0, s=8*np.pi, c=planet_color)
 
+# Add colorbar, crop and save figure:
 cbar_ax = fig.add_axes(cbar_pos)
 cbar = fig.colorbar(conxy, cax=cbar_ax)
 cbar.ax.set_title(cbar_title,size=16)
