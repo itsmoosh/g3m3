@@ -143,12 +143,13 @@ subroutine write_graphing_data( &
 		hcross(nx,ny,nz,n_grids)
 	real opara(nx,ny,nz,n_grids), operp(nx,ny,nz,n_grids), &
 		ocross(nx,ny,nz,n_grids)
-	real qvx, qvy, qvz, ovx, ovy, ovz, hvx, hvy, hvz
 	real tvx(nx,ny,nz), tvy(nx,ny,nz), tvz(nx,ny,nz)
 	real evelx(nx,ny,nz,n_grids), evely(nx,ny,nz,n_grids), &
 		evelz(nx,ny,nz,n_grids)
 	real evx(nx,ny,nz), evy(nx,ny,nz), evz(nx,ny,nz)
-	real vvx(nx,ny,nz), vvy(nx,ny,nz), vvz(nx,ny,nz)
+	real qvx(nx,ny,nz), qvy(nx,ny,nz), qvz(nx,ny,nz)
+	real hvx(nx,ny,nz), hvy(nx,ny,nz), hvz(nx,ny,nz)
+	real ovx(nx,ny,nz), ovy(nx,ny,nz), ovz(nx,ny,nz)
 	real ex(nx,ny,nz), ey(nx,ny,nz), ez(nx,ny,nz)
 
 	!	Unperturbed quantities
@@ -391,37 +392,36 @@ subroutine write_graphing_data( &
 		!	Species q
 		!	*********
 
-		call fnd_vel(qpx,qpy,qpz,qrho,vvx,vvy,vvz,nx,ny,nz,n_grids,box)
+		call fnd_vel(qpx,qpy,qpz,qrho,qvx,qvy,qvz,nx,ny,nz,n_grids,box)
 		call fnd_pres(qpresx,qpresy,qpresz,qpresxy,qpresxz,qpresyz,&
 			qpara,qperp,qcross, &
-			vvx,vvy,vvz,bxt,byt,bzt,nx,ny,nz,n_grids,box)
-		qvx = vvx(i,j,k)*v_equiv
-		qvy = vvy(i,j,k)*v_equiv
-		qvz = vvz(i,j,k)*v_equiv
+			qvx,qvy,qvz,bxt,byt,bzt,nx,ny,nz,n_grids,box)
+		qvx(:,:,:) = qvx(:,:,:)*v_equiv
+		qvy(:,:,:) = qvy(:,:,:)*v_equiv
+		qvz(:,:,:) = qvz(:,:,:)*v_equiv
 
 		!	*********
 		!	Species h
 		!	*********
 
-		call fnd_vel(hpx,hpy,hpz,hrho,vvx,vvy,vvz,nx,ny,nz,n_grids,box)
+		call fnd_vel(hpx,hpy,hpz,hrho,hvx,hvy,hvz,nx,ny,nz,n_grids,box)
 		call fnd_pres(hpresx,hpresy,hpresz,hpresxy,hpresxz,hpresyz,&
 			hpara,hperp,hcross, &
-			vvx,vvy,vvz,bxt,byt,bzt,nx,ny,nz,n_grids,box)
-		hvx = vvx(i,j,k)*v_equiv
-		hvy = vvy(i,j,k)*v_equiv
-		hvz = vvz(i,j,k)*v_equiv
-
+			hvx,hvy,hvz,bxt,byt,bzt,nx,ny,nz,n_grids,box)
+		hvx(:,:,:) = hvx(:,:,:)*v_equiv
+		hvy(:,:,:) = hvy(:,:,:)*v_equiv
+		hvz(:,:,:) = hvz(:,:,:)*v_equiv
 		!	*********
 		!	Species o
 		!	*********
 
-		call fnd_vel(opx,opy,opz,orho,vvx,vvy,vvz,nx,ny,nz,n_grids,box)
+		call fnd_vel(opx,opy,opz,orho,ovx,ovy,ovz,nx,ny,nz,n_grids,box)
 		call fnd_pres(opresx,opresy,opresz,opresxy,opresxz,opresyz,&
 			opara,operp,ocross, &
-			vvx,vvy,vvz,bxt,byt,bzt,nx,ny,nz,n_grids,box)
-		ovx = vvx(i,j,k)*v_equiv
-		ovy = vvy(i,j,k)*v_equiv
-		ovz = vvz(i,j,k)*v_equiv
+			ovx,ovy,ovz,bxt,byt,bzt,nx,ny,nz,n_grids,box)
+		ovx(:,:,:) = ovx(:,:,:)*v_equiv
+		ovy(:,:,:) = ovy(:,:,:)*v_equiv
+		ovz(:,:,:) = ovz(:,:,:)*v_equiv
 
 
 		!	******************
@@ -541,7 +541,9 @@ subroutine write_graphing_data( &
 					odens,otemp, edens,etemp
 
 				write(flow_f(1),'(13(es14.6))') &
-					qvx,qvy,qvz, hvx,hvy,hvz, ovx,ovy,ovz, &
+					qvx(i,j,k),qvy(i,j,k),qvz(i,j,k), &
+					hvx(i,j,k),hvy(i,j,k),hvz(i,j,k), &
+					ovx(i,j,k),ovy(i,j,k),ovz(i,j,k), &
 					unetx,unety,unetz, alfven_mach
 
 				write(pres_f(1),'(10(es14.6))') &
@@ -664,7 +666,9 @@ subroutine write_graphing_data( &
 					odens,otemp, edens,etemp
 
 				write(flow_f(2),'(13(es14.6))') &
-					qvx,qvy,qvz, hvx,hvy,hvz, ovx,ovy,ovz, &
+					qvx(i,j,k),qvy(i,j,k),qvz(i,j,k), &
+					hvx(i,j,k),hvy(i,j,k),hvz(i,j,k), &
+					ovx(i,j,k),ovy(i,j,k),ovz(i,j,k), &
 					unetx,unety,unetz, alfven_mach
 
 				write(pres_f(2),'(10(es14.6))') &
@@ -787,7 +791,9 @@ subroutine write_graphing_data( &
 					odens,otemp, edens,etemp
 
 				write(flow_f(3),'(13(es14.6))') &
-					qvx,qvy,qvz, hvx,hvy,hvz, ovx,ovy,ovz, &
+					qvx(i,j,k),qvy(i,j,k),qvz(i,j,k), &
+					hvx(i,j,k),hvy(i,j,k),hvz(i,j,k), &
+					ovx(i,j,k),ovy(i,j,k),ovz(i,j,k), &
 					unetx,unety,unetz, alfven_mach
 
 				write(pres_f(3),'(10(es14.6))') &
@@ -816,7 +822,7 @@ subroutine write_graphing_data( &
 
 	enddo ! loop over box
 
-	write(*,*) "Done."
+	write(*,'(A11,I0.3,A1)') "Done with t", nplots, '.'
 
 !	call system("python3 "//trim(python_dir)//trim(python_plotter))
 
