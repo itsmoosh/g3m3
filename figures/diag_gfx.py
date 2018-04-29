@@ -5,10 +5,38 @@ Required arguments:
 	n_grids
 	nplots (I0.3 format)
 	limit
+	r_inner
 	ut
+	update_gifs
 
-Example from terminal: python3 ./figures/diag_gfx.py debug 5 001 60 8.4
+Example from terminal: python3 ./figures/diag_gfx.py debug 5 001 60 2.0 8.4 False
 """
+
+def gen_plot(fig,ax,minmax,xi,yi,zi,dbls,values,cblims,n_contours,con_color,colormap,plot_title,planet_color,r_inner,cbar_pos,cbar_title,cbar_adj,figpath,xtn):
+	xmin,xmax,ymin,ymax,zmin,zmax = minmax
+	dbl_x,dbl_y,dbl_z = dbls
+	hi1,hi2,hi3 = values
+	cbmin,cbmax = cblims
+
+	contour_levels = np.arange(cbmin,cbmax,cbmax/n_contours)
+	fine_lvls = np.arange(cbmin,cbmax,cbmax/100)
+	plt.title(plot_title,fontsize=20,y=0.72, bbox=dict(facecolor='white'))
+
+	# Generate contours for this plot
+	conxy = ax.contourf(xi, yi, hi1, zdir='z', offset=zmin, cmap=colormap, vmin=cbmin, vmax=cbmax, levels=fine_lvls)
+	ax.scatter( 0,0,zmin+1, s=np.pi*r_inner**2, c=planet_color)
+	conxz = ax.contourf(dbl_x, hi2, dbl_z, zdir='y', offset=ymax, cmap=colormap, vmin=cbmin, vmax=cbmax, levels=fine_lvls)
+	ax.scatter( 0,ymax-1,0, s=np.pi*r_inner**2, c=planet_color)	# Not visible due to a bug in zorder with Axes3D as of 4/28/18, mpl v2.2.2
+	conyz = ax.contourf(hi3, dbl_y, dbl_z, zdir='x', offset=xmin, cmap=colormap, vmin=cbmin, vmax=cbmax, levels=fine_lvls)
+	ax.scatter( xmin+1,0,0, s=np.pi*r_inner**2, c=planet_color)
+
+	# Add colorbar, crop and save figure:
+	cbar_ax = fig.add_axes(cbar_pos)
+	cbar = fig.colorbar(conxy, cax=cbar_ax)
+	cbar.ax.set_title(cbar_title,size=16, pad=cbar_adj)
+	cbar.ax.tick_params(labelsize=14)
+	crop_bbox = Bbox.from_bounds(2.45, 0.75, 7.27, 4.5)
+	fig.savefig(figpath, format=xtn, dpi=200, bbox_inches=crop_bbox)
 
 import numpy as np
 import matplotlib
@@ -38,10 +66,9 @@ reduct = 4. 			# Reduction factor for number of data points to interpolate. High
 n_contours = 8			# Number of contours for each plot
 con_color = 'blue'		# Contour color
 planet_color = 'lime'	# Color of circle at the origin
-r_units = '$(R_E)$'		# Units to display on distance axes
+r_units = ' $(R_E)$'	# Units to display on distance axes
 fig_size = (10,7.5)		# In inches
 cbar_pos = [0.9,0.2,0.024,0.4]	# Bottom-left corner x,y, w,h for colorbar, in % of fig_size
-
 
 # contour level definitions
 alfmax = [1., 2., 6., 10., 10.]
@@ -56,7 +83,14 @@ nx = limit*2 + 1
 ny = limit*2 + 1
 nz = limit + 1
 
-ut = float(sys.argv[5])
+r_inner = float(sys.argv[5])
+
+ut = float(sys.argv[6])
+
+if(sys.argv[7] == 'True'):
+	update_gifs = True
+else:
+	update_gifs = False
 
 fname_start = run_name + "_"
 n_grids = int(n_grids_str)
@@ -78,23 +112,32 @@ ax.set_zlabel('z'+r_units)
 
 
 box = 4
-# construct filenames
-figpath_alf = gfx_dir + fname_start + 'gfx_alfmach_' + str(box) + fig_end
-#	xy_fpath_plas = data_dir + fname_start + 'plas_' + str(box) + 'xy' + fname_end
-xy_fpath_flow = data_dir + fname_start + 'flow_' + str(box) + 'xy' + fname_end
-#	xy_fpath_pres = data_dir + fname_start + 'pres_' + str(box) + 'xy' + fname_end
-#	xy_fpath_bande = data_dir + fname_start + 'bande_' + str(box) + 'xy' + fname_end
-xy_fpath_model = data_dir + fname_start + 'model_' + str(box) + 'xy' + fname_end
-#	xz_fpath_plas = data_dir + fname_start + 'plas_' + str(box) + 'xz' + fname_end
-xz_fpath_flow = data_dir + fname_start + 'flow_' + str(box) + 'xz' + fname_end
-#	xz_fpath_pres = data_dir + fname_start + 'pres_' + str(box) + 'xz' + fname_end
-#	xz_fpath_bande = data_dir + fname_start + 'bande_' + str(box) + 'xz' + fname_end
-xz_fpath_model = data_dir + fname_start + 'model_' + str(box) + 'xz' + fname_end
-#	yz_fpath_plas = data_dir + fname_start + 'plas_' + str(box) + 'yz' + fname_end
-yz_fpath_flow = data_dir + fname_start + 'flow_' + str(box) + 'yz' + fname_end
-#	yz_fpath_pres = data_dir + fname_start + 'pres_' + str(box) + 'yz' + fname_end
-#	yz_fpath_bande = data_dir + fname_start + 'bande_' + str(box) + 'yz' + fname_end
-#	yz_fpath_model = data_dir + fname_start + 'model_' + str(box) + 'yz' + fname_end
+# Construct figure file paths
+gfxp1 = gfx_dir + fname_start + 'gfx_'
+gfxp2 = '_' + str(box) + fig_end
+figpath_alf = gfxp1 + 'alfmach' + gfxp2
+figpath_bmag = gfxp1 + 'bmag' + gfxp2
+
+# Construct data file paths
+datap1 = data_dir + fname_start
+dataxy2 = '_' + str(box) + 'xy' + fname_end
+dataxz2 = '_' + str(box) + 'xz' + fname_end
+datayz2 = '_' + str(box) + 'yz' + fname_end
+#	xy_fpath_plas = datap1 + 'plas' + dataxy2
+xy_fpath_flow = datap1 + 'flow' + dataxy2
+#	xy_fpath_pres = datap1 + 'pres' + dataxy2
+#	xy_fpath_bande = datap1 + 'bande' + dataxy2
+xy_fpath_model = datap1 + 'model' + dataxy2
+#	xz_fpath_plas = datap1 + 'plas' + dataxz2
+xz_fpath_flow = datap1 + 'flow' + dataxz2
+#	xz_fpath_pres = datap1 + 'pres' + dataxz2
+#	xz_fpath_bande = datap1 + 'bande' + dataxz2
+xz_fpath_model = datap1 + 'model' + dataxz2
+#	yz_fpath_plas = datap1 + 'plas' + datayz2
+yz_fpath_flow = datap1 + 'flow' + datayz2
+#	yz_fpath_pres = datap1 + 'pres' + datayz2
+#	yz_fpath_bande = datap1 + 'bande' + datayz2
+#	yz_fpath_model = datap1 + 'model' + datayz2
 
 # xy data:
 #	xy_qdens,xy_qtemp,xy_hdens,xy_htemp,xy_odens,xy_otemp,xy_edens,xy_etemp = np.genfromtxt(xy_fpath_plas,unpack=True,skip_header=n_headlines)
@@ -130,6 +173,7 @@ zi = np.linspace(zmin,zmax,nz)
 deltax = xmax - xmin
 deltay = ymax - ymin
 deltaz = zmax - zmin
+minmax = (xmin,xmax,ymin,ymax,zmin,zmax)
 
 # Tile 1D arrays to form consistent 2D arrays for use in making contours:
 dbl_x = np.repeat(xi, nz)
@@ -140,6 +184,7 @@ dbl_y = np.reshape(dbl_y,[nx,nz])
 dbl_y = np.transpose(dbl_y)
 dbl_z = np.repeat(zi, nx)
 dbl_z = np.reshape(dbl_z,[nz,nx])
+dbls = (dbl_x,dbl_y,dbl_z)
 
 # Set axis display limits and ticks:
 ax.set_xlim(xmin, xmax)
@@ -152,28 +197,15 @@ ax.zaxis.set_major_locator(matplotlib.ticker.MultipleLocator(deltaz/4))
 
 # Alfven speed:
 plot_title = run_name + r': Alfv$\'{e}$n Mach, box ' + str(box) + ', ut = ' + str(ut)
-cbar_title = '|v|/V_Alf'
+cbar_title = r'$\frac{|\vec{v}_\mathrm{net}|}{V_\mathrm{Alf}}$'
+cbar_adj = 10
 cbmin = 0.0
 cbmax = alfmax[box-1]
+cblims = (cbmin,cbmax)
 hi1 = np.reshape(xy_alfmach,[ny,nx])
 hi2 = np.reshape(xz_alfmach,[nz,nx])
 hi3 = np.reshape(yz_alfmach,[nz,ny])
+values = (hi1,hi2,hi3)
+gen_plot(fig,ax,minmax,xi,yi,zi,dbls,values,cblims,n_contours,con_color,colormap,plot_title,planet_color,r_inner,cbar_pos,cbar_title,cbar_adj,figpath_alf,xtn)
+cbar_adj = 0
 
-# Generate contours for all 3 cuts:
-contour_levels = np.arange(cbmin,cbmax,cbmax/n_contours)
-fine_lvls = np.arange(cbmin,cbmax,cbmax/100)
-plt.title(plot_title,fontsize=20,y=0.72, bbox=dict(facecolor='white'))
-conxy = ax.contourf(xi, yi, hi1, zdir='z', offset=zmin, cmap=colormap, vmin=0., vmax=10., levels=fine_lvls)
-ax.scatter( 0,0,zmin+1, s=8*np.pi, c=planet_color)
-conxz = ax.contourf(dbl_x, hi2, dbl_z, zdir='y', offset=ymax, cmap=colormap, vmin=0., vmax=10., levels=fine_lvls)
-ax.scatter( 0,ymax-1,0, s=8*np.pi, c=planet_color)	# Not visible due to a bug in zorder with Axes3D as of 4/28/18, mpl v2.2.2
-conyz = ax.contourf(hi3, dbl_y, dbl_z, zdir='x', offset=xmin, cmap=colormap, vmin=0., vmax=10., levels=fine_lvls)
-ax.scatter( xmin+1,0,0, s=8*np.pi, c=planet_color)
-
-# Add colorbar, crop and save figure:
-cbar_ax = fig.add_axes(cbar_pos)
-cbar = fig.colorbar(conxy, cax=cbar_ax)
-cbar.ax.set_title(cbar_title,size=16)
-cbar.ax.tick_params(labelsize=14)
-crop_bbox = Bbox.from_bounds(2.45, 0.75, 7.27, 4.5)
-fig.savefig(figpath_alf, format=xtn, dpi=200, bbox_inches=crop_bbox)
