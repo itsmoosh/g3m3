@@ -20,16 +20,38 @@ Info for getting started:
 
 	2. Check that repository file path matches what the scripts expect. This path of this file should be: $HOME/multifluid/readme.md
 
-	3. Compile the executable by navigating to the execution directory ($HOME/multifluid) and typing the command: make
+	3. Install miniconda3 with the modules below and ensure that your $PATH points to the miniconda3 version of python3. This is the default during installation. Use the following commands to get python3 ready:
+		@ cd ~
+		@ wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+		@ chmod +x Miniconda3-latest-Linux-x86_64.sh
+		@ ./Miniconda3-latest-Linux-x86_64.sh
+		@ Accept default prompts, except for recommended install location: ~/usr/local/miniconda3
+		@ conda install matplotlib numpy scipy jupyter pandas
+		@ Find the following line in the file equivalent to ~/usr/local/miniconda3/pkgs/matplotlib-2.2.2-py36h0e671d2_1/lib/python3.6/site-packages/matplotlib/streamplot.py (with approximate line numbers):
+			390 def _update_trajectory(self, xm, ym):
+			391         """Update current trajectory position in mask.
+			392 
+			393         If the new position has already been filled, raise `InvalidIndexError`.
+			394         """
+			395         if self._current_xy != (xm, ym):
+			396             if self[ym, xm] == 0:
+			397                 self._traj.append((ym, xm))
+			398                 self._mask[ym, xm] = 1
+			399                 self._current_xy = (xm, ym)
+			400             else:
+			401                 pass # <----- Add this line
+			402                 #raise InvalidIndexError # <----- Comment out this line
+
+	4. Compile the executable by navigating to the execution directory ($HOME/multifluid) and typing the command: make
 		This executes the makefile script to create an executable, by default named: master.x
 
-	4. Verify the settings of the input file. At the top, the 'start' variable should be set to .t. for an initial run.
+	5. Verify the settings of the input file. At the top, the 'start' variable should be set to .t. for an initial run.
 		If running the executable directly, the input file should have the path $HOME/multifluid/input
 		If you are queueing multiple runs, the first input file should have the path $HOME/multifluid/input_$runname_001, where $runname is the name of your executable (master by default).
 
-	5. Set the error message email to be your own. This is set by a variable at the top of both run_multi.run and archive.run, in the scripts directory: $HOME/multifluid/scripts
+	6. Set the error message email to be your own. This is set by a variable at the top of both run_multi.run and archive.run, in the scripts directory: $HOME/multifluid/scripts
 
-	6. Start your run with the following syntax:
+	7. Start your run with the following syntax:
 		For solo executable:
 			cd ~/multifluid
 			./master.x >> output.log 2>&1 ; echo "master.x finished running!" | mail -s "Multifluid run complete" your@email.com &
@@ -41,24 +63,14 @@ Info for getting started:
 		Input files for each iteration must be present in $execdir ($HOME/multifluid by default), named input_$runname_XXX, where XXX can range from 001 to 999.
 		If the input file for a given iteration is not present, the input file for the previous iteration is copied over. Non-initializing runs must have the 'start' variable set to .f. in their input files.
 
-	7. Inspect the output data with the following command:
-		idt gmeta
-		OR
-		idt $runname_XXX
-		Example: idt master_001
+	8. Inspect the output data images in the figures/images directory, e.g. using evince.
 	
-	8. Archive your data with the following command:
+	9. Archive your data with the following command:
 		From the scripts directory:
 			./archive.run $runname $runnum
 		where $runname is as above, and runnum matches one of the start or stop numbers.
 		Example: ./archive.run master 1
 	This will compress the 4 fluid files and the associated input file, output log, etc. into a single .tar.gz archive in the multifluid/data/complete directory. The fluid files and associated files will be moved to the multifluid/trash directory. This directory should be cleared periodically. Files are not directly deleted because if there are missing files, the tar command may not work correctly and files would then be lost.
-
-	9. Parse binary files into ASCII text with the following command:
-		From the scripts directory:
-			./parse_fluid.run $runname $runnum $qtr
-		where $runname and $runnum are as above and $qtr is a number 1-4 corresponding to the fluid file referenced, the last character in that fluid file's path.
-		Output data are .dat files in the multifluid directory.
 
 
 Additional notes:
