@@ -1,7 +1,7 @@
 
 $option
 	tmax=1000.01 ntgraph=10 stepsz=0.25 start=.t. tsave=200.
-	isotropic=.f. run_name="europai" write_dat=.f.
+	isotropic=.f. run_name="europai" write_dat=.f. diagnostics=.t.
 $end
 
 $planet

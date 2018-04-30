@@ -25,7 +25,7 @@ subroutine write_graphing_data( &
 	curx,cury,curz, &
 	ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
 	ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
-	r_inner, run_name, dummy_f, nplots)
+	r_inner, run_name, dummy_f, diagnostics, nplots)
 
 	use astrometry
 	implicit none
@@ -110,6 +110,7 @@ subroutine write_graphing_data( &
 	real, intent(in) :: r_inner
 	character*8, intent(in) :: run_name
 	integer, intent(in) :: dummy_f
+	logical, intent(in) :: diagnostics
 
 	integer, intent(out) :: nplots
 
@@ -179,6 +180,7 @@ subroutine write_graphing_data( &
 	character*1 boxchar
 	character*3 nplots_char
 	character*5 :: update_gifs = 'False'
+	character*5 :: diag = 'False'
 
 	character*64 wd1(n_cuts), wd2(n_cuts), wd3(n_cuts), wd4(n_cuts), &
 		wd5(n_cuts), wd6(n_cuts), wd7(n_cuts), wd8(n_cuts), &
@@ -829,11 +831,14 @@ subroutine write_graphing_data( &
 
 	write(*,'(A11,I0.3,A1)') "Done with t", nplots, '.'
 
-	argfmt = '(A, 1X, I1, 1X, I0.3, 1X, I3, 1X, f5.2, 1X, f8.3, 1X, A)'
+	argfmt = '(A, 1X, I1, 1X, I0.3, 1X, I3, 1X, f5.2, 1X, f8.3, 1X, A, 1X, A)'
 
+	if(diagnostics) diag = 'True'
 	if(mod(nplots,10) .eq. 0) update_gifs = 'True'
-	write(args, argfmt) trim(run_name), n_grids, nplots, limit, r_inner*re_equiv, ut, update_gifs
-	call system( "python3 " // trim(python_dir) // trim(python_plotter) // trim(args) )
+	write(args, argfmt) trim(run_name), n_grids, nplots, limit, r_inner*re_equiv, ut, diag, update_gifs
+!	call system( "python3 " // trim(python_dir) // trim(python_plotter) // trim(args) )
+	write(*,*) "Debug: python3 " // trim(python_dir) // trim(python_plotter) // trim(args)
+	stop
 
 	return
 end subroutine write_graphing_data

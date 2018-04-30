@@ -13,6 +13,7 @@ start - true for new run, false if continuing with input fluid files
 tsave - duration in units of t_equiv per fluid file (number of fluid files * tsave should = tmax, above)
 isotropic - deprecated after splitting code into two versions (can be removed/ignored)
 write_dat - writes some simulation data to disk
+diagnostics - whether to print 3D plots, which are busier but can be better for diagnostic purposes, or more polished-looking 2D plots
  
  
 $planet	[formerly earth]

@@ -160,7 +160,7 @@ program multifluid
 		! group 'option':
 		real tmax, stepsz, tsave
 		integer ntgraph, ntinj
-		logical start, isotropic, write_dat
+		logical start, isotropic, write_dat, diagnostics
 		character*8 run_name
 		! group 'planet'
 		character*10 bodyname, moonname
@@ -498,7 +498,7 @@ program multifluid
 	!	Namelists for file I/O
 	!	**********************
 		namelist/option/tmax,ntgraph,stepsz,start,tsave,ntinj,isotropic, &
-		run_name,write_dat
+		run_name,write_dat,diagnostics
 		namelist/planet/bodyname,moonname,xdip,ydip,zdip,r_inner,torus_rad, &
 		tilt1,tilt2,tilting,rmassq,rmassh,rmasso
 		namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
@@ -1270,7 +1270,7 @@ program multifluid
 			curx,cury,curz, &
 			ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
 			ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
-			r_inner, run_name, dummy_fg, nplots)
+			r_inner, run_name, dummy_fg, diagnostics, nplots)
 !        call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
 !            qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
 !            hrho,hpresx,hpresy,hpresz,hpresxy, &
@@ -3347,7 +3347,7 @@ program multifluid
 				curx,cury,curz, &
 				ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
 				ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
-				r_inner, run_name, dummy_fg, nplots)
+				r_inner, run_name, dummy_fg, diagnostics, nplots)
 !            call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &
 !                qpresxz,qpresyz,qpx,qpy,qpz,rmassq, &
 !                hrho,hpresx,hpresy,hpresz,hpresxy, &
