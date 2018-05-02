@@ -224,7 +224,7 @@ def save_fig(fig,figpath,xtn='png',fig_dpi=200,crop=False):
 
 def upd_gifs(qty_list, run_name, nplots_str, gfx_dir='./figures/images/', n_grids=5, xtn='png'):
 	"""
-	Combines the 10 most recently printed plots into an animated gif.
+	Combines the 10 most recently printed plots into an animated gif, then removes the still images.
 	"""
 	nplots = int(nplots_str)
 	gif_cmd = "convert -loop 0 -delay 100 "
@@ -248,8 +248,11 @@ def upd_gifs(qty_list, run_name, nplots_str, gfx_dir='./figures/images/', n_grid
 				else:
 					print("Didn't find expected file: "+fig_path+", skipping.")
 			gif_name = fname_start + "anim_" + qty + str(box) + '_' + rangestr + '.gif'
-			make_gifs_cmd = gif_cmd + ' '.join(flist) + ' ' + gif_name
-#			os.system(make_gifs_cmd)
+			img_files = ' '.join(flist)
+			make_gifs_cmd = gif_cmd + img_files + ' ' + gif_name
+			rm_images_cmd = "rm " + img_files
+			os.system(make_gifs_cmd)
+			os.system(rm_images_cmd)
 	print("Updated gifs for " + ' '.join(qty_list) + ', ' + rangestr )
 	return
 ####	END def upd_gifs	############################################

@@ -28,8 +28,6 @@ import sys
 import os
 import gfx_functions as gfx
 
-t_start = os.times().elapsed
-
 # physical constants
 mu0 = 4.e-7*np.pi		# vacuum permeability
 pmass = 1.67e-27		# proton mass
@@ -86,7 +84,6 @@ if(sys.argv[8] == 'True'):
 	update_gifs = True
 else:
 	update_gifs = False
-
 fname_start = run_name + "_"
 n_grids = int(n_grids_str)
 fname_end = '_t' + nplots_str + '.dat'
@@ -97,7 +94,7 @@ for box in range(1,n_grids+1):
 	# Construct figure file paths
 	gfxp1 = gfx_dir + fname_start + 'gfx_'
 	gfxp2 = str(box) + fig_end
-	qty_list = ('alfmach', 'qvel', 'hvel', 'ovel', 'bmag')
+	qty_list = ('alfmach', 'qvel', 'hvel', 'ovel', 'bnet')
 	figpath_alf = gfxp1 + 'alfmach' + gfxp2
 	figpath_qvel = gfxp1 + 'qvel' + gfxp2
 	figpath_hvel = gfxp1 + 'hvel' + gfxp2
@@ -303,6 +300,8 @@ for box in range(1,n_grids+1):
 	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,True,True)
 	gfx.save_fig(fig,figpath_bnet,xtn,fig_dpi,crop)
 
+os.system("tar -czf " + data_dir+run_name+"_t"+nplots_str+"_data.tar.gz " + data_dir+run_name+"_*_t"+nplots_str+".dat")
+os.system("rm " + data_dir+run_name+"_*_t"+nplots_str+".dat")
 
 # Create gifs for the past 10 figures
 if(update_gifs):
@@ -310,7 +309,3 @@ if(update_gifs):
 		gfx.upd_gifs(qty_list, run_name, nplots_str, gfx_dir, n_grids, xtn)
 	else:
 		print("gif conversion not supported for "+xtn+". gifs not updated.")
-
-t_end = os.times().elapsed
-t_elapsed = (t_end - t_start) / 60
-print("Debug: script duration " + str(t_elapsed) + " min")
