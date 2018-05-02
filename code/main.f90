@@ -1142,10 +1142,12 @@ program multifluid
 				if(t_diff .lt. 100.0) then
 					write(*,*) '+++++++'
 					write(*,*) 'WARNING: Non-zero utstart differs from t in restart fluid file.'
+					write(*,*) 'utstart = ', utstart, ' t = ', t, ' ut(s)/t_equiv - t = ', t_diff
 					write(*,*) '+++++++'
 				else
 					write(*,*) '+++++++'
 					write(*,*) 'ERROR: utstart drastically differs from t in restart fluid file. ABORTING!'
+					write(*,*) 'utstart = ', utstart, ' t = ', t, ' ut(s)/t_equiv - t = ', t_diff
 					write(*,*) '+++++++'
 					stop
 				endif

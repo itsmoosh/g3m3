@@ -39,7 +39,7 @@ subroutine write_graphing_data( &
 	integer, parameter :: skip=1 ! Sample skip for flythrough data
 	integer, parameter :: vbins=100 ! Number of energy/velocity bins on Y-axis
 	integer, parameter :: phi_res=10 ! Number of angle bins on Y-axis
-	integer, parameter :: x_adj = [0, 0, 0, 0, -15]	! Position offset for offset boxes
+	integer, parameter :: x_adj(5) = [0, 0, 0, 0, -15]	! Position offset for offset boxes
 
 	!	file naming
 	character*32, parameter :: python_dir = "figures/"
@@ -262,7 +262,7 @@ subroutine write_graphing_data( &
 	inquire(file=trim(dummy_fname), exist=dummy_exists)
 	if(dummy_exists) call system ('rm '//trim(dummy_fname))
 	
-	data_grep = trim(fname_starting)//trim(fname1)//'_1'//trim(cut_label(1))//'_t???.dat'
+	data_grep = trim(fname_starting)//'t???_data.tar.gz'
 	call system("ls 2>/dev/null -1q "//trim(data_grep)//" | wc -l > "//trim(dummy_fname))
 
 	open(dummy_f,file=trim(dummy_fname),status='unknown',form='formatted')
@@ -831,14 +831,11 @@ subroutine write_graphing_data( &
 
 	write(*,'(A11,I0.3,A1)') "Done with t", nplots, '.'
 
-	argfmt = '(A, 1X, I1, 1X, I0.3, 1X, I3, 1X, f5.2, 1X, f8.3, 1X, A, 1X, A)'
+	argfmt = '(1X, A, 1X, I1, 1X, I0.3, 1X, I3, 1X, f5.2, 1X, f8.3, 1X, A, 1X, A)'
 
 	if(diagnostics) diag = 'True'
 	if(mod(nplots,10) .eq. 0) update_gifs = 'True'
-	write(args, argfmt) trim(run_name), n_grids, nplots, limit, r_inner*re_equiv, ut, diag, update_gifs
-!	call system( "python3 " // trim(python_dir) // trim(python_plotter) // trim(args) )
-	write(*,*) "Debug: python3 " // trim(python_dir) // trim(python_plotter) // trim(args)
-	stop
-
+	write(args, argfmt) trim(run_name), n_grids, nplots, int(limit), r_inner*re_equiv, ut, diag, update_gifs
+	call system( "python3 " // trim(python_dir) // trim(python_plotter) // trim(args) )
 	return
 end subroutine write_graphing_data
