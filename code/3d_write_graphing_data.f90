@@ -233,7 +233,7 @@ subroutine write_graphing_data( &
 	temp_equiv = m_prot * (v_equiv*1.e3)**2 / q_elec	!	In eV
 	pres_equiv = rho_equiv*1.e6*m_prot * (v_equiv*1.e3)**2	! In Pa
 	cur_equiv = b_equiv / mu0 / (planet_rad*1.e3 * re_equiv)	! In nA/m^2
-	e_equiv = b_equiv * v_equiv*1.e3
+	e_equiv = b_equiv * v_equiv*1.e3 / 1.e6	! Standard is in nV/m, convert here to mV/m so values are <1000
 	write(ut_string,'(F9.4)') ut
 
 !
@@ -326,7 +326,7 @@ subroutine write_graphing_data( &
 				'  box, cut:      '// boxchar//', '// cut_label(m)//'-plane'//new_line('A')// &
 				'  ut, #in seq: '// ut_string// ', '//nplots_char
 			write(bande_header,'(A)') header_intro//new_line('A')// &
-				"  Net magnetic and electric field components and magnitudes, and current density components, in nT, nV/m, and nA/m^2,."//new_line('A')// &
+				"  Net magnetic and electric field components and magnitudes, and current density components, in nT, mV/m, and nA/m^2,."//new_line('A')// &
 				'  run name:      '// run_name//new_line('A')// &
 				'  box, cut:      '// boxchar//', '// cut_label(m)//'-plane'//new_line('A')// &
 				'  ut, #in seq: '// ut_string// ', '//nplots_char
@@ -358,7 +358,7 @@ subroutine write_graphing_data( &
 				'log_eprs(nPa)'
 			write(bande_f(m),'(11(A14))') &
 				'Bx(nT)','By(nT)','Bz(nT)','|Btot|(nT)', &
-				'Ex(nV/m)','Ey(nV/m)','Ez(nV/m)','|Etot|(nV/m)', &
+				'Ex(mV/m)','Ey(mV/m)','Ez(mV/m)','|Etot|(mV/m)', &
 				'Jx(nA/m^2)','Jy(nA/m^2)','Jz(nA/m^2)'
 			write(model_f(m),'(4(A9),7(A14))') 'x(R_E)','y(R_E)','z(R_E)','rad(R_E)', &
 				'Bdx(nT)','Bdy(nT)','Bdz(nT)', &
