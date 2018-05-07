@@ -230,7 +230,7 @@ subroutine write_graphing_data( &
 	! rho_equiv is in cm^-3 of rmassq species
 	! v_equiv is in km/s
 
-	temp_equiv = m_prot * (v_equiv*1.e3)**2 / q_elec	!	In eV
+	temp_equiv = m_prot * (v_equiv*1.e3)**2 / q_elec / 1.e3	!	Standard is in eV, convert here to keV so values are <1000
 	pres_equiv = rho_equiv*1.e6*m_prot * (v_equiv*1.e3)**2	! In Pa
 	cur_equiv = b_equiv / mu0 / (planet_rad*1.e3 * re_equiv)	! In nA/m^2
 	e_equiv = b_equiv * v_equiv*1.e3 / 1.e6	! Standard is in nV/m, convert here to mV/m so values are <1000
