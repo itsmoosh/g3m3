@@ -3365,7 +3365,7 @@ program multifluid
 !                grid_minvals(3,:), grid_maxvals(3,:), ut,b_equiv,ti_te,rho_equiv)
             !
             tgraph=tgraph+deltg
-			write(*,*) 'Graphics plotted.'
+			write(*,*) 'Graphics plotted. Next tgraph at t = ', tgraph
         endif !if(t.ge.tgraph)
 		!
         if(t.ge.tinj.and.ringo) then
