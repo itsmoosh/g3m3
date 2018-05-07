@@ -35,47 +35,52 @@ def new_fig(fig_size,deltas,diagnostic,rows=1,r_units=' $(R_E)$'):
 		ax.yaxis.set_major_locator(mpl.ticker.MultipleLocator(deltay/8))
 		ax.zaxis.set_major_locator(mpl.ticker.MultipleLocator(deltaz/4))
 
-		return fig,ax
+		return fig,(ax,)
 	else:
-		fig = plt.subplots(rows,3,figsize=fig_size,sharex=True,sharey=True)
-		fig = fig[0]
-		fig.subplots_adjust(left=0.06, right=0.92, wspace=0.25)
-		ax1 = plt.subplot(131)
-		ax2 = plt.subplot(132)
-		ax3 = plt.subplot(133)
-		axes = (ax1,ax2,ax3)
-		ax1.set(aspect='equal')
-		ax2.set(aspect='equal')
-		ax3.set(aspect='equal')
-		ax1.set_title('xy',fontsize=16)
-		ax2.set_title('xz',fontsize=16)
-		ax3.set_title('yz',fontsize=16)
-		ax1.set_xlabel('x'+r_units+r', wind $\rightarrow$')
-		ax1.set_ylabel('y'+r_units)
-		ax2.set_xlabel('x'+r_units+r', wind $\rightarrow$')
-		ax2.set_ylabel('z'+r_units)
-		ax3.set_xlabel('y'+r_units+r', wind $\bigodot$')
-		ax3.set_ylabel('z'+r_units)
+		fig_size = (fig_size[0],rows*fig_size[1])
+		fig,sp_axes = plt.subplots(rows,3,figsize=fig_size)
+		fig.subplots_adjust(left=0.06, right=0.9, wspace=0.25, hspace=0.05, top=0.95, bottom=0.05)
+		rt_axes = ()
+		sp_axes = np.reshape(sp_axes,3*rows)
+		for rownum in range(rows):
+			ax1 = sp_axes[0+3*rownum]
+			ax2 = sp_axes[1+3*rownum]
+			ax3 = sp_axes[2+3*rownum]
+			ax1.set(aspect='equal')
+			ax2.set(aspect='equal')
+			ax3.set(aspect='equal')
+			ax1.set_title('xy',fontsize=16)
+			ax2.set_title('xz',fontsize=16)
+			ax3.set_title('yz',fontsize=16)
+			ax1.set_xlabel('x'+r_units+r', wind $\rightarrow$')
+			ax1.set_ylabel('y'+r_units)
+			ax2.set_xlabel('x'+r_units+r', wind $\rightarrow$')
+			ax2.set_ylabel('z'+r_units)
+			ax3.set_xlabel('y'+r_units+r', wind $\bigodot$')
+			ax3.set_ylabel('z'+r_units)
 
-		# Set ticks for all plots:
-		ax1.xaxis.set_major_locator(mpl.ticker.MultipleLocator(deltax/4))
-		ax1.xaxis.set_minor_locator(mpl.ticker.MultipleLocator(deltax/8))
-		ax1.yaxis.set_major_locator(mpl.ticker.MultipleLocator(deltay/4))
-		ax1.yaxis.set_minor_locator(mpl.ticker.MultipleLocator(deltay/8))
-		ax2.xaxis.set_major_locator(mpl.ticker.MultipleLocator(deltax/4))
-		ax2.xaxis.set_minor_locator(mpl.ticker.MultipleLocator(deltax/8))
-		ax2.yaxis.set_major_locator(mpl.ticker.MultipleLocator(deltaz/4))
-		ax2.yaxis.set_minor_locator(mpl.ticker.MultipleLocator(deltaz/8))
-		ax3.xaxis.set_major_locator(mpl.ticker.MultipleLocator(deltay/4))
-		ax3.xaxis.set_minor_locator(mpl.ticker.MultipleLocator(deltay/8))
-		ax3.yaxis.set_major_locator(mpl.ticker.MultipleLocator(deltaz/4))
-		ax3.yaxis.set_minor_locator(mpl.ticker.MultipleLocator(deltaz/8))
+			# Set ticks for all plots:
+			ax1.xaxis.set_major_locator(mpl.ticker.MultipleLocator(deltax/4))
+			ax1.xaxis.set_minor_locator(mpl.ticker.MultipleLocator(deltax/8))
+			ax1.yaxis.set_major_locator(mpl.ticker.MultipleLocator(deltay/4))
+			ax1.yaxis.set_minor_locator(mpl.ticker.MultipleLocator(deltay/8))
+			ax2.xaxis.set_major_locator(mpl.ticker.MultipleLocator(deltax/4))
+			ax2.xaxis.set_minor_locator(mpl.ticker.MultipleLocator(deltax/8))
+			ax2.yaxis.set_major_locator(mpl.ticker.MultipleLocator(deltaz/4))
+			ax2.yaxis.set_minor_locator(mpl.ticker.MultipleLocator(deltaz/8))
+			ax3.xaxis.set_major_locator(mpl.ticker.MultipleLocator(deltay/4))
+			ax3.xaxis.set_minor_locator(mpl.ticker.MultipleLocator(deltay/8))
+			ax3.yaxis.set_major_locator(mpl.ticker.MultipleLocator(deltaz/4))
+			ax3.yaxis.set_minor_locator(mpl.ticker.MultipleLocator(deltaz/8))
 
-		return fig,axes
+			rowaxes = (ax1,ax2,ax3)
+			rt_axes = rt_axes + (rowaxes,)
+
+		return fig,rt_axes
 ####	END def new_fig	################################################
 
 
-def gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,vecs=True,showstreams=False):
+def gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,vecs=True,showstreams=False,stream_opts=(False,'')):
 	"""
 	Prints contours onto subplots, with optional vectors or streamlines.
 	"""
@@ -83,14 +88,23 @@ def gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,
 	xmin,xmax,ymin,ymax,zmin,zmax = minmax
 	cbmin,cbmax,cbar_pos,cbar_title = cbparams
 	skip,n_contours,con_color,colormap,planet_color,r_inner = plot_opt
-	contour_levels = np.arange(cbmin,cbmax,cbmax/n_contours)		
+	contour_levels = np.arange(cbmin,cbmax,abs(cbmax/n_contours))		
 	t_start = os.times().elapsed
 	nx = len(xi)
 	ny = len(yi)
 	nz = len(zi)
+	deltax = xmax-xmin
+	deltay = ymax-ymin
+	deltaz = zmax-zmin
+	cbar_adj = 10	# Spacing in pt, meant to adjust for taller text like fractions
+
+
+	#
+	##	3D PLOTS
+	#
 	if(diagnostic):
 		ax = axes
-		fine_lvls = np.arange(cbmin,cbmax,cbmax/100)
+		fine_lvls = np.arange(cbmin,cbmax,abs(cbmax/100))
 		ax.set_xlim(xmin, xmax)
 		ax.set_ylim(ymin, ymax)
 		ax.set_zlim(zmin, 3*zmax)
@@ -143,12 +157,14 @@ def gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,
 		# Add colorbar, crop and save figure:
 		cbar_ax = fig.add_axes(cbar_pos)
 		cbar = fig.colorbar(conxy, cax=cbar_ax)
-		cbar_adj = 10	# Spacing in pt, meant to adjust for taller text like fractions
 		cbar.ax.set_title(cbar_title,size=16, pad=cbar_adj)
 		cbar.ax.tick_params(labelsize=14)
 		axes = (ax,cbar_ax)
 		return fig,axes
 
+	#
+	##	2D PLOTS
+	#
 	else:
 		ax1,ax2,ax3 = axes
 
@@ -157,14 +173,14 @@ def gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,
 
 			if(showstreams):
 				lin_thk = np.sqrt(vec1[:,:,0]**2 + vec1[:,:,1]**2)
-				lin_thk = lin_thk * 5/lin_thk.max() + 0.25
-				strm1=ax1.streamplot(xi,yi,vec1[:,:,0],vec1[:,:,1],density=0.25,linewidth=lin_thk,arrowstyle='-|>',color=con_color)
+#				lin_thk = lin_thk * 5/lin_thk.max() + 0.25
+				strm1=ax1.streamplot(xi,yi,vec1[:,:,0],vec1[:,:,1],density=0.25,linewidth=0.6,arrowstyle='-|>',color=lin_thk,cmap='cool')
 				lin_thk = np.sqrt(vec2[:,:,0]**2 + vec2[:,:,2]**2)
-				lin_thk = lin_thk * 5/lin_thk.max() + 0.25
-				strm2=ax2.streamplot(xi,zi,vec2[:,:,0],vec2[:,:,2],density=0.25,linewidth=lin_thk,arrowstyle='-|>',color=con_color)
+#				lin_thk = lin_thk * 5/lin_thk.max() + 0.25
+				strm2=ax2.streamplot(xi,zi,vec2[:,:,0],vec2[:,:,2],density=0.25,linewidth=0.6,arrowstyle='-|>',color=lin_thk,cmap='cool')
 				lin_thk = np.sqrt(vec3[:,:,1]**2 + vec3[:,:,2]**2)
-				lin_thk = lin_thk * 5/lin_thk.max() + 0.25
-				strm3=ax3.streamplot(yi,zi,vec3[:,:,1],vec3[:,:,2],density=0.25,linewidth=lin_thk,arrowstyle='-|>',color=con_color)
+#				lin_thk = lin_thk * 5/lin_thk.max() + 0.25
+				strm3=ax3.streamplot(yi,zi,vec3[:,:,1],vec3[:,:,2],density=0.25,linewidth=0.6,arrowstyle='-|>',color=lin_thk,cmap='cool')
 			else:
 				vec_scale = 6.e0 * np.arctan(2.e-2*(ymax-ymin)) * cbmax
 				skip = int((skip/1.5)**2)
@@ -192,15 +208,33 @@ def gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,
 		conxz = ax2.imshow(hi2,vmin=cbmin,vmax=cbmax,extent=[xmin,xmax,zmin,zmax],cmap=colormap,interpolation='bicubic')
 		conyz = ax3.imshow(hi3,vmin=cbmin,vmax=cbmax,extent=[ymin,ymax,zmin,zmax],cmap=colormap,interpolation='bicubic')
 
-		plt.suptitle(plot_title,fontsize=20)
+		#plt.suptitle(plot_title,x=0.55,fontsize=20)
+		plt.figtext(0.55,cbar_pos[1]+cbar_pos[3]+0.03,plot_title,fontsize=20,ha='center')
 		ax1.add_patch(plt.Circle((0.0,0.0), radius=r_inner, color=planet_color, zorder=10))
 		ax2.add_patch(plt.Circle((0.0,0.0), radius=r_inner, color=planet_color, zorder=10))
 		ax3.add_patch(plt.Circle((0.0,0.0), radius=r_inner, color=planet_color, zorder=10))
 
 		cbar_ax = fig.add_axes(cbar_pos)
 		cbar = plt.colorbar(conxy, ax=(ax1,ax2,ax3), cax=cbar_ax)
-		cbar.ax.set_title(cbar_title,size=14, pad=10)
-		axes_row = (ax1,ax2,ax3,cbar_ax)
+		cbar.ax.set_title(cbar_title,size=14, pad=cbar_adj)
+		if(showstreams):
+			cbar_repos,stream_title = stream_opts
+			if(cbar_repos):
+				con_cbar_pos = [0.45,cbar_pos[1]+cbar_pos[2],cbar_pos[3]*1.5,cbar_pos[2]/2]
+				con_cbar_ax = fig.add_axes(con_cbar_pos, zorder=-10)
+				cc_max = np.around( np.sqrt(vec1[:,:,0]**2+vec1[:,:,1]**2+vec1[:,:,2]**2).max() )
+				cc_levels = np.arange(0.0,cc_max,cc_max/6)
+				con_cbar = plt.colorbar(strm1.lines, ax=(ax1,ax2,ax3), cax=con_cbar_ax, orientation='horizontal', ticks=cc_levels)
+				con_cbar.ax.set_title(stream_title,size=14, pad=cbar_adj/2)
+			else:
+				con_cbar_pos = [cbar_pos[0]-cbar_pos[2]/2,cbar_pos[1],cbar_pos[2],cbar_pos[3]]
+				con_cbar_ax = fig.add_axes(con_cbar_pos, zorder=-10)
+				cc_levels = np.arange(0.0,cbmax,cbmax/6)
+				con_cbar = plt.colorbar(strm1.lines, ax=(ax1,ax2,ax3), cax=con_cbar_ax, ticks=cc_levels)
+				plt.setp( con_cbar_ax.get_yticklabels(), visible=False )
+			axes_row = (ax1,ax2,ax3,cbar_ax,con_cbar_ax)
+		else:
+			axes_row = (ax1,ax2,ax3,cbar_ax)
 		return fig,axes_row
 ####	END def gen_plot	############################################
 
