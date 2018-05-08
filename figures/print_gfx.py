@@ -15,6 +15,7 @@ Example from terminal: python3 ./figures/print_gfx.py debug 5 001 60 2.0 8.4 Fal
 
 import numpy as np
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import mpl_toolkits.mplot3d.art3d as art3d

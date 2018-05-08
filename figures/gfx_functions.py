@@ -5,6 +5,7 @@ Contains plotting functions used by print_gfx.py to generate plots of physical q
 import os
 import numpy as np
 import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import mpl_toolkits.mplot3d.art3d as art3d
