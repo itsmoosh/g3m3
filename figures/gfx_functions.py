@@ -81,7 +81,7 @@ def new_fig(fig_size,deltas,diagnostic,rows=1,r_units=' $(R_E)$'):
 ####	END def new_fig	################################################
 
 
-def gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,vecs=True,showstreams=False,stream_opts=(False,'')):
+def gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,vecs=True,showstreams=False,box_opts=(False,((-12,-12,-6,24,24,12),)),stream_opts=(False,'')):
 	"""
 	Prints contours onto subplots, with optional vectors or streamlines.
 	"""
@@ -97,6 +97,7 @@ def gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,
 	deltax = xmax-xmin
 	deltay = ymax-ymin
 	deltaz = zmax-zmin
+	markbox,boxes = box_opts
 	cbar_adj = 10	# Spacing in pt, meant to adjust for taller text like fractions
 
 
@@ -211,9 +212,15 @@ def gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,
 
 		#plt.suptitle(plot_title,x=0.55,fontsize=20)
 		plt.figtext(0.55,cbar_pos[1]+cbar_pos[3]+0.03,plot_title,fontsize=20,ha='center')
-		ax1.add_patch(plt.Circle((0.0,0.0), radius=r_inner, color=planet_color, zorder=10))
+		ax1.add_patch(plt.Circle((0.0,0.0), radius=r_inner, color=planet_color, zorder=10))	# Hide points interior to the body
 		ax2.add_patch(plt.Circle((0.0,0.0), radius=r_inner, color=planet_color, zorder=10))
 		ax3.add_patch(plt.Circle((0.0,0.0), radius=r_inner, color=planet_color, zorder=10))
+		if(markbox):
+			for box_dets in boxes:
+				bxmin,bymin,bzmin, bw,bh,bd = box_dets
+				ax1.add_patch(plt.Rectangle((bxmin,bymin), bw, bh, 0.0, color='gray', fill=False, zorder=9))	# Indicate the smaller box boundaries
+				ax2.add_patch(plt.Rectangle((bxmin,bzmin), bw, bd, 0.0, color='gray', fill=False, zorder=9))
+				ax3.add_patch(plt.Rectangle((bymin,bzmin), bh, bd, 0.0, color='gray', fill=False, zorder=9))
 
 		cbar_ax = fig.add_axes(cbar_pos)
 		cbar = plt.colorbar(conxy, ax=(ax1,ax2,ax3), cax=cbar_ax)

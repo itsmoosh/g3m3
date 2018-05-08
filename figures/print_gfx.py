@@ -46,6 +46,7 @@ skip = 21				# number of skipped grid points for quiver/vectors
 reduct = 4. 			# Reduction factor for number of data points to interpolate. Higher number means lower resolution.
 show_vecs = True		# Whether to print vectors or contours (for vector quantities)
 stack = True			# Whether to print multiple rows of quantities on the same plot
+draw_boxes = False		# Whether to draw the smaller boxes
 fig_dpi = 200
 n_contours = 8			# Number of contours for each plot
 con_color = 'blue'		# Contour color
@@ -123,6 +124,8 @@ n_grids = int(n_grids_str)
 fname_end = '_t' + nplots_str + '.dat'
 fig_end = '_t' + nplots_str + '.' + xtn
 plot_opt = (skip,n_contours,con_color,colormap,planet_color,r_inner)
+boxes_to_draw = ()
+box_draw = (False,((),))
 
 for box in range(1,n_grids+1):
 	# Construct figure file paths
@@ -276,7 +279,7 @@ for box in range(1,n_grids+1):
 		plot_title = run_name + r' Alfv$\'{e}$n Mach, box ' + str(box) + ', ut = ' + str(ut)
 		values = (hi1,hi2,hi3)
 
-	gfx.gen_plot(diagnostic,fig,b_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,show_vecs,True,stream_opts)
+	gfx.gen_plot(diagnostic,fig,b_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,show_vecs,True,box_draw,stream_opts)
 	if(not stack):
 		gfx.save_fig(fig,figpath_alf,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,1,r_units)
@@ -313,7 +316,7 @@ for box in range(1,n_grids+1):
 		vec2 = np.reshape(vec2,[nz,nx,3])
 		vec3 = np.reshape(vec3,[nz,ny,3])
 		values = ( vec1,vec2,vec3, hi1,hi2,hi3 )
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,True,True,stream_opts)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,True,True,box_draw,stream_opts)
 	if(not stack):
 		gfx.save_fig(fig,figpath_bnet,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,1,r_units)
@@ -354,7 +357,7 @@ for box in range(1,n_grids+1):
 		vec2 = np.reshape(vec2,[nz,nx,3])
 		vec3 = np.reshape(vec3,[nz,ny,3])
 		values = ( vec1,vec2,vec3, hi1,hi2,hi3 )
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,True,True,stream_opts)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,True,True,box_draw,stream_opts)
 	if(stack):
 		gfx.save_fig(fig,figpath_bandalf,xtn,fig_dpi,crop)
 	else:
@@ -389,7 +392,7 @@ for box in range(1,n_grids+1):
 			hi1,hi2,hi3 )
 	else:
 		values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,fl_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,show_vecs,False)
+	gfx.gen_plot(diagnostic,fig,fl_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,show_vecs,False,box_draw)
 	if(not stack):
 		gfx.save_fig(fig,figpath_qvel,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
@@ -416,7 +419,7 @@ for box in range(1,n_grids+1):
 			hi1,hi2,hi3 )
 	else:
 		values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,show_vecs,False)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,show_vecs,False,box_draw)
 	if(not stack):
 		gfx.save_fig(fig,figpath_hvel,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
@@ -443,7 +446,7 @@ for box in range(1,n_grids+1):
 			hi1,hi2,hi3 )
 	else:
 		values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,show_vecs,False)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,show_vecs,False,box_draw)
 	if(stack):
 		gfx.save_fig(fig,figpath_flows,xtn,fig_dpi,crop)
 	else:
@@ -468,7 +471,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_qpara,[nz,nx])
 	hi3 = np.reshape(yz_qpara,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,qpr_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,qpr_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(not stack):
 		gfx.save_fig(fig,figpath_qpara,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
@@ -485,7 +488,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_qperp,[nz,nx])
 	hi3 = np.reshape(yz_qperp,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(not stack):
 		gfx.save_fig(fig,figpath_qperp,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
@@ -502,7 +505,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_qcross,[nz,nx])
 	hi3 = np.reshape(yz_qcross,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(stack):
 		gfx.save_fig(fig,figpath_qpres,xtn,fig_dpi,crop)
 	else:
@@ -527,7 +530,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_hpara,[nz,nx])
 	hi3 = np.reshape(yz_hpara,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,hpr_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,hpr_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(not stack):
 		gfx.save_fig(fig,figpath_hpara,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
@@ -544,7 +547,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_hperp,[nz,nx])
 	hi3 = np.reshape(yz_hperp,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(not stack):
 		gfx.save_fig(fig,figpath_hperp,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
@@ -561,7 +564,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_hcross,[nz,nx])
 	hi3 = np.reshape(yz_hcross,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(stack):
 		gfx.save_fig(fig,figpath_hpres,xtn,fig_dpi,crop)
 	else:
@@ -586,7 +589,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_opara,[nz,nx])
 	hi3 = np.reshape(yz_opara,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,opr_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,opr_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(not stack):
 		gfx.save_fig(fig,figpath_opara,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
@@ -603,7 +606,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_operp,[nz,nx])
 	hi3 = np.reshape(yz_operp,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(not stack):
 		gfx.save_fig(fig,figpath_operp,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
@@ -620,7 +623,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_ocross,[nz,nx])
 	hi3 = np.reshape(yz_ocross,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(stack):
 		gfx.save_fig(fig,figpath_opres,xtn,fig_dpi,crop)
 	else:
@@ -661,7 +664,7 @@ for box in range(1,n_grids+1):
 		vec2 = np.reshape(vec2,[nz,nx,3])
 		vec3 = np.reshape(vec3,[nz,ny,3])
 		values = ( vec1,vec2,vec3, hi1,hi2,hi3 )
-	gfx.gen_plot(diagnostic,fig,e_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,True,True,stream_opts)
+	gfx.gen_plot(diagnostic,fig,e_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,True,True,box_draw,stream_opts)
 	if(not stack):
 		gfx.save_fig(fig,figpath_efld,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,1,r_units)
@@ -681,7 +684,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_etemp,[nz,nx])
 	hi3 = np.reshape(yz_etemp,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(not stack):
 		gfx.save_fig(fig,figpath_etemp,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,1,r_units)
@@ -702,7 +705,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_epres,[nz,nx])
 	hi3 = np.reshape(yz_epres,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(stack):
 		gfx.save_fig(fig,figpath_elec,xtn,fig_dpi,crop)
 	else:
@@ -726,7 +729,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_qtemp,[nz,nx])
 	hi3 = np.reshape(yz_qtemp,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,temp_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,temp_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(not stack):
 		gfx.save_fig(fig,figpath_qtemp,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
@@ -745,7 +748,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_htemp,[nz,nx])
 	hi3 = np.reshape(yz_htemp,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(not stack):
 		gfx.save_fig(fig,figpath_htemp,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
@@ -764,7 +767,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_otemp,[nz,nx])
 	hi3 = np.reshape(yz_otemp,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(stack):
 		gfx.save_fig(fig,figpath_temps,xtn,fig_dpi,crop)
 	else:
@@ -789,7 +792,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_qdens,[nz,nx])
 	hi3 = np.reshape(yz_qdens,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,dens_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,dens_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(not stack):
 		gfx.save_fig(fig,figpath_qdens,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
@@ -810,7 +813,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_hdens,[nz,nx])
 	hi3 = np.reshape(yz_hdens,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(not stack):
 		gfx.save_fig(fig,figpath_hdens,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
@@ -831,12 +834,14 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_odens,[nz,nx])
 	hi3 = np.reshape(yz_odens,[nz,ny])
 	values = (hi1,hi2,hi3)
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,False,False,box_draw)
 	if(stack):
 		gfx.save_fig(fig,figpath_dens,xtn,fig_dpi,crop)
 	else:
 		gfx.save_fig(fig,figpath_odens,xtn,fig_dpi,crop)
 
+	boxes_to_draw = boxes_to_draw + ((xmin,ymin,zmin,deltax,deltay,deltaz),)
+	box_draw = (draw_boxes, boxes_to_draw)	# Set box_draw to indicate smaller boxes, but only do so after box 1 is done.
 
 os.system( python_dir+"zip_data.sh " + data_dir+' '+run_name+' '+nplots_str )
 
