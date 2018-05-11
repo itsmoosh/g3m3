@@ -834,7 +834,7 @@ subroutine write_graphing_data( &
 	argfmt = '(1X, A, 1X, I1, 1X, I0.3, 1X, I3, 1X, f5.2, 1X, f8.3, 1X, A, 1X, A)'
 
 	if(diagnostics) diag = 'True'
-	if(mod(nplots,10) .eq. 0) update_gifs = 'True'
+	if(mod(nplots,15) .eq. 0) update_gifs = 'True'
 	write(args, argfmt) trim(run_name), n_grids, nplots, int(limit), r_inner*re_equiv, ut, diag, update_gifs
 	call system( "python3 " // trim(python_dir) // trim(python_plotter) // trim(args) )
 	return

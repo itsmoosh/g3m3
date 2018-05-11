@@ -845,7 +845,7 @@ for box in range(1,n_grids+1):
 
 os.system( python_dir+"zip_data.sh " + data_dir+' '+run_name+' '+nplots_str )
 
-# Create gifs for the past 10 figures
+# Create gifs for the past 15 figures
 if(update_gifs):
 	if((xtn == 'png') or (xtn == 'gif')):
 		gfx.upd_gifs(qty_list, run_name, nplots_str, gfx_dir, n_grids, xtn)

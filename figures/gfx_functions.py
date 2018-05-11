@@ -266,11 +266,12 @@ def save_fig(fig,figpath,xtn='png',fig_dpi=200,crop=False):
 
 def upd_gifs(qty_list, run_name, nplots_str, gfx_dir='./figures/images/', n_grids=5, xtn='png'):
 	"""
-	Combines the 10 most recently printed plots into an animated gif, then removes the still images.
+	Combines the 15 most recently printed plots into an animated gif, then removes the still images.
 	"""
 	nplots = int(nplots_str)
-	gif_cmd = "convert -loop 0 -delay 100 "
-	n_skipped = 10
+	gif_cmd = "convert -loop 0 -delay 20 "	# frame delay is in hundredths of a second
+	last_cmd = " -delay 100 "	# pause on final frame for 1 second
+	n_skipped = 15
 	if(nplots < n_skipped):
 		print("WARNING: update_gifs set but too few plots are present. gifs not updated.")
 		quit()
@@ -283,16 +284,18 @@ def upd_gifs(qty_list, run_name, nplots_str, gfx_dir='./figures/images/', n_grid
 			rangestr = 't' + prev_plots + '-' + nplots_str
 
 			flist = ()
-			for tnum in range(nplots - n_skipped, nplots, 1):
+			for tnum in range(nplots - n_skipped, nplots-1, 1):
 				fig_path = fname_start + fig_mid + str(tnum+1).zfill(3) + '.' + xtn
 				if(os.path.isfile(fig_path)):
 					flist = flist + (fig_path,)
 				else:
 					print("Didn't find expected file: "+fig_path+", skipping.")
+			last_path = fname_start + fig_mid + str(nplots).zfill(3) + '.' + xtn
+
 			gif_name = fname_start + "anim_" + qty + str(box) + '_' + rangestr + '.gif'
 			img_files = ' '.join(flist)
-			make_gifs_cmd = gif_cmd + img_files + ' ' + gif_name
-			rm_images_cmd = "rm " + img_files
+			make_gifs_cmd = gif_cmd + img_files + last_cmd + last_path + ' ' + gif_name
+			rm_images_cmd = "rm " + img_files + ' ' + last_path
 			os.system(make_gifs_cmd)
 			os.system(rm_images_cmd)
 	print("Updated gifs for " + ' '.join(qty_list) + ', ' + rangestr )
