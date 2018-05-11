@@ -23,9 +23,13 @@ clean:
 	rm -f *.x
 	rm -f *.log
 	rm -f *.dat
-	rm -f fluid*
+	rm -f fluid??
 	rm -f git_hash.txt
 	rm -f nohup.out
+
+rmgfx:
+	rm -f figures/images/*
+	rm -f figures/data/*
 
 test:
 	$(DEBUGGER) $(FCFLAGS) $(DBFLAGS) -o test.x $(TESTF) $(TESTP) $(DBLIBS)
