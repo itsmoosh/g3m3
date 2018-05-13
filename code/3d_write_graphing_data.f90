@@ -179,8 +179,8 @@ subroutine write_graphing_data( &
 
 	character*1 boxchar
 	character*3 nplots_char
-	character*5 :: update_gifs = 'False'
-	character*5 :: diag = 'False'
+	character*5 update_gifs
+	character*5 diag
 
 	character*64 wd1(n_cuts), wd2(n_cuts), wd3(n_cuts), wd4(n_cuts), &
 		wd5(n_cuts), wd6(n_cuts), wd7(n_cuts), wd8(n_cuts), &
@@ -236,6 +236,9 @@ subroutine write_graphing_data( &
 	e_equiv = b_equiv * v_equiv*1.e3 / 1.e6	! Standard is in nV/m, convert here to mV/m so values are <1000
 	write(ut_string,'(F9.4)') ut
 
+	! Initialize flags (must be done after declaration for variable parameters)
+	update_gifs = 'False'
+	diag = 'False'
 !
 !~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 !	large grid system
@@ -829,13 +832,14 @@ subroutine write_graphing_data( &
 
 	enddo ! loop over box
 
-	write(*,'(A11,I0.3,A1)') "Done with t", nplots, '.'
+	write(*,'(A11,I0.3,A8,es14.6,A10,f8.3,A1)') "Done with t", nplots, " at t = ", t, " and UT = ", ut, '.'
 
 	argfmt = '(1X, A, 1X, I1, 1X, I0.3, 1X, I3, 1X, f5.2, 1X, f8.3, 1X, A, 1X, A)'
 
 	if(diagnostics) diag = 'True'
 	if(mod(nplots,15) .eq. 0) update_gifs = 'True'
 	write(args, argfmt) trim(run_name), n_grids, nplots, int(limit), r_inner*re_equiv, ut, diag, update_gifs
+	write(*,*) "Calling python plotting script with these arguments: ", trim(args)
 	call system( "python3 " // trim(python_dir) // trim(python_plotter) // trim(args) )
 	return
 end subroutine write_graphing_data
