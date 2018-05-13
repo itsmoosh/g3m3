@@ -1,10 +1,11 @@
 This repository contains software written mostly in Fortran for simulating magnetospheric plasmas. A multifluid model is used that treats electrons, proton solar wind, hydrogen, and oxygen as resistive, charged fluids.
 
-There are scripts serving 4 purposes:
-	1. To compile the code (see step 3 below)
-	2. To run the simulations (step 6 below)
-	3. To archive output data (step 8 below)
-	4. To parse fluid files into ASCII from their default binary format (step 9 below)
+There are scripts serving 5 purposes:
+	1. To compile the code (see step 4 below)
+	2. To run the simulations (step 7 below)
+	3. To print images of physical quantities (step 3 below)
+	4. To archive binary output data and logs (step 9 below)
+	5. To parse fluid files into ASCII from their default binary format
 
 Info for getting started:
 
@@ -42,8 +43,9 @@ Info for getting started:
 			401                 pass # <----- Add this line
 			402                 #raise InvalidIndexError # <----- Comment out this line
 
-	4. Compile the executable by navigating to the execution directory ($HOME/multifluid) and typing the command: make
+	4. Compile the executable by navigating to the execution directory ($HOME/multifluid) and typing the command: make ; make gifs
 		This executes the makefile script to create an executable, by default named: master.x
+		make gifs compiles an executable for parallelizing gif stacking.
 
 	5. Verify the settings of the input file. At the top, the 'start' variable should be set to .t. for an initial run.
 		If running the executable directly, the input file should have the path $HOME/multifluid/input
