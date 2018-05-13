@@ -83,6 +83,7 @@ program multifluid
 		real,parameter	:: o_conc_max=1.0
 		real,parameter	:: cur_min=0.75
 		real,parameter	:: cur_max=20.0
+		real,parameter	:: t_step_min = 1.e-6	! Minimum time step, in sim units, to exit with error
 		!
 	    !	Scale lengths for plasma sheet population
 		real,parameter	:: sheet_den=0.25
@@ -2028,9 +2029,14 @@ program multifluid
         utold=ut
         old_tilt=tilt
         !
+		if(delt .lt. t_step_min) then
+			write(*,*) "ERROR: Main loop time step smaller than ", t_step_min, ", exiting."
+			stop
+		endif
         t=t+delt
         ut=t*t_equiv/3600.
         tilt=tilt+dtilt*delt
+
         !delay=t_equiv*distance/svelx/3600.	!	Does not appear to be used. MJS 08/18/17 
         !
         !write(*,201)t,delt,ut,bfld(nvx,4)
