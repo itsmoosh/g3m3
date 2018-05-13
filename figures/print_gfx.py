@@ -98,6 +98,7 @@ nz = limit + 1
 r_inner = float(sys.argv[5])
 
 ut = float(sys.argv[6])
+ut_str = sys.argv[6]
 
 if(sys.argv[7] == 'True'):
 	diagnostic = True
@@ -280,9 +281,9 @@ for box in range(1,n_grids+1):
 			vec2 = np.reshape(vec2,[nz,nx,3])
 			vec3 = np.reshape(vec3,[nz,ny,3])
 			values = ( vec1,vec2,vec3, hi1,hi2,hi3 )
-		plot_title = run_name + r' $\vec{v}_\mathrm{net}$ ' + vecs_title + r' and Alfv$\'{e}$n Mach, box ' + str(box) + ', ut = ' + str(ut)
+		plot_title = run_name + r' $\vec{v}_\mathrm{net}$ ' + vecs_title + r' and Alfv$\'{e}$n Mach, box ' + str(box) + ', ut = ' + ut_str
 	else:
-		plot_title = run_name + r' Alfv$\'{e}$n Mach, box ' + str(box) + ', ut = ' + str(ut)
+		plot_title = run_name + r' Alfv$\'{e}$n Mach, box ' + str(box) + ', ut = ' + ut_str
 		values = (hi1,hi2,hi3)
 
 	gfx.gen_plot(diagnostic,fig,b_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,show_vecs,showstreams,box_draw,stream_opts)
@@ -295,7 +296,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos32
 
 	# magnetic field:
-	plot_title = run_name + r' net magnetic field, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' net magnetic field, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'$|\vec{B}_\mathrm{net}|$ (nT)'
 	cbmin = 0.0
 	cbmax = bmags[box-1]
@@ -332,7 +333,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos33
 
 	# net currents:
-	plot_title = run_name + r' current density, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' current density, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'$|\vec{J}|$ (nA/m$^2$)'
 	cbmin = 0.0
 	cbmax = currents[box-1]
@@ -377,7 +378,7 @@ for box in range(1,n_grids+1):
 	# q velocity:
 	fig,fl_axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
 	if(stack): this_cbp = cbar_pos31
-	plot_title = run_name + r' species q velocity, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' species q velocity, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'$|\vec{v}_q|$ (km/s)'
 	cbmin = 0.0
 	cbmax = speeds[box-1]
@@ -408,7 +409,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos32
 
 	# h velocity:
-	plot_title = run_name + r' species h velocity, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' species h velocity, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'$|\vec{v}_h|$ (km/s)'
 	cbparams = (cbmin,cbmax,this_cbp,cbar_title)
 	xy_hspd = np.sqrt( xy_hvx**2 + xy_hvy**2 + xy_hvz**2 )
@@ -435,7 +436,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos33
 
 	# o velocity:
-	plot_title = run_name + r' species o velocity, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' species o velocity, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'$|\vec{v}_o|$ (km/s)'
 	cbparams = (cbmin,cbmax,this_cbp,cbar_title)
 	xy_ospd = np.sqrt( xy_ovx**2 + xy_ovy**2 + xy_ovz**2 )
@@ -466,7 +467,7 @@ for box in range(1,n_grids+1):
 	# q para:
 	fig,qpr_axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
 	if(stack): this_cbp = cbar_pos31
-	plot_title = run_name + r' q parallel pressure, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' q parallel pressure, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'log$\,P_{q||}$ (nPa)'
 	cbmin = qpres_mid - press[box-1]
 	cbmax = qpres_mid + press[box-1]
@@ -487,7 +488,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos32
 
 	# q perp:
-	plot_title = run_name + r' q perpendicular pressure, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' q perpendicular pressure, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'log$\,P_{q\perp}$ (nPa)'
 	cbparams = (cbmin,cbmax,this_cbp,cbar_title)
 	hi1 = np.reshape(xy_qperp,[ny,nx])
@@ -504,7 +505,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos33
 
 	# q cross:
-	plot_title = run_name + r' q cross pressure, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' q cross pressure, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'log$\,P_{q\times}$ (nPa)'
 	cbparams = (cbmin,cbmax,this_cbp,cbar_title)
 	hi1 = np.reshape(xy_qcross,[ny,nx])
@@ -525,7 +526,7 @@ for box in range(1,n_grids+1):
 	# h para:
 	fig,hpr_axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
 	if(stack): this_cbp = cbar_pos31
-	plot_title = run_name + r' h parallel pressure, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' h parallel pressure, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'log$\,P_{h||}$ (nPa)'
 	cbmin = hpres_mid - press[box-1]
 	cbmax = hpres_mid + press[box-1]
@@ -546,7 +547,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos32
 
 	# h perp:
-	plot_title = run_name + r' h perpendicular pressure, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' h perpendicular pressure, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'log$\,P_{h\perp}$ (nPa)'
 	cbparams = (cbmin,cbmax,this_cbp,cbar_title)
 	hi1 = np.reshape(xy_hperp,[ny,nx])
@@ -563,7 +564,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos33
 
 	# h cross:
-	plot_title = run_name + r' h cross pressure, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' h cross pressure, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'log$\,P_{h\times}$ (nPa)'
 	cbparams = (cbmin,cbmax,this_cbp,cbar_title)
 	hi1 = np.reshape(xy_hcross,[ny,nx])
@@ -584,7 +585,7 @@ for box in range(1,n_grids+1):
 	# o para:
 	fig,opr_axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
 	if(stack): this_cbp = cbar_pos31
-	plot_title = run_name + r' o parallel pressure, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' o parallel pressure, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'log$\,P_{o||}$ (nPa)'
 	cbmin = opres_mid - press[box-1]
 	cbmax = opres_mid + press[box-1]
@@ -605,7 +606,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos32
 
 	# o perp:
-	plot_title = run_name + r' o perpendicular pressure, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' o perpendicular pressure, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'log$\,P_{o\perp}$ (nPa)'
 	cbparams = (cbmin,cbmax,this_cbp,cbar_title)
 	hi1 = np.reshape(xy_operp,[ny,nx])
@@ -622,7 +623,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos33
 
 	# o cross:
-	plot_title = run_name + r' o cross pressure, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' o cross pressure, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'log$\,P_{o\times}$ (nPa)'
 	cbparams = (cbmin,cbmax,this_cbp,cbar_title)
 	hi1 = np.reshape(xy_ocross,[ny,nx])
@@ -641,7 +642,7 @@ for box in range(1,n_grids+1):
 	#	######################################	#
 	#
 	# electric field:
-	plot_title = run_name + r' net electric field, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' net electric field, box ' + str(box) + ', ut = ' + ut_str
 	fig,e_axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
 	if(stack): this_cbp = cbar_pos31
 	cbar_title = r'$|\vec{E}_\mathrm{net}|$ (mV/m)'
@@ -680,7 +681,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos32
 
 	# electron temperature:
-	plot_title = run_name + r' electron temperature, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' electron temperature, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'$T_{e^-}$ (eV)'
 	cbmin = 0.0
 	cbmax = temps[box-1]/4
@@ -700,7 +701,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos33
 
 	# e press:
-	plot_title = run_name + r' electron pressure, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' electron pressure, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'log$\,P_{e^-}$ (nPa)'
 	cbmin = epres_mid - press[box-1]
 	cbmax = epres_mid + press[box-1]
@@ -725,7 +726,7 @@ for box in range(1,n_grids+1):
 	# q temperature:
 	fig,temp_axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
 	if(stack): this_cbp = cbar_pos31
-	plot_title = run_name + r' species q temperature, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' species q temperature, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'$k_BT_q$ (keV)'
 	cbmin = 0.0
 	cbmax = temps[box-1]*0.75
@@ -745,7 +746,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos32
 
 	# h temperature:
-	plot_title = run_name + r' species h temperature, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' species h temperature, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'$k_BT_h$ (keV)'
 	cbmax = temps[box-1]
 #	cbmax = xy_htemp.max()
@@ -764,7 +765,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos33
 
 	# o temperature:
-	plot_title = run_name + r' species o temperature, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' species o temperature, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'$k_BT_o$ (keV)'
 	cbmax = temps[box-1]*2
 #	cbmax = xy_otemp.max()
@@ -787,7 +788,7 @@ for box in range(1,n_grids+1):
 	# q density:
 	fig,dens_axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
 	if(stack): this_cbp = cbar_pos31
-	plot_title = run_name + r' species q density, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' species q density, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'log$\,n_q$ (cm$^{-3}$)'
 	cbmin = qdens_mid - densities[box-1]
 	cbmax = qdens_mid + densities[box-1]
@@ -808,7 +809,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos32
 
 	# h density:
-	plot_title = run_name + r' species h density, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' species h density, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'log$\,n_h$ (cm$^{-3}$)'
 	cbmin = hdens_mid - densities[box-1]
 	cbmax = hdens_mid + densities[box-1]
@@ -829,7 +830,7 @@ for box in range(1,n_grids+1):
 		this_cbp = cbar_pos33
 
 	# o density:
-	plot_title = run_name + r' species o density, box ' + str(box) + ', ut = ' + str(ut)
+	plot_title = run_name + r' species o density, box ' + str(box) + ', ut = ' + ut_str
 	cbar_title = r'log$\,n_h$ (cm$^{-3}$)'
 	cbmin = odens_mid - densities[box-1]*1.5
 	cbmax = odens_mid + densities[box-1]*1.5
