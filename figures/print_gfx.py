@@ -10,7 +10,7 @@ Required arguments:
 	diagnostic (whether to print 3D plots)
 	update_gifs (whether to generate gifs)
 
-Example from terminal: python3 ./figures/print_gfx.py debug 5 001 60 2.0 8.4 False
+Example from terminal: python3 ./figures/print_gfx.py debug 5 001 60 2.0 8.4 False False
 """
 
 import numpy as np
@@ -45,6 +45,7 @@ colormap = 'afmhot'		# Choice of color scheme for figures. afmhot is an approxim
 skip = 21				# number of skipped grid points for quiver/vectors
 reduct = 4. 			# Reduction factor for number of data points to interpolate. Higher number means lower resolution.
 show_vecs = True		# Whether to print vectors or contours (for vector quantities)
+showstreams = False		# Whether to print streamlines to show fields and flows
 stack = True			# Whether to print multiple rows of quantities on the same plot
 draw_boxes = False		# Whether to draw the smaller boxes
 fig_dpi = 200
@@ -118,6 +119,11 @@ if(stack):
 else:
 	rows = 1
 	brows = 1
+
+if(showstreams):
+	vecs_title = "streamlines"
+else:
+	vecs_title = "vectors"
 
 fname_start = run_name + "_"
 n_grids = int(n_grids_str)
@@ -256,7 +262,7 @@ for box in range(1,n_grids+1):
 	hi2 = np.reshape(xz_alfmach,[nz,nx])
 	hi3 = np.reshape(yz_alfmach,[nz,ny])
 	if(show_vecs):
-		if(diagnostic):
+		if(diagnostic or not showstreams):
 			values = (
 				((xy_x,xy_y,xy_z),(xy_tvx,xy_tvy,xy_tvz)),
 				((xz_x,xz_y,xz_z),(xz_tvx,xz_tvy,xz_tvz)),
@@ -274,12 +280,12 @@ for box in range(1,n_grids+1):
 			vec2 = np.reshape(vec2,[nz,nx,3])
 			vec3 = np.reshape(vec3,[nz,ny,3])
 			values = ( vec1,vec2,vec3, hi1,hi2,hi3 )
-		plot_title = run_name + r' $\vec{v}_\mathrm{net}$ streamlines and Alfv$\'{e}$n Mach, box ' + str(box) + ', ut = ' + str(ut)
+		plot_title = run_name + r' $\vec{v}_\mathrm{net}$ ' + vecs_title + r' and Alfv$\'{e}$n Mach, box ' + str(box) + ', ut = ' + str(ut)
 	else:
 		plot_title = run_name + r' Alfv$\'{e}$n Mach, box ' + str(box) + ', ut = ' + str(ut)
 		values = (hi1,hi2,hi3)
 
-	gfx.gen_plot(diagnostic,fig,b_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,show_vecs,True,box_draw,stream_opts)
+	gfx.gen_plot(diagnostic,fig,b_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,show_vecs,showstreams,box_draw,stream_opts)
 	if(not stack):
 		gfx.save_fig(fig,figpath_alf,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,1,r_units)
@@ -298,13 +304,13 @@ for box in range(1,n_grids+1):
 	hi1 = np.reshape(xy_bmag,[ny,nx])
 	hi2 = np.reshape(xz_bmag,[nz,nx])
 	hi3 = np.reshape(yz_bmag,[nz,ny])
-	if(diagnostic):
+	if(diagnostic or not showstreams):
 		values = (
 			((xy_x,xy_y,xy_z),(xy_bx,xy_by,xy_bz)),
 			((xz_x,xz_y,xz_z),(xz_bx,xz_by,xz_bz)),
 			((yz_x,yz_y,yz_z),(yz_bx,yz_by,yz_bz)),
 			hi1,hi2,hi3 )		
-	else:
+	else:	# Problems with many zeros in B field arrays are preventing the script finishing. MJS europai run 5/11/18
 		cbar_repos = False
 		stream_title = ''
 		stream_opts = (cbar_repos,stream_title)
@@ -316,7 +322,7 @@ for box in range(1,n_grids+1):
 		vec2 = np.reshape(vec2,[nz,nx,3])
 		vec3 = np.reshape(vec3,[nz,ny,3])
 		values = ( vec1,vec2,vec3, hi1,hi2,hi3 )
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,True,True,box_draw,stream_opts)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,True,showstreams,box_draw,stream_opts)
 	if(not stack):
 		gfx.save_fig(fig,figpath_bnet,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,1,r_units)
@@ -339,7 +345,7 @@ for box in range(1,n_grids+1):
 	hi1 = np.reshape(xy_curmag,[ny,nx])
 	hi2 = np.reshape(xz_curmag,[nz,nx])
 	hi3 = np.reshape(yz_curmag,[nz,ny])
-	if(diagnostic):
+	if(diagnostic or not showstreams):
 		values = (
 			((xy_x,xy_y,xy_z),(xy_curx,xy_cury,xy_curz)),
 			((xz_x,xz_y,xz_z),(xz_curx,xz_cury,xz_curz)),
@@ -357,7 +363,7 @@ for box in range(1,n_grids+1):
 		vec2 = np.reshape(vec2,[nz,nx,3])
 		vec3 = np.reshape(vec3,[nz,ny,3])
 		values = ( vec1,vec2,vec3, hi1,hi2,hi3 )
-	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,True,True,box_draw,stream_opts)
+	gfx.gen_plot(diagnostic,fig,axes,minmax,pos,values,cbparams,plot_title,plot_opt,True,showstreams,box_draw,stream_opts)
 	if(stack):
 		gfx.save_fig(fig,figpath_bandalf,xtn,fig_dpi,crop)
 	else:
@@ -646,7 +652,7 @@ for box in range(1,n_grids+1):
 	hi1 = np.reshape(xy_emag,[ny,nx])
 	hi2 = np.reshape(xz_emag,[nz,nx])
 	hi3 = np.reshape(yz_emag,[nz,ny])
-	if(diagnostic):
+	if(diagnostic or not showstreams):
 		values = (
 			((xy_x,xy_y,xy_z),(xy_ex,xy_ey,xy_ez)),
 			((xz_x,xz_y,xz_z),(xz_ex,xz_ey,xz_ez)),
@@ -664,7 +670,7 @@ for box in range(1,n_grids+1):
 		vec2 = np.reshape(vec2,[nz,nx,3])
 		vec3 = np.reshape(vec3,[nz,ny,3])
 		values = ( vec1,vec2,vec3, hi1,hi2,hi3 )
-	gfx.gen_plot(diagnostic,fig,e_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,True,True,box_draw,stream_opts)
+	gfx.gen_plot(diagnostic,fig,e_axes[0],minmax,pos,values,cbparams,plot_title,plot_opt,True,showstreams,box_draw,stream_opts)
 	if(not stack):
 		gfx.save_fig(fig,figpath_efld,xtn,fig_dpi,crop)
 		fig,axes = gfx.new_fig(fig_size,deltas,diagnostic,1,r_units)
@@ -843,7 +849,7 @@ for box in range(1,n_grids+1):
 	boxes_to_draw = boxes_to_draw + ((xmin,ymin,zmin,deltax,deltay,deltaz),)
 	box_draw = (draw_boxes, boxes_to_draw)	# Set box_draw to indicate smaller boxes, but only do so after box 1 is done.
 
-os.system( python_dir+"zip_data.sh " + data_dir+' '+run_name+' '+nplots_str )
+os.system( python_dir+"zip_data.run " + data_dir+' '+run_name+' '+nplots_str )
 
 # Create gifs for the past 15 figures
 if(update_gifs):
