@@ -264,40 +264,51 @@ def save_fig(fig,figpath,xtn='png',fig_dpi=200,crop=False):
 ####	END def save_fig	############################################
 
 
-def upd_gifs(qty_list, run_name, nplots_str, gfx_dir='./figures/images/', n_grids=5, xtn='png'):
+def upd_gifs(qty_list, run_name, nplots_str, gfx_dir='./figures/images/', n_grids=5, xtn='png', n_skipped=15):
 	"""
 	Combines the 15 most recently printed plots into an animated gif, then removes the still images.
 	"""
 	nplots = int(nplots_str)
+	n_imgs = n_grids*len(qty_list)
 	gif_cmd = "convert -loop 0 -delay 20 "	# frame delay is in hundredths of a second
 	last_cmd = " -delay 100 "	# pause on final frame for 1 second
-	n_skipped = 15
 	if(nplots < n_skipped):
 		print("WARNING: update_gifs set but too few plots are present. gifs not updated.")
 		quit()
-	for qty in qty_list:
-		for box in range(1,n_grids+1):
-			fname_start = gfx_dir + run_name + '_'
-			fig_mid = "gfx_" + qty + str(box) + '_t'
-			prev_plots = str(nplots - n_skipped).zfill(3)
-			nplots_str = str(nplots).zfill(3)
-			rangestr = 't' + prev_plots + '-' + nplots_str
+	if(n_skipped > 20):
+		print("WARNING: skipping frames because of limited memory. burst_gifs.run will not work on this gif.")
+		skip_num = int(n_skipped/20)
+	else:
+		skip_num = 1
+	
+	with open(gfx_dir+"gif_cmds.txt",'w') as f_qtys:
+		f_qtys.write(str(n_imgs)+'\n')
 
-			flist = ()
-			for tnum in range(nplots - n_skipped, nplots-1, 1):
-				fig_path = fname_start + fig_mid + str(tnum+1).zfill(3) + '.' + xtn
-				if(os.path.isfile(fig_path)):
-					flist = flist + (fig_path,)
-				else:
-					print("Didn't find expected file: "+fig_path+", skipping.")
-			last_path = fname_start + fig_mid + str(nplots).zfill(3) + '.' + xtn
+		for qty in qty_list:
+			for box in range(1,n_grids+1):
+				fname_start = gfx_dir + run_name + '_'
+				fig_mid = "gfx_" + qty + str(box) + '_t'
+				prev_plots = str(nplots+1 - n_skipped).zfill(3)
+				nplots_str = str(nplots).zfill(3)
+				rangestr = 't' + prev_plots + '-' + nplots_str
 
-			gif_name = fname_start + "anim_" + qty + str(box) + '_' + rangestr + '.gif'
-			img_files = ' '.join(flist)
-			make_gifs_cmd = gif_cmd + img_files + last_cmd + last_path + ' ' + gif_name
-			rm_images_cmd = "rm " + img_files + ' ' + last_path
-			os.system(make_gifs_cmd)
-			os.system(rm_images_cmd)
+				flist = ()
+				for tnum in range(nplots - n_skipped, nplots-1, skip_num):
+					fig_path = fname_start + fig_mid + str(tnum+1).zfill(3) + '.' + xtn
+					if(os.path.isfile(fig_path)):
+						flist = flist + (fig_path,)
+					else:
+						print("Didn't find expected file: "+fig_path+", skipping.")
+				last_path = fname_start + fig_mid + str(nplots).zfill(3) + '.' + xtn
+
+				gif_name = fname_start + "anim_" + qty + str(box) + '_' + rangestr + '.gif'
+				img_files = ' '.join(flist)
+				make_gifs_cmd = gif_cmd + img_files + last_cmd + last_path + ' ' + gif_name
+				rm_images_cmd = "rm " + img_files + ' ' + last_path
+				f_qtys.write(make_gifs_cmd+'\n')
+				f_qtys.write(rm_images_cmd+'\n')
+	os.system("./figures/stack_gifs.x")
+	os.system("rm "+gfx_dir+"gif_cmds.txt")
 	print("Updated gifs for " + ' '.join(qty_list) + ', ' + rangestr )
 	return
 ####	END def upd_gifs	############################################
