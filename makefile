@@ -27,6 +27,9 @@ clean:
 	rm -f git_hash.txt
 	rm -f nohup.out
 
+gifs:
+	$(FC) $(FCFLAGS) -o figures/stack_gifs.x figures/stack_gifs.f90
+
 rmgfx:
 	rm -f figures/images/*
 	rm -f figures/data/*
