@@ -1,0 +1,26 @@
+#!/bin/bash
+# Extracts .png images from a gif stack of them, for all boxes of one quantity.
+# Required inputs:
+#	path/to/image_dir
+#	run_name
+#	qty_name
+#	n_grids
+#	first # in seq (I0.3 format)
+#	last # in seq (I0.3 format)
+
+# Save the current directory to go back to after we're done
+pwdvar="$(pwd)"
+# Change to the data dir for convenience and readability in this script
+cd $1
+for k in $(seq 1 ${4})
+do
+	convert ${2}_anim_${3}${k}_t${5}-${6}.gif ${2}_gfx_${3}${k}_t${6}.png
+	for pngnum in $(seq $5 $6)
+	do
+		pngname=${2}_gfx_${3}${k}_t${6}-$((pngnum-1)).png
+		img=$(printf %03d $pngnum)
+		rename t${6}-$((pngnum-1)).png t${img}.png $pngname
+	done
+done
+# Go back to our original directory
+cd $pwdvar
