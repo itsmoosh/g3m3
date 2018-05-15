@@ -48,6 +48,8 @@ show_vecs = True		# Whether to print vectors or contours (for vector quantities)
 showstreams = False		# Whether to print streamlines to show fields and flows
 stack = True			# Whether to print multiple rows of quantities on the same plot
 draw_boxes = False		# Whether to draw the smaller boxes
+draw_grids = False		# Whether to draw grid lines, for instructional purposes (requires draw_boxes = True)
+n_steps = 12			# Number of divisions for drawing grids with draw_grids
 fig_dpi = 200
 n_contours = 8			# Number of contours for each plot
 con_color = 'blue'		# Contour color
@@ -246,6 +248,15 @@ for box in range(1,n_grids+1):
 	this_cbp = cbar_pos
 	stream_opts = (False,'')
 
+	# For drawing grids for instructional purposes
+	if(draw_grids):
+		for xi_grid in np.arange(xmin,xmax,deltax/n_steps):
+			boxes_to_draw = boxes_to_draw + ((xi_grid,ymin,zmin,deltax/n_steps,deltay,deltaz),)
+		for yi_grid in np.arange(ymin,ymax,deltay/n_steps):
+			boxes_to_draw = boxes_to_draw + ((xmin,yi_grid,zmin,deltax,deltay/n_steps,deltaz),)
+		for zi_grid in np.arange(zmin,zmax,deltaz/(n_steps/2)):
+			boxes_to_draw = boxes_to_draw + ((xmin,ymin,zi_grid,deltax,deltay,deltaz/(n_steps/2)),)
+		box_draw = (draw_boxes, boxes_to_draw)
 
 	#	###########################################	#
 	#	Alfven speed, mag. field, and current stack	#
