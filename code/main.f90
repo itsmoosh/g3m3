@@ -338,7 +338,6 @@ program multifluid
 	!	***************************
 	!	Labels for graphics outputs
 	!	***************************
-		character*8 wd1,wd2,wd3,wd4
 		character*8 label
 		character*15 title
 		!
@@ -732,6 +731,7 @@ program multifluid
 		!	moon_rad,			moon_mass,
 		!	moon_incl,			moon_init_rot,
 		call choose_system(bodyname,moonname)
+		if(bodyname.eq."europa") planet_per = 0
 		!
 		r_rot = r_lim
 		v_rot = 2.*pi*planet_rad/(planet_per*3600.)/v_equiv  !	Normalized rotation rate
@@ -842,29 +842,6 @@ program multifluid
 	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	!
 	!
-	!	*************************************
-    !	Write important data to graphics file
-	!	*************************************
-!		write(wd4,'(f6.3)')stepsz
-!		!
-!		title='stepsz = '//wd4
-!		call wtstr(.75,.85,title,1,0,0)
-!		!
-!		write(wd1,'(f6.3)')xdip
-!		write(wd2,'(f6.3)')ydip
-!		write(wd3,'(f6.3)')zdip
-!		!
-!		title='xdip = '//wd1
-!		call wtstr(.15,.82,title,1,0,0)
-!		title='ydip = '//wd2
-!		call wtstr(.35,.82,title,1,0,0)
-!		title='zdip = '//wd3
-!		call wtstr(.55,.82,title,1,0,0)
-!		!
-!		write(wd1,'(f5.1)')r_inner
-!		!
-!		title='r_inner = '//wd1
-!		call wtstr(.15,.79,title,1,0,0)
 !		!
 !		!	Calculate effective magnetic field strength
 !		!
@@ -875,133 +852,6 @@ program multifluid
 		b0 = b01
 		write(*,*)'b0: ',b0
 		delb0 = (b02 - b01) / tmax	! Never used as of 08/27/17. MJS
-		!
-		write(wd1,'(f6.3)')cs_inner
-		write(wd2,'(f6.3)')alf_inner1
-		write(wd3,'(f6.3)')alf_inner2
-		write(wd4,'(f5.1)')denh_inner
-		!
-!		title='cs_inner = '//wd1
-!		call wtstr(.15,.76,title,1,0,0)
-!		title='alf_inner1= '//wd2
-!		call wtstr(.35,.76,title,1,0,0)
-!		title='alf_inner2= '//wd3
-!		call wtstr(.55,.76,title,1,0,0)
-!		title='denh_inner = '//wd4
-!		call wtstr(.75,.76,title,1,0,0)
-!		!
-		write(wd1,'(f6.3)')o_conc
-		write(wd2,'(f6.3)')gravity
-		write(wd3,'(f6.3)')rmasso
-		!
-!		title='o_conc = '//wd1
-!		call wtstr(.15,.73,title,1,0,0)
-!		title='gravity= '//wd2
-!		call wtstr(.35,.73,title,1,0,0)
-!		title='rmasso= '//wd2
-!		call wtstr(.35,.73,title,1,0,0)
-!		!
-		write(wd1,'(f6.3)')rho_wind1
-		write(wd2,'(f6.3)')rho_wind2
-		write(wd3,'(f6.3)')vx_wind1
-		write(wd4,'(f6.3)')vx_wind2
-		!
-!		title='rho_wind1= '//wd1
-!		call wtstr(.15,.7,title,1,0,0)
-!		title='rho_wind2= '//wd2
-!		call wtstr(.35,.7,title,1,0,0)
-!		title='vx_wind1 = '//wd3
-!		call wtstr(.55,.7,title,1,0,0)
-!		title='vx_wind2 = '//wd4
-!		call wtstr(.75,.7,title,1,0,0)
-		!
-		write(wd1,'(f6.3)')vy_wind1
-		write(wd2,'(f6.3)')vy_wind2
-		write(wd3,'(f6.3)')vz_wind1
-		write(wd4,'(f6.3)')vz_wind2
-		!
-!		title='vy_wind1= '//wd1
-!		call wtstr(.15,.67,title,1,0,0)
-!		title='vy_wind2= '//wd2
-!		call wtstr(.35,.67,title,1,0,0)
-!		title='vz_wind1 = '//wd3
-!		call wtstr(.55,.67,title,1,0,0)
-!		title='vz_wind2 = '//wd4
-!		call wtstr(.75,.67,title,1,0,0)
-		!
-		write(wd1,'(f6.3)')alfx_wind1
-		write(wd2,'(f6.3)')alfx_wind2
-		write(wd3,'(f6.3)')alfy_wind1
-		write(wd4,'(f6.3)')alfy_wind2
-		!
-!		title='alfx1 = '//wd1
-!		call wtstr(.15,.64,title,1,0,0)
-!		title='alfx2 = '//wd2
-!		call wtstr(.35,.64,title,1,0,0)
-!		title='alfy1 = '//wd3
-!		call wtstr(.55,.64,title,1,0,0)
-!		title='alfy2 = '//wd4
-!		call wtstr(.75,.64,title,1,0,0)
-		!
-		write(wd3,'(f6.3)')alfz_wind1
-		write(wd4,'(f6.3)')alfz_wind2
-!		title='alfz1 = '//wd3
-!		call wtstr(.55,.61,title,1,0,0)
-!		title='alfz2 = '//wd4
-!		call wtstr(.75,.61,title,1,0,0)
-		!
-		write(wd1,'(f5.1)')re_wind
-		write(wd2,'(f5.0)')reynolds
-		write(wd3,'(f5.0)')resist
-		!	re_wind sets radius from earth where initial wind placed
-		!	reynolds coefficient for surface currents
-		!	resist equivalent if you wish to run anomalous resistivity
-		!	bfrac determines the percentage of the tangential magnetic
-		!		field allowed at earth's surface
-		!
-!		title='re_wind = '//wd1
-!		call wtstr(.15,.58,title,1,0,0)
-!		title='reynolds = '//wd2
-!		call wtstr(.35,.58,title,1,0,0)
-!		title='resist = '//wd3
-!		call wtstr(.55,.58,title,1,0,0)
-		!
-		write(wd1,'(f6.3)')bfrac
-		write(wd2,'(f6.3)')vfrac
-!		title='bfrac = '//wd1
-!		call wtstr(.35,.55,title,1,0,0)
-!		title='vfrac = '//wd2
-!		call wtstr(.55,.55,title,1,0,0)
-		!
-		write(wd1,'(f6.3)')chirho
-		write(wd2,'(f6.3)')chipxyz
-		write(wd3,'(f6.3)')chierg
-		!
-!		title='chirho = '//wd1
-!		call wtstr(.15,.52,title,1,0,0)
-!		title='chipxyz = '//wd2
-!		call wtstr(.35,.52,title,1,0,0)
-!		title='chierg = '//wd3
-!		call wtstr(.55,.52,title,1,0,0)
-!		!
-		write(wd1,'(f6.3)')difrho
-		write(wd2,'(f6.3)')difpxyz
-		write(wd3,'(f6.3)')diferg
-		!
-!		title='chirho = '//wd1
-!		call wtstr(.15,.49,title,1,0,0)
-!		title='chipxyz = '//wd2
-!		call wtstr(.35,.49,title,1,0,0)
-!		title='chierg = '//wd3
-!		call wtstr(.55,.49,title,1,0,0)
-!		!
-!		write(wd1,'(f4.1)')tilt1
-!		title='tilt1 = '//wd1
-!		call wtstr(.15,.40,title,1,0,0)
-!		write(wd1,'(f4.1)')tilt2
-!		title='tilt2 = '//wd1
-!		call wtstr(.30,.40,title,1,0,0)
-		!
 	!
 	!
 	!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
