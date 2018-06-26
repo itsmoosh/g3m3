@@ -1,4 +1,4 @@
-This repository contains software written mostly in Fortran for simulating magnetospheric plasmas. A multifluid model is used that treats electrons, proton solar wind, hydrogen, and oxygen as resistive, charged fluids.
+This repository contains software written mostly in Fortran for simulating magnetospheric plasmas. A multifluid model is used that treats electrons, proton solar wind, hydrogen, and oxygen as resistive, charged fluids. Requires the Intel Fortran compiler ifort and OpenMP for parallelization.
 
 There are scripts serving 5 purposes:
 	1. To compile the code (see step 4 below)
