@@ -64,6 +64,7 @@ module astrometry
 		real,parameter :: eur_mass		= 479.7E+20
 		real,parameter :: eur_incl		= 0.464*pi/180.
 		real,parameter :: eur_init_rot	= ( atan((-2.379801E-03)/(-3.751687E-03)) + pi - jupiter_init_long ) / (2.0*pi) * eur_per
+		real,parameter :: eur_synodic	= jupiter_per * ( 1 + jupiter_per/eur_sid_per )
 
 	!	Moons: Ganymede
 		real,parameter :: gany_orbit_rad	= 1070.0428E+03/jupiter_rad	!	Units: jupiter_rad
@@ -156,14 +157,14 @@ contains
 				r_lim, torus_infall, planet_tilt, planet_init_long, &
 				planet_xdip, planet_ydip, planet_zdip, torus_dist, &
 				moon_orbit_rad, moon_per, moon_rad, moon_mass, &
-				moon_incl, moon_init_rot
+				moon_incl, moon_init_rot, moon_synodic
 
 		common /planetary/planet_orbit_rad, planet_year, planet_rad, &
 		planet_per, planet_mass, planet_obliq, planet_incl, &
 		r_lim, torus_infall, planet_tilt, planet_init_long, &
 		planet_xdip, planet_ydip, planet_zdip, torus_dist, &
 		moon_orbit_rad, moon_per, moon_rad, moon_mass, moon_incl, &
-		moon_init_rot
+		moon_init_rot, moon_synodic
 
 		write(*,*) 'Choosing for system:'
 		write(*,*) bodyname, ';', moonname
@@ -240,10 +241,11 @@ contains
 				planet_xdip = 0.0
 				planet_ydip = 0.0
 				planet_zdip = 1e-6
+				moon_synodic = eur_synodic
 
 			case default
 				write(*,*) 'Body name did not match valid options:'
-				write(*,*) 'jupiter, saturn, or earth'
+				write(*,*) 'jupiter, saturn, earth, or europa'
 				write(*,*) 'Defaulting to saturn.'
 				planet_orbit_rad = saturn_orbit_rad
 				planet_year = saturn_year
@@ -260,6 +262,7 @@ contains
 				planet_xdip = saturn_xdip
 				planet_ydip = saturn_ydip
 				planet_zdip = saturn_zdip
+				moon_synodic = eur_synodic
 
 		end select
 
