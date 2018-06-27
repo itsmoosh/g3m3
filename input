@@ -1,33 +1,32 @@
-
 $option
-	tmax=1000.01 ntgraph=10 stepsz=0.25 start=.t. tsave=200.
-	isotropic=.f. run_name="europai" write_dat=.f. diagnostics=.f.
+	tmax=100.01 ntgraph=10 stepsz=0.25 start=.t. tsave=50.
+	isotropic=.f. run_name="saturna" write_dat=.f. diagnostics=.f.
 $end
 
 $planet
-	bodyname="europa" moonname="none"
-	xdip=0.00001 ydip=0.00000 zdip=0.000000 r_inner=6.0 
-	torus_rad=1.0 tilt1=0.0 tilt2=0.0 tilting =.f. 
-	rmassq=1. rmassh=16. rmasso=32.
+	bodyname="saturn" moonname="enceladus"
+	xdip=0.00001 ydip=0.00000 zdip=0.000000 r_inner=10.0 
+	torus_rad=1.0 tilt1=0.0 tilt2=0.0 tilting=.f. 
+	rmassq=1. rmassh=18. rmasso=32.
 $end
 
 $speeds
-	cs_inner=0.021 alf_inner1=0.00000 alf_inner2=0.00000 alpha_e=6.0     ! T_i = 90 eV, cs_inner uses only h species mass
-	denh_inner=10. denq_torus=80. denh_torus=188. deno_torus=233.5     ! B = 450 nT
-	gravity=0.913 ti_te=10. gamma=1.6666     ! gravity is at r_inner, not surface
-	ringo=.f. update=.f. reload=.f.
+	cs_inner=0.0163 alf_inner1=30.2 alf_inner2=30.2 alpha_e=6.0
+	denh_inner=1. denq_torus=3.333 denh_torus=3.333 deno_torus=3.333
+	gravity=10.44 ti_te=5. gamma=1.6666
+	ringo=.t. update=.f. reload=.f.
 	divb_lores=.t. divb_hires=.f. reduct=1.
 	t_torus=0.25 aniso_factor=0.0625
 $end
 
 $windy
-	re_wind=35. cs_wind=0.01056 vx_wind1=0.400 vx_wind2=0.400     ! v_i = 100 km/s
-	vy_wind1=0.00 vy_wind2=0.00 vz_wind1=0.00 vz_wind2=0.00
+	re_wind=35. cs_wind=0.01056 vx_wind1=0.45 vx_wind2=0.45 
+	vy_wind1=0.000 vy_wind2=0.000 vz_wind1=0.00 vz_wind2=0.00
 	alfx_wind1=0.00 alfx_wind2=0.00
-	alfy_wind1=0.00 alfy_wind2=0.00
-	alfz_wind1=-0.221 alfz_wind2=-0.221
-	den_wind1=0.325 den_wind2=0.325     ! Right now this will be very unphysical, because the wind species is q only. Will need to be changed so left alone for now.
-	reynolds=256.0 resist=1. o_conc=0.125 rho_frac=0.001
+	alfy_wind1=0.044 alfy_wind2=0.044
+	alfz_wind1=-0.011 alfz_wind2=-0.011
+	den_wind1=0.325 den_wind2=0.325
+	reynolds=256.0 resist=64. o_conc=0.125 rho_frac=0.001
 	bfrac=1.0 vfrac=1.0
 $end
 
@@ -37,11 +36,8 @@ $physical
 $end
 
 $smooth
-	chirho=2.0 chipxyz=2.0 chierg=0.0 
+	chirho=2.0 chipxyz=2.0 chierg=0.0    
 	difrho=0.008 difpxyz=0.000 diferg=0.004 
 $end
 
 The remainder of this file is not read:
-Europa initialization
-Resist arbitrarily lowered from 64 based on Erika's suggestions to increase conductivity to start
-Bulk velocity of upstream plasma started at ~2x the actual value to help reach stable run conditions
