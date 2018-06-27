@@ -3466,6 +3466,7 @@ program multifluid
 	!
 	tmax = int(t - utstart*3600./t_equiv) + 0.05
 	utstart = ut
+	start = .f.
 	!
 	write(*,*) 'Writing input parameters to ',fname_inp_o
     open(inp_o_f,file=trim(fname_inp_o),status='unknown',form='formatted')
