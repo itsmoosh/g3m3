@@ -193,6 +193,14 @@ program multifluid
 		real	:: rot_closest = 0.0
 		character*7 :: git_hash = 'pl_hold'
 		!
+		!
+	!	**********************
+	!	Europa-specific inputs
+	!	**********************
+		! group 'params_europa'
+		logical europa
+		real eur_dip_tilt, eur_dip_rot, sheet_vel
+		!
 	!	*******************
 	!	Spacecraft file I/O
 	!	*******************
@@ -207,6 +215,7 @@ program multifluid
 		!		110-150	Figure plotting
 		integer,parameter :: input_f=1
 		integer,parameter :: inp_o_f=2
+		integer,parameter :: params_eur_f=3
 		integer :: fluxs_f=21
 		integer :: speed_f=22
 		integer :: concs_f=23
@@ -504,7 +513,7 @@ program multifluid
 		namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
 		alpha_e,denh_inner,denq_torus,denh_torus,deno_torus, &
 		gravity,ti_te,gamma,ringo,update,reload, &
-		divb_lores,divb_hires,reduct,t_torus,aniso_factor, &
+		divb_lores,divb_hires,reduct,t_torus,aniso_factor
 		namelist/windy/re_wind,cs_wind,vx_wind1,vx_wind2, &
 		vy_wind1,vy_wind2,vz_wind1,vz_wind2, &
 		alfx_wind1,alfx_wind2, &
@@ -518,6 +527,7 @@ program multifluid
 		difrho,difpxyz,diferg
 		namelist/crafthead/cname,num_vals,rot_closest,git_hash
 		!
+		namelist/params_europa/europa,eur_dip_tilt,eur_dip_rot,sheet_vel
 	!
 	!
 	!	************************
@@ -530,7 +540,7 @@ program multifluid
 		!	Adapted parameters for simulation use (boundaries etc., see 'Planet & moon calculations')
 		!	torus_inj_dist is used for making a correction to plasma torus injection
 			real lunar_rad, torus_inj_dist, grav	
-			real r_orbit, v_orbit, tilt
+			real r_orbit, v_orbit, tilt, tilt1rad, tilt2rad
 			real xmoon, ymoon, zmoon, rmoon, b0_moon
 			!
 		!
@@ -597,28 +607,12 @@ program multifluid
     open(fluxs_f,file='fluxes.dat',status='unknown',form='formatted')
     open(speed_f,file='speeds.dat',status='unknown',form='formatted')
     open(concs_f,file='conc.dat',status='unknown',form='formatted')
+    open(params_eur_f,file='params_europa',status='old',form='formatted')
     !open(grdpt_f,file='grid.dat',status='unknown',form='formatted')
     !open(25,file='cur.dat',status='unknown',form='unformatted')
     !open(26,file='pot.dat',status='unknown',form='unformatted')
 	if(write_dat) open(recdt_f,file='record.dat',status='unknown',form='formatted')
-    !
-	!	*****************
-    !	Open ncargraphics
-	!	*****************
-    !
-!	ncar graphics disabled.
-!    call opngks
-!    call gsclip(0)
-    !
-	!	***************
-    !	Set color table
-	!	***************
-    !
-!    call cpclrs
-    !
-!    call gselnt(0)
-!    call gsplci(1)
-!    call wtstr(.4,.975,'3d mutant code',2,0,0)
+
     !
 	!	*********************
     !	Read input parameters
@@ -630,6 +624,8 @@ program multifluid
     read(input_f,windy)
     read(input_f,physical)
     read(input_f,smooth)
+
+	read(params_eur_f,params_europa)
 	
 	!
 	!	***********************************
@@ -731,7 +727,14 @@ program multifluid
 		!	moon_rad,			moon_mass,
 		!	moon_incl,			moon_init_rot,
 		call choose_system(bodyname,moonname)
-		if(bodyname.eq."europa") planet_per = 0
+		if(europa) then		! Set rotation rates to zero for Europa sim so no corotation is forced into already corotating plasa
+			planet_per = 1.e36
+			moon_per = 1.e37
+			tilt = eur_dip_tilt
+			rot_angle = eur_dip_rot
+		else
+			tilt = planet_tilt
+		endif
 		!
 		r_rot = r_lim
 		v_rot = 2.*pi*planet_rad/(planet_per*3600.)/v_equiv  !	Normalized rotation rate
@@ -742,10 +745,11 @@ program multifluid
 		r_orbit = moon_orbit_rad / planet_rad / re_equiv	!	In grid pts (Never used, 10/08/2017 MJS)
 		v_orbit = (moon_orbit_rad*2.*pi)/(moon_per*3600.)/v_equiv    !	Sim units
 		!
-		tilt = planet_tilt
+		tilt1rad = tilt1 * pi/180.
+		tilt2rad = tilt2 * pi/180.
 		sin_tilt = sin(tilt)
 		cos_tilt = cos(tilt)
-		dtilt = ( tilt2 - tilt1 ) / tmax
+		dtilt = ( tilt2rad - tilt1rad ) / tmax
 		if(tilting) then
 			xdip = planet_xdip
 			ydip = planet_ydip
@@ -1011,7 +1015,7 @@ program multifluid
 		!	***************
 			nrot_planet = int( ut/planet_per )
 			rot_hrs = ut - planet_per*nrot_planet
-			rot_angle = 2.*pi*rot_hrs/planet_per
+			if(.not.europa) rot_angle = 2.*pi*rot_hrs/planet_per	! else we have already set the dipole direction for Europa
 			sin_rot = sin(rot_angle)
 			cos_rot = cos(rot_angle)
 			!
@@ -1162,7 +1166,7 @@ program multifluid
 		!	***************
 			nrot_planet = int( ut/planet_per )
 			rot_hrs = ut - planet_per*nrot_planet
-			rot_angle = 2.*pi*rot_hrs/planet_per
+			if(.not.europa) rot_angle = 2.*pi*rot_hrs/planet_per
 			sin_rot = sin(rot_angle)
 			cos_rot = cos(rot_angle)
 			!
@@ -1204,12 +1208,12 @@ program multifluid
                     do i=1,nx
                         ax = grid_minvals(1,box) + dx * (i-1) - xdip
                         !
-                        !	Rotate coordinates for planet motion
+                        !	Rotate coordinates for planet motion (rotate around z axis)
                         !
                         xr=ax*cos_rot+ay*sin_rot
                         yr=-ax*sin_rot+ay*cos_rot
                         !
-                        !	Tilt space to dipole space
+                        !	Tilt space to dipole space (rotate around y axis)
                         !
                         xp=xr*cos_tilt-az*sin_tilt
                         yp=yr
@@ -1237,47 +1241,59 @@ program multifluid
                         if(rd.lt.r_rot) then
                             vfrac=1.
                         else
-                            vfrac=((2.*r_rot**2)/(r_rot**2+ rd**2))**2
+                            vfrac=((2.*r_rot**2)/(r_rot**2 + rd**2))**2
                         endif
                         rvy=rx*v_rot*vfrac
                         rvx=-ry*v_rot*vfrac
                         rvz=0.
                         corotate=sqrt(rvx**2+rvy**2)
-                        !
-                        !	For Jupiter top hat distribution
-    					!
-                        ar_iono=sqrt(xp**2+ay**2+1.25*zp**2)
-                        !	isotropic
-                        !	ar_iono=sqrt(xp**2+ay**2+zp**2)
-                        !
-                        ar_iono=amax1(0.0001,ar_iono)
-                        ra=((ar_iono+0.5*r_inner)/(1.5*r_inner))**(-alpha_e)
-                        zheight=amax1(1.,(zp**2+(1.5*r_inner)**2)/(3.0*r_inner)**2)
-                        ra=ra/zheight**2
-                        rho_iono=amax1(erho*ra,d_min)
-                        !
-                        r_equat=(ar**3+0.001)/(xp**2+ay**2+0.001)
-                        r_equat=amax1(r_equat,r_inner)
-                        rerg_sphere=(0.001+(r_inner/r_equat)**4)
-                        !
-                        if(r_equat.gt.5.*r_inner) then
-                            rerg_sphere=(0.001+(r_inner/r_equat)**alpha_e)!constant pressure flux
-                            rden_sphere=1.
-                        else
-                            rerg_sphere=0.1+0.9*(r_equat-r_inner)/(4.*r_inner)
-                            rden_sphere=(rerg_sphere**2)          !reduce o+ in plasmasphere
-                        endif
-                        !
-                        arho = amax1( rho_iono, d_min )
-                        vt = amax1( sqrt(rvy**2 + rvx**2), cs_inner )
+						!
+						!	For Europa ionosphere distribution
+						!
+						if(europa) then
+							
+							ar_iono=sqrt(xp**2+yp**2+zp**2)
+							ra = ( (ar_iono+0.5*r_inner) / (1.5*r_inner) )**(-alpha_e)
+							zheight = 1.	! placeholder for now
+							rvx = sheet_vel * amax1(1.-ra, 1.)
+							rvy = 0.
+							rvz = 0.
+						else
+							! Matt's seeding functions for Saturn
+							ar_iono=sqrt(xp**2+ay**2+1.25*zp**2)	! Cutoff distance (only seeded out to this distance)
+							!	isotropic
+							!	ar_iono=sqrt(xp**2+ay**2+zp**2)
+							!
+							ar_iono=amax1(0.0001,ar_iono)
+							ra = ( (ar_iono+0.5*r_inner) / (1.5*r_inner) )**(-alpha_e)
+							zheight=amax1(1.,(zp**2+(1.5*r_inner)**2)/(3.0*r_inner)**2)
+							ra=ra/zheight**2
+
+							!
+							r_equat=(ar**3+0.001)/(xp**2+ay**2+0.001)
+							r_equat=amax1(r_equat,r_inner)
+							rerg_sphere=(0.001+(r_inner/r_equat)**4)
+							!
+							if(r_equat.gt.5.*r_inner) then
+								rerg_sphere=(0.001+(r_inner/r_equat)**alpha_e)!constant pressure flux
+								rden_sphere=1.
+							else
+								rerg_sphere=0.1+0.9*(r_equat-r_inner)/(4.*r_inner)
+								rden_sphere=(rerg_sphere**2)          !reduce o+ in plasmasphere
+							endif
+						endif ! if(europa) seeding
+						!
+						rho_iono=amax1(erho*ra,d_min)
+						arho = amax1( rho_iono, d_min )
+						vt = amax1( sqrt(rvy**2 + rvx**2), cs_inner )
                         !
                         !   MAT - Corrected according to
                         !       doi:10.1029/JA094iA12p17287
                         !       and 
                         !       doi:10.1029/2008GL035433
                         !
-                        qrho(i,j,k,box)=arho*rmassq/zheight
-                        qpresx(i,j,k,box)=arho*vt
+                        qrho(i,j,k,box)=0.05*arho*rmassq/zheight
+                        qpresx(i,j,k,box)=0.05*arho*vt
                         qpresy(i,j,k,box)=qpresx(i,j,k,box)
                         qpresz(i,j,k,box)=qpresx(i,j,k,box)
                         qpresxy(i,j,k,box)=0.
@@ -1289,8 +1305,8 @@ program multifluid
                         !
                         !	Add small amount of heavies everywhere
                         !
-                        hrho(i,j,k,box)=0.05*qrho(i,j,k,box)*rmassh/rmassq
-                        hpresx(i,j,k,box)=0.05*qpresx(i,j,k,box)
+                        hrho(i,j,k,box)=20.*qrho(i,j,k,box)*rmassh/rmassq
+                        hpresx(i,j,k,box)=20.*qpresx(i,j,k,box)
                         hpresy(i,j,k,box)=hpresx(i,j,k,box)
                         hpresz(i,j,k,box)=hpresx(i,j,k,box)
                         hpresxy(i,j,k,box)=0.
@@ -1300,8 +1316,8 @@ program multifluid
                         hpy(i,j,k,box)=hrho(i,j,k,box)*rvy
                         hpz(i,j,k,box)=0.
                         !
-                        orho(i,j,k,box)=qrho(i,j,k,box)*rmasso/rmassq
-                        opresx(i,j,k,box)=qpresx(i,j,k,box)
+                        orho(i,j,k,box)=20.*qrho(i,j,k,box)*rmasso/rmassq
+                        opresx(i,j,k,box)=20.*qpresx(i,j,k,box)
                         opresy(i,j,k,box)=opresx(i,j,k,box)
                         opresz(i,j,k,box)=opresx(i,j,k,box)
                         opresxy(i,j,k,box)=0.
@@ -1896,7 +1912,7 @@ program multifluid
 		!	Increment planet rotation and moon orbit
 		nrot_planet = int( ut/planet_per )
 		rot_hrs = ut - planet_per*nrot_planet
-		rot_angle = 2.*pi*rot_hrs/planet_per
+		if(.not.europa) rot_angle = 2.*pi*rot_hrs/planet_per
 		sin_rot = sin(rot_angle)
 		cos_rot = cos(rot_angle)
 		!
@@ -2262,12 +2278,12 @@ program multifluid
                     !
                     if(tilting) then
                         atilt=old_tilt+(t_old(box)+delt2)*dtilt
-                        sin_tilt=sin(atilt*pi/180.)
-                        cos_tilt=cos(atilt*pi/180.)
+                        sin_tilt=sin(atilt)
+                        cos_tilt=cos(atilt)
                         ut2=utold+(t_old(box)+delt2)*t_equiv/3600.
                         nrot2=ut2/planet_per
                         rot_hr2=ut2-nrot2*planet_per
-                        rot_angle=2.*pi*rot_hr2/planet_per
+                        if(.not.europa) rot_angle=2.*pi*rot_hr2/planet_per
                         !        write(*,*)'mak_dip half with', t_old(box),delt2
                         call mak_dip_grd(bx0,by0,bz0,nx,ny,nz, &
                             n_grids,mbndry,box,ijzero,numzero,mzero,r_inner, &
@@ -2553,12 +2569,12 @@ program multifluid
                     !
                     if(tilting) then
                         atilt=old_tilt+(t_old(box)+delt)*dtilt
-                        sin_tilt=sin(atilt*pi/180.)
-                        cos_tilt=cos(atilt*pi/180.)
+                        sin_tilt=sin(atilt)
+                        cos_tilt=cos(atilt)
                         ut2=utold+(t_old(box)+delt)*t_equiv/3600.
                         nrot2=ut2/planet_per
                         rot_hr2=ut2-nrot2*planet_per
-                        rot_angle=2.*pi*rot_hr2/planet_per
+                        if(.not.europa) rot_angle=2.*pi*rot_hr2/planet_per
                         !         write(*,*)'mak_dip full with',t_old(box),delt
                         call mak_dip_grd(bx0,by0,bz0,nx,ny,nz,n_grids, &
                             mbndry,box,ijzero,numzero,mzero,r_inner, &
@@ -3466,7 +3482,7 @@ program multifluid
 	!
 	tmax = int(t - utstart*3600./t_equiv) + 0.05
 	utstart = ut
-	start = .f.
+	start = .false.
 	!
 	write(*,*) 'Writing input parameters to ',fname_inp_o
     open(inp_o_f,file=trim(fname_inp_o),status='unknown',form='formatted')
