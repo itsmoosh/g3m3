@@ -185,6 +185,7 @@ subroutine mak_dip_grd(bx0,by0,bz0,nx,ny,nz,n_grids, &
                 !
                 !        cartesian equivalent
                 !
+				! b0 is mu_0 * m, where m is magnetic dipole moment
                 bmag=-b0/ar**5
                 dbx=-3.*bmag*xp*zp
                 dby=-3.*bmag*yp*zp
