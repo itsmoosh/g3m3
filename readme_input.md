@@ -34,8 +34,8 @@ rmasso - mass in amu for ‘oxygen’ species
  
 $speeds
 cs_inner - sound speed of ‘heavy’ species at inner boundary (sets ion temperature)
-alf_inner1 - initial alfven speed at equator of inner boundary for this exec (sets dipole strength). alfven speed in sim units = B/sqrt()
-alf_inner2 - final alfven speed at equator of inner boundary  for this exec (sets dipole strength)
+b_inner1 - initial B magnitude at magnetic equator of inner boundary for this exec in nT (sets dipole strength).
+b_inner2 - final alfven speed at equator of inner boundary for this exec (not currently implemented 6/29/18)
 alpha_e - exponent for latitudinal density scaling at inner boundary (‘top hat’ (?) distribution)
 denh_inner - number density in sim units for ‘heavy’ species at planetary inner boundary for this exec. denh_inner*rho_equiv = n_h (in cm^-3)
 denq_torus - number density in sim units for 'proton' species at moon inner boundary for this exec 
@@ -101,3 +101,5 @@ $smooth
 $randomlinesofnumbers
 grid sizes in grid points, each successive grid needs to be 2X the last, not necessarily centered
 ut_init - time to set UT to for an initialization run (when start=.true.)
+alf_inner1 - initial alfven speed at equator of inner boundary for this exec (sets dipole strength). alfven speed in sim units = B/sqrt()
+alf_inner2 - final alfven speed at equator of inner boundary  for this exec (sets dipole strength)
