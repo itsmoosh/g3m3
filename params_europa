@@ -1,0 +1,5 @@
+! Europa-specific input parameters
+$params_europa
+	europa=.t. eur_dip_tilt=90. eur_dip_rot=90.	! tilt is theta and rot is phi
+	sheet_vel=0.1	! Initialization speed for torus plasma in Mm/s
+$end
