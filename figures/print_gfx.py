@@ -74,7 +74,7 @@ cbar3d_pos = [0.9,0.15,0.024,0.4]	# For 3d diagnostic plots
 # Note: These values are appropriate for Saturn, probably not for Europa.
 alfmax = [1., 2., 6., 10., 10.]	# Mach number
 speeds = [200., 250., 450., 450., 450.]	# km/s
-bmags = [800., 200., 100., 100., 100.]	# nT
+bmags = [500., 500., 500., 500., 500.]	# nT
 currents = [0.2, 0.1, 0.07, 0.05, 0.02]	# nA/m^2
 press = [3., 2., 2., 2., 2.]	# +/- log units of nPa
 qpres_mid = -12	# Midpoint in log (nPa) of q pressure colorbars
@@ -266,7 +266,7 @@ for box in range(1,n_grids+1):
 	fig,b_axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
 	if(stack): this_cbp = cbar_pos31
 	cbar_title = r'$\frac{|\vec{v}_\mathrm{net}|}{V_\mathrm{Alf}}$'
-	cbmin = 0.0
+	cbmin = 300.0
 	cbmax = alfmax[box-1]
 #	cbmax = xy_alfmach.max()
 	cbparams = (cbmin,cbmax,this_cbp,cbar_title)
