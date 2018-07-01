@@ -64,14 +64,14 @@ vy_wind1 - initial y velocity in sim units for stellar wind for this exec
 vy_wind2 - final y velocity in sim units for stellar wind for this exec
 vz_wind1 - initial z velocity in sim units for stellar wind for this exec
 vz_wind2 - final z velocity in sim units for stellar wind for this exec
-alfx_wind1 - initial x alfven speed in sim units for stellar wind for this exec (sets IMF x)
-alfx_wind2 - final x alfven speed in sim units for stellar wind for this exec (sets IMF x)
-alfy_wind1 - initial y alfven speed in sim units for stellar wind for this exec (sets IMF y)
-alfy_wind2 - final y alfven speed in sim units for stellar wind for this exec (sets IMF y)
-alfz_wind1 - initial z alfven speed in sim units for stellar wind for this exec (sets IMF z)
-alfz_wind2 - final z alfven speed in sim units for stellar wind for this exec (sets IMF z)
-den_wind1 - initial  solar wind density in sim units for this exec
-den_wind2 - final  solar wind density in sim units for this exec
+bx_wind1 - initial Bx in nT for stellar wind for this exec (sets IMF x)
+bx_wind2 - final Bx in nT for stellar wind for this exec (sets IMF x)
+by_wind1 - initial By in nT for stellar wind for this exec (sets IMF y)
+by_wind2 - final By in nT for stellar wind for this exec (sets IMF y)
+bz_wind1 - initial Bz in nT for stellar wind for this exec (sets IMF z)
+bz_wind2 - final Bz in nT for stellar wind for this exec (sets IMF z)
+den_wind1 - initial solar wind density in sim units for this exec
+den_wind2 - final solar wind density in sim units for this exec
 reynolds - ion skin depths per grid point (start high = ideal MHD-ish, decr. 4 realism)
 resist - ionospheric resistance scaling (the only ionospheric parameter we set)
 o_conc - fraction of ‘oxygen’ species in solar wind (ratio of n_o to n_prot)
@@ -102,4 +102,10 @@ $randomlinesofnumbers
 grid sizes in grid points, each successive grid needs to be 2X the last, not necessarily centered
 ut_init - time to set UT to for an initialization run (when start=.true.)
 alf_inner1 - initial alfven speed at equator of inner boundary for this exec (sets dipole strength). alfven speed in sim units = B/sqrt()
-alf_inner2 - final alfven speed at equator of inner boundary  for this exec (sets dipole strength)
+alf_inner2 - final alfven speed at equator of inner boundary for this exec (sets dipole strength)
+alfx_wind1 - initial x alfven speed in sim units for stellar wind for this exec (sets IMF x)
+alfx_wind2 - final x alfven speed in sim units for stellar wind for this exec (sets IMF x)
+alfy_wind1 - initial y alfven speed in sim units for stellar wind for this exec (sets IMF y)
+alfy_wind2 - final y alfven speed in sim units for stellar wind for this exec (sets IMF y)
+alfz_wind1 - initial z alfven speed in sim units for stellar wind for this exec (sets IMF z)
+alfz_wind2 - final z alfven speed in sim units for stellar wind for this exec (sets IMF z)

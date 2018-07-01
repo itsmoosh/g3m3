@@ -1,33 +1,33 @@
 
 $option
-	tmax=1000.01 ntgraph=10 stepsz=0.25 start=.t. tsave=200.
+	tmax=1000.01 ntgraph=20 stepsz=0.075 start=.t. tsave=200.
 	isotropic=.f. run_name="europai" write_dat=.f. diagnostics=.f.
 $end
 
 $planet
 	bodyname="europa" moonname="none"
-	xdip=0.00001 ydip=0.00000 zdip=0.000000 r_inner=6.0 
-	torus_rad=1.0 tilt1=0.0 tilt2=0.0 tilting =.f. 
+	xdip=0.00001 ydip=0.00000 zdip=0.000000 r_inner=5.0 
+	torus_rad=1.0 tilt1=90.0 tilt2=90.0 tilting =.t. 
 	rmassq=1. rmassh=16. rmasso=32.
 $end
 
 $speeds
-	cs_inner=0.021 alf_inner1=0.00000 alf_inner2=0.00000 alpha_e=6.0     ! T_i = 90 eV, cs_inner uses only h species mass
+	cs_inner=0.021 b_inner1=94.20000 b_inner2=94.20000 alpha_e=6.0     ! T_i = 90 eV, cs_inner uses only h species mass
 	denh_inner=10. denq_torus=80. denh_torus=188. deno_torus=233.5     ! B = 450 nT
 	gravity=0.913 ti_te=10. gamma=1.6666     ! gravity is at r_inner, not surface
 	ringo=.f. update=.f. reload=.f.
 	divb_lores=.t. divb_hires=.f. reduct=1.
-	t_torus=0.25 aniso_factor=0.0625
+	t_torus=0.25 aniso_factor=1.0
 $end
 
 $windy
-	re_wind=35. cs_wind=0.01056 vx_wind1=0.400 vx_wind2=0.400     ! v_i = 100 km/s
+	re_wind=35. cs_wind=0.01056 vx_wind1=0.200 vx_wind2=0.200     ! v_i = 100 km/s
 	vy_wind1=0.00 vy_wind2=0.00 vz_wind1=0.00 vz_wind2=0.00
-	alfx_wind1=0.00 alfx_wind2=0.00
-	alfy_wind1=0.00 alfy_wind2=0.00
-	alfz_wind1=-0.221 alfz_wind2=-0.221
+	bx_wind1=-70.00 bx_wind2=-70.00
+	by_wind1=0.00 by_wind2=0.00
+	bz_wind1=-400.0 bz_wind2=-400.0
 	den_wind1=0.325 den_wind2=0.325     ! Right now this will be very unphysical, because the wind species is q only. Will need to be changed so left alone for now.
-	reynolds=256.0 resist=1. o_conc=0.125 rho_frac=0.001
+	reynolds=1000. resist=1. o_conc=0.125 rho_frac=0.001	! reynolds increased and resist reduced, to speed up wind transit. Adjust when stable for realism.
 	bfrac=1.0 vfrac=1.0
 $end
 

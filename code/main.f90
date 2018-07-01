@@ -170,15 +170,15 @@ program multifluid
 		rmassq, rmassh, rmasso
 		logical tilting
 		! group 'speeds'
-		real cs_inner, alf_inner1, alf_inner2, &
+		real cs_inner, b_inner1, b_inner2, &
 		alpha_e, denh_inner, denq_torus, denh_torus, deno_torus, &
 		gravity, ti_te, gamma, reduct, t_torus, aniso_factor
 		logical ringo, update, reload, divb_lores, divb_hires
 		! group 'windy'
 		real re_wind, cs_wind, &
 		vx_wind1, vx_wind2, vy_wind1, vy_wind2, vz_wind1, vz_wind2, &
-		alfx_wind1, alfx_wind2, alfy_wind1, alfy_wind2, alfz_wind1, &
-		alfz_wind2, den_wind1, den_wind2, &
+		bx_wind1, bx_wind2, by_wind1, by_wind2, bz_wind1, &
+		bz_wind2, den_wind1, den_wind2, &
 		reynolds, resist, o_conc, rho_frac, bfrac, vfrac
 		! group 'physical' 
 		real re_equiv, v_equiv, rho_equiv
@@ -302,7 +302,7 @@ program multifluid
 	!	**********************
     !	Unperturbed quantities
 	!	**********************
-		real b_equiv
+		real b_equiv, b_inner_sim1, b_inner_sim2
 		real bx0(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids),bz0(nx,ny,nz,n_grids)
 		!
 		real efldx(nx,ny,nz),efldy(nx,ny,nz),efldz(nx,ny,nz), &
@@ -510,15 +510,15 @@ program multifluid
 		run_name,write_dat,diagnostics
 		namelist/planet/bodyname,moonname,xdip,ydip,zdip,r_inner,torus_rad, &
 		tilt1,tilt2,tilting,rmassq,rmassh,rmasso
-		namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
+		namelist/speeds/cs_inner,b_inner1,b_inner2, &
 		alpha_e,denh_inner,denq_torus,denh_torus,deno_torus, &
 		gravity,ti_te,gamma,ringo,update,reload, &
 		divb_lores,divb_hires,reduct,t_torus,aniso_factor
 		namelist/windy/re_wind,cs_wind,vx_wind1,vx_wind2, &
 		vy_wind1,vy_wind2,vz_wind1,vz_wind2, &
-		alfx_wind1,alfx_wind2, &
-		alfy_wind1,alfy_wind2, &
-		alfz_wind1,alfz_wind2, &
+		bx_wind1,bx_wind2, &
+		by_wind1,by_wind2, &
+		bz_wind1,bz_wind2, &
 		den_wind1,den_wind2, &
 		reynolds,resist,o_conc,rho_frac,bfrac,vfrac
 		namelist/physical/re_equiv,v_equiv,rho_equiv, &
@@ -545,7 +545,7 @@ program multifluid
 			!
 		!
 	!	*************
-	!	Common blocks
+	!	Common blocks -- planned to be phased out
 	!	*************
 		real	vvx(nx,ny,nz), vvy(nx,ny,nz), vvz(nx,ny,nz), &
 				tvx(nx,ny,nz), tvy(nx,ny,nz), tvz(nx,ny,nz), &
@@ -839,22 +839,36 @@ program multifluid
 		!
 		wrkepres(nx,ny,nz,n_grids))
 		!
-	!
-	!
-	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-	!	@		PARAMETER DECLARATIONS COMPLETE			@
-	!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-	!
-	!
+		!
+		!
+		!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		!	@		PARAMETER DECLARATIONS COMPLETE			@
+		!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		!
+		!
+		!	*****************
+		!	Find equiv values
+		!	*****************
+		!
+		! Sim units are in units of equiv values. These quantities are
+		!	typically in SI times a power of 10, and are important for
+		!	keeping simulation calculations as close to unity as possible.
+		! Numerical factors appear for the following conversions:
+		! rho_equiv is in cm^-3 of rmassq species
+		! v_equiv is in km/s
+		!
+		b_equiv = v_equiv*1.e3 * sqrt(mu0 * rho_equiv*1.e6*m_prot) *1.e9 ! in nT
 !		!
 !		!	Calculate effective magnetic field strength
 !		!
+		b_inner_sim1 = b_inner1 / b_equiv ! Convert b_inner from nT into sim units
+		b_inner_sim2 = b_inner2 / b_equiv
 		erho = denh_inner * rmassh
-		b01 = alf_inner1 * sqrt(erho) * r_inner**3
-		b02 = alf_inner2 * sqrt(erho) * r_inner**3
-		alf_lim = 6.00 * alf_inner1
+		b01 = b_inner_sim1 * r_inner**3
+		b02 = b_inner_sim2 * r_inner**3
+		alf_lim = 6.00 * b_inner_sim1 / sqrt(erho)
 		b0 = b01
-		write(*,*)'b0: ',b0
+		write(*,*)'b_equiv, b0 (m * mu_0): ', b_equiv, b0
 		delb0 = (b02 - b01) / tmax	! Never used as of 08/27/17. MJS
 	!
 	!
@@ -874,19 +888,6 @@ program multifluid
     !		with total pressure constant which is needed for equilibrium
     !
     !
-	!	*****************
-	!	Find equiv values
-	!	*****************
-	!
-	! Sim units are in units of equiv values. These quantities are
-	!	typically in SI times a power of 10, and are important for
-	!	keeping simulation calculations as close to unity as possible.
-	! Numerical factors appear for the following conversions:
-	! rho_equiv is in cm^-3 of rmassq species
-	! v_equiv is in km/s
-	!
-	b_equiv = v_equiv*1.e3 * sqrt(mu0 * rho_equiv*1.e6*m_prot) *1.e9 ! in nT
-
     !	Now, find the equivalent pressure of magnetosphere for the given
     !		sound speed
 	!
@@ -913,12 +914,12 @@ program multifluid
     delvy_wind = (vy_wind2 - vy_wind1) / tmax
     delvz_wind = (vz_wind2 - vz_wind1) / tmax
     !
-    delbx_wind = ( alfx_wind2 * sqrt(rho_wind2) - alfx_wind1 * sqrt(rho_wind1) ) / tmax
-    delby_wind = ( alfy_wind2 * sqrt(rho_wind2) - alfy_wind1 * sqrt(rho_wind1) ) / tmax
-    delbz_wind = ( alfz_wind2 * sqrt(rho_wind2) - alfz_wind1 * sqrt(rho_wind1) ) / tmax
-    sbx_wind = alfx_wind1 * sqrt(rho_wind1)
-    sby_wind = alfy_wind1 * sqrt(rho_wind1)
-    sbz_wind = alfz_wind1 * sqrt(rho_wind1)
+    delbx_wind = ( bx_wind2 - bx_wind1 ) / b_equiv / tmax
+    delby_wind = ( by_wind2 - by_wind1 ) / b_equiv / tmax
+    delbz_wind = ( bz_wind2 - bz_wind1 ) / b_equiv / tmax
+    sbx_wind = bx_wind1 / b_equiv
+    sby_wind = by_wind1 / b_equiv
+    sbz_wind = bz_wind1 / b_equiv
     !
     deltg = tmax / float(ntgraph)
     deltinj = tmax / float(ntinj)
@@ -2285,10 +2286,9 @@ program multifluid
                         rot_hr2=ut2-nrot2*planet_per
                         if(.not.europa) rot_angle=2.*pi*rot_hr2/planet_per
                         !        write(*,*)'mak_dip half with', t_old(box),delt2
-                        call mak_dip_grd(bx0,by0,bz0,nx,ny,nz, &
-                            n_grids,mbndry,box,ijzero,numzero,mzero,r_inner, &
-                            grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
-                            grid_minvals(3,:), grid_maxvals(3,:) )
+                        call mak_dip_grd(b0,xdip,ydip,zdip,rot_angle,sin_tilt,cos_tilt,r_inner, &
+							nx,ny,nz,n_grids,mbndry,box,ijzero,numzero,mzero,grid_minvals,grid_maxvals, &
+							bx0,by0,bz0)
                     endif
                     !
                     !    *******************************
@@ -2576,10 +2576,9 @@ program multifluid
                         rot_hr2=ut2-nrot2*planet_per
                         if(.not.europa) rot_angle=2.*pi*rot_hr2/planet_per
                         !         write(*,*)'mak_dip full with',t_old(box),delt
-                        call mak_dip_grd(bx0,by0,bz0,nx,ny,nz,n_grids, &
-                            mbndry,box,ijzero,numzero,mzero,r_inner, &
-                            grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
-                            grid_minvals(3,:), grid_maxvals(3,:) )
+						call mak_dip_grd(b0,xdip,ydip,zdip,rot_angle,sin_tilt,cos_tilt,r_inner, &
+							nx,ny,nz,n_grids,mbndry,box,ijzero,numzero,mzero,grid_minvals,grid_maxvals, &
+							bx0,by0,bz0)
 						!
                     endif
                     rx=xspac(box)
