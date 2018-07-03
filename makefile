@@ -26,7 +26,7 @@ clean:
 	rm -f fluid??
 	rm -f git_hash.txt
 	rm -f nohup.out
-	echo "Remember to make rmgfx for a new run."
+	@echo "Remember to make rmgfx for a new run."
 
 gifs:
 	$(FC) $(FCFLAGS) -o figures/stack_gifs.x figures/stack_gifs.f90
