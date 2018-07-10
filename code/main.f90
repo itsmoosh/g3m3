@@ -200,6 +200,9 @@ program multifluid
 		! group 'params_europa'
 		logical europa
 		real eur_dip_tilt, eur_dip_rot, sheet_vel
+		! group 'params_interior'
+		logical layers
+		integer n_layers
 		!
 	!	*******************
 	!	Spacecraft file I/O
@@ -216,6 +219,7 @@ program multifluid
 		integer,parameter :: input_f=1
 		integer,parameter :: inp_o_f=2
 		integer,parameter :: params_eur_f=3
+		integer,parameter :: planetprofile_f=3
 		integer :: fluxs_f=21
 		integer :: speed_f=22
 		integer :: concs_f=23
@@ -236,6 +240,7 @@ program multifluid
 		character*8,parameter	:: fname_concs='conc.dat'
 		character*7,parameter	:: fluid_pre='fluid'
 		character*11,parameter	:: fname_restart='fluid_start'
+		character*30,parameter	:: fname_planetprofile='planetprofile.dat'
 		character*7		:: fname_reload=fluid_pre//'00'
 		character*7		:: fname_fluid=''
 		!
@@ -268,6 +273,12 @@ program multifluid
 		!
 		epres(nx,ny,nz,n_grids)
 		!
+	!
+	!	*****************************
+    !	Conductivity layer parameters
+	!	*****************************
+		real, allocatable, dimension(:) :: depths, conductivities
+	
 	!
 	!	****************************************************
     !	Work arrays for Runge-Kutta and smoothing: Main grid
@@ -528,6 +539,7 @@ program multifluid
 		namelist/crafthead/cname,num_vals,rot_closest,git_hash
 		!
 		namelist/params_europa/europa,eur_dip_tilt,eur_dip_rot,sheet_vel
+		namelist/params_interior/layers,n_layers
 	!
 	!
 	!	************************
@@ -626,6 +638,7 @@ program multifluid
     read(input_f,smooth)
 
 	read(params_eur_f,params_europa)
+	read(params_eur_f,params_interior)
 	
 	!
 	!	***********************************
@@ -732,6 +745,17 @@ program multifluid
 			moon_per = 1.e37
 			tilt = eur_dip_tilt
 			rot_angle = eur_dip_rot
+			if(layers) then
+				allocate( depths(n_layers+1), conductivities(n_layers) )
+				call planetprofile_layers( fname_planetprofile, &
+					planetprofile_f, n_layers, planet_rad, &
+					depths, conductivities )
+			else
+				allocate( depths(2), conductivities(1) )
+				depths(1) = 0.0
+				depths(2) = 1.0
+				conductivities(1) = 0.0
+			endif
 		else
 			tilt = planet_tilt
 		endif
