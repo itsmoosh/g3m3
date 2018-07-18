@@ -1,15 +1,16 @@
 !
-!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-!		@											@
-!		@		MULTIFLUID SIM MAIN SEQUENCE		@
-!		@											@
-!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+!		@														@
+!		@		GLOBAL 3D MAGNETOSPHERIC MULTIFLUID MODEL		@
+!		@				(G3M^3) MAIN SEQUENCE					@
+!		@														@
+!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 !
 !
-!   This is a 3-d modified three fluid simulation using
-!         electrons  : arrays starting with e
-!         solar wind : arrays starting with q (protons)
-!         ionospheric: arrays starting with o oxygen,
+!   This is a 3D, three-fluid simulation using
+!         electrons    : arrays starting with e
+!         [solar] wind : arrays starting with q (protons)
+!         ionospheric  : arrays starting with o oxygen,
 !                                           h hydrogen
 !
 !	Warnings: make sure space is compatible with graphics
