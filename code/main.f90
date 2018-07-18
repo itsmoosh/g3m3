@@ -1,12 +1,13 @@
 !
-!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-!		@											@
-!		@		MULTIFLUID SIM MAIN SEQUENCE		@
-!		@											@
-!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+!		@														@
+!		@		GLOBAL 3D MAGNETOSPHERIC MULTIFLUID MODEL		@
+!		@				(G3M^3) MAIN SEQUENCE					@
+!		@														@
+!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 !
 !
-!   This is a 3-d modified three fluid simulation using
+!   This is a 3D, three-fluid simulation using
 !         electrons  : arrays starting with e
 !         solar wind : arrays starting with q (protons)
 !         ionospheric: arrays starting with o oxygen,
@@ -277,7 +278,7 @@ program multifluid
 	!	*****************************
     !	Conductivity layer parameters
 	!	*****************************
-		real, allocatable, dimension(:) :: depths, conductivities
+		real, allocatable, dimension(:) :: depths, conductivities, cond_rads
 	
 	!
 	!	****************************************************
@@ -751,11 +752,22 @@ program multifluid
 					planetprofile_f, n_layers, planet_rad, &
 					depths, conductivities )
 			else
-				allocate( depths(2), conductivities(1) )
+				n_layers = 1        
+				allocate( depths(2), conductivities(1), cond_rads(2) )
 				depths(1) = 0.0
 				depths(2) = 1.0
 				conductivities(1) = 0.0
 			endif
+
+			allocate(cond_rads(n_layers+1))
+			cond_rads(:) = 1.0 - depths(:)
+
+			write(*,*) " "
+			write(*,*) "Conductivity layer details:"
+			do i=1, n_layers
+				write(*,'(A6,I2.2,A5,F5.2,A2,F5.2,A10,F5.2,A4)') "Layer ", i, ": r =", cond_rads(i), " -", cond_rads(i+1), " R_P, σ = ", conductivities(i), " S/m"
+			enddo
+			write(*,*) " "
 		else
 			tilt = planet_tilt
 		endif
