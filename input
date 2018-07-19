@@ -1,7 +1,8 @@
 
 $option
-	tmax=1000.01 ntgraph=20 stepsz=0.075 start=.t. tsave=200.
-	isotropic=.f. run_name="europai" write_dat=.f. diagnostics=.f.
+	tmax=100.01 ntgraph=20 stepsz=0.075 start=.t. tsave=100.
+	isotropic=.f. run_name="induct" write_dat=.f. diagnostics=.f.
+	plasma=.f.
 $end
 
 $planet
@@ -18,6 +19,7 @@ $speeds
 	ringo=.f. update=.f. reload=.f.
 	divb_lores=.t. divb_hires=.f. reduct=1.
 	t_torus=0.25 aniso_factor=1.0
+	den_init=20.
 $end
 
 $windy

@@ -13,14 +13,10 @@
 !         ionospheric: arrays starting with o oxygen,
 !                                           h hydrogen
 !
-!	Warnings: make sure space is compatible with graphics
-!               routines
-!             the arrays ijzero,ijmid  and ijsrf have to
-!               be modified in bsubs.f if modified in main
-!             add in mirror dipole so bx is zero at wind boundary
-!             graphics - contour and flows - have to be manually set
-!               for right aspect ratios
-!             plasma and magnetic field data must be aligned in time
+!	Warnings: This branch is intended for testing and verification
+!		of magnetic induction in conducting layers within Europa.
+!		Many quantities are zeroed at each time step so that plasma
+!	physics is not affecting the applied or induced magnetic fields.
 !
 !	Grid within grid size nt = division*n_grids
 !	ncts is the size of the data array for the IMF data input file
@@ -162,7 +158,7 @@ program multifluid
 		! group 'option':
 		real tmax, stepsz, tsave
 		integer ntgraph, ntinj
-		logical start, isotropic, write_dat, diagnostics
+		logical start, isotropic, write_dat, diagnostics, plasma
 		character*8 run_name
 		! group 'planet'
 		character*10 bodyname, moonname
@@ -173,7 +169,7 @@ program multifluid
 		! group 'speeds'
 		real cs_inner, b_inner1, b_inner2, &
 		alpha_e, denh_inner, denq_torus, denh_torus, deno_torus, &
-		gravity, ti_te, gamma, reduct, t_torus, aniso_factor
+		gravity, ti_te, gamma, reduct, t_torus, aniso_factor, den_init
 		logical ringo, update, reload, divb_lores, divb_hires
 		! group 'windy'
 		real re_wind, cs_wind, &
@@ -519,13 +515,13 @@ program multifluid
 	!	Namelists for file I/O
 	!	**********************
 		namelist/option/tmax,ntgraph,stepsz,start,tsave,ntinj,isotropic, &
-		run_name,write_dat,diagnostics
+		run_name,write_dat,diagnostics,plasma
 		namelist/planet/bodyname,moonname,xdip,ydip,zdip,r_inner,torus_rad, &
 		tilt1,tilt2,tilting,rmassq,rmassh,rmasso
 		namelist/speeds/cs_inner,b_inner1,b_inner2, &
 		alpha_e,denh_inner,denq_torus,denh_torus,deno_torus, &
 		gravity,ti_te,gamma,ringo,update,reload, &
-		divb_lores,divb_hires,reduct,t_torus,aniso_factor
+		divb_lores,divb_hires,reduct,t_torus,aniso_factor,den_init
 		namelist/windy/re_wind,cs_wind,vx_wind1,vx_wind2, &
 		vy_wind1,vy_wind2,vz_wind1,vz_wind2, &
 		bx_wind1,bx_wind2, &
@@ -927,29 +923,46 @@ program multifluid
     !	Now, find the equivalent pressure of magnetosphere for the given
     !		sound speed
 	!
-    gamma1 = gamma - 1.
-    epress = cs_inner**2 * erho / gamma
-    eerg = epress / gamma1
-    !
-    !	Do the same for the solar wind
-    !
-    rho_wind1 = den_wind1 * rmassq
-    rho_wind2 = den_wind2 * rmassq
-    srho = rho_wind1
-    delrho = (rho_wind2 - rho_wind1) / tmax
-    spress = (cs_wind**2 * srho / gamma) / gamma1
-    svelx = vx_wind1
-    svely = vy_wind1
-    svelz = vz_wind1
-    !
-    spx = srho * svelx
-    spy = srho * svely
-    spz = srho * svelz
-    serg = 0.5 * (svelx**2 + svely**2 + svelz**2) * srho + spress
-    delvx_wind = (vx_wind2 - vx_wind1) / tmax
-    delvy_wind = (vy_wind2 - vy_wind1) / tmax
-    delvz_wind = (vz_wind2 - vz_wind1) / tmax
-    !
+	gamma1 = gamma - 1.
+
+	if(plasma) then
+		epress = cs_inner**2 * erho / gamma
+		!
+		!	Do the same for the solar wind
+		!
+		rho_wind1 = den_wind1 * rmassq
+		rho_wind2 = den_wind2 * rmassq
+		srho = rho_wind1
+		spress = (cs_wind**2 * srho / gamma) / gamma1
+		svelx = vx_wind1
+		svely = vy_wind1
+		svelz = vz_wind1
+		!
+		delvx_wind = (vx_wind2 - vx_wind1) / tmax
+		delvy_wind = (vy_wind2 - vy_wind1) / tmax
+		delvz_wind = (vz_wind2 - vz_wind1) / tmax
+	else
+		rho_wind1 = den_init
+		rho_wind2 = den_init
+		srho = den_init
+		svelx = 0
+		svely = 0
+		svelz = 0
+		delvx_wind = 0
+		delvy_wind = 0
+		delvz_wind = 0
+
+		spress = 0
+		epres = 0
+	endif
+
+	eerg = epress / gamma1
+	delrho = (rho_wind2 - rho_wind1) / tmax		
+	spx = srho * svelx
+	spy = srho * svely
+	spz = srho * svelz
+	serg = 0.5 * (svelx**2 + svely**2 + svelz**2) * srho + spress
+	
     delbx_wind = ( bx_wind2 - bx_wind1 ) / b_equiv / tmax
     delby_wind = ( by_wind2 - by_wind1 ) / b_equiv / tmax
     delbz_wind = ( bz_wind2 - bz_wind1 ) / b_equiv / tmax
