@@ -90,18 +90,22 @@ program multifluid
 		integer mzero	!	Number of grid points to zero inside innermost boundary
 		integer mmid	!	Number of grid points in 'mid' region between inner boundary and zero region
 		integer msrf	!	Number of grid points on inner boundary surface
-		real,parameter	:: zero_bndry_offset = -1.5
-		real,parameter	:: mid_bndry_offset = -0.5
-		real,parameter	:: srf_bndry_offset = 0.6
+		integer m_layers	! Number of grid points in conducting layers
+		real,parameter	:: zero_bndry_offset = 0.0
+		real,parameter	:: mid_bndry_offset = 0.1
+		real,parameter	:: srf_bndry_offset = 0.2
 		real zero_bndry
 		real mid_bndry
 		real srf_bndry
 		integer,allocatable	:: ijsrf(:,:,:)
 		integer,allocatable	:: ijmid(:,:,:)
 		integer,allocatable	:: ijzero(:,:,:)
+		integer,allocatable :: ijlayers(:,:,:)
+		integer,allocatable :: ij_perlayer(:,:,:,:)
 		integer	numsrf(mbndry)
 		integer	nummid(mbndry)
 		integer	numzero(mbndry)
+		integer,allocatable :: numlayerpts(:) 
 		real,allocatable	:: parm_srf(:,:,:)
 		real,allocatable	:: parm_mid(:,:,:)
 		real,allocatable	:: parm_zero(:,:,:)
@@ -714,14 +718,6 @@ program multifluid
     enddo
 	!
 	!	**************************
-	!	Set inner boundary regions
-	!	**************************
-		!
-		zero_bndry = r_inner + zero_bndry_offset
-		mid_bndry = r_inner + mid_bndry_offset
-		srf_bndry = r_inner + srf_bndry_offset
-		!
-	!	**************************
 	!	Planet & moon calculations
 	!	**************************
 		!
@@ -738,36 +734,52 @@ program multifluid
 		!	moon_incl,			moon_init_rot,
 		call choose_system(bodyname,moonname)
 		if(europa) then		! Set rotation rates to zero for Europa sim so no corotation is forced into already corotating plasa
-			planet_per = 1.e36
-			moon_per = 1.e37
-			tilt = eur_dip_tilt
+			planet_per = eur_synodic
+			moon_per = eur_sid_per
+			tilt = jupiter_tilt
+			xdip = jupiter_xdip * jupiter_rad / eur_rad / re_equiv
+			ydip = (jupiter_ydip + eur_orbit_rad) * jupiter_rad / eur_rad / re_equiv
+			zdip = jupiter_zdip * jupiter_rad / eur_rad / re_equiv
 			rot_angle = eur_dip_rot
-			if(layers) then
-				allocate( depths(n_layers+1), conductivities(n_layers) )
-				call planetprofile_layers( fname_planetprofile, &
-					planetprofile_f, n_layers, planet_rad, &
-					depths, conductivities )
-			else
-				n_layers = 1        
-				allocate( depths(2), conductivities(1), cond_rads(2) )
-				depths(1) = 0.0
-				depths(2) = 1.0
-				conductivities(1) = 0.0
-			endif
-
-			allocate(cond_rads(n_layers+1))
-			cond_rads(:) = 1.0 - depths(:)
-
-			write(*,*) " "
-			write(*,*) "Conductivity layer details:"
-			do i=1, n_layers
-				write(*,'(A6,I2.2,A5,F5.2,A2,F5.2,A10,F5.2,A4)') "Layer ", i, ": r =", cond_rads(i), " -", cond_rads(i+1), " R_P, σ = ", conductivities(i), " S/m"
-			enddo
-			write(*,*) " "
 		else
 			tilt = planet_tilt
+			layers = .False.
 		endif
-		!
+
+		if(layers) then
+			allocate( depths(n_layers+1), conductivities(n_layers) )
+			call planetprofile_layers( fname_planetprofile, &
+				planetprofile_f, n_layers, planet_rad, &
+				depths, conductivities )
+		else
+			n_layers = 1        
+			allocate( depths(2), conductivities(1) )
+			depths(1) = 0.0
+			depths(2) = 1.0
+			conductivities(1) = 0.0
+		endif
+
+		allocate(cond_rads(n_layers+1))
+		cond_rads(:) = 1.0 - depths(:)
+
+
+	!	**************************
+	!	Set inner boundary regions
+	!	**************************
+		
+		zero_bndry = (cond_rads(n_layers+1) + zero_bndry_offset)/re_equiv
+		mid_bndry = r_inner + mid_bndry_offset/re_equiv
+		srf_bndry = r_inner + srf_bndry_offset/re_equiv
+
+		write(*,*) " "
+		write(*,*) "Conductivity layer details:"
+		do i=1, n_layers
+			write(*,'(A6,I2.2,A5,F5.2,A2,F5.2,A10,F5.2,A4)') "Layer ", i, ": r =", cond_rads(i), " -", cond_rads(i+1), " R_P, σ = ", conductivities(i), " S/m"
+		enddo
+		write(*,*) " "
+
+		m_layers  = 1.2 * 1.33*pi*( (amax1(cond_rads(1),1.0)/re_equiv)**3 - (cond_rads(n_layers+1)/re_equiv)**3)/xspac(mbndry)**3
+
 		r_rot = r_lim
 		v_rot = 2.*pi*planet_rad/(planet_per*3600.)/v_equiv  !	Normalized rotation rate
 		torus_inj_dist = torus_dist + torus_infall
@@ -814,10 +826,11 @@ program multifluid
 	!
 	!
 		!
-		!	Numbers of grid points to zero inside inner boundary
+		!	Numbers of grid points for planetary interior and ionosphere
 		!
 		allocate(ijsrf(mbndry,3,msrf), ijmid(mbndry,3,mmid), &
-		ijzero(mbndry,3,mzero), &
+		ijzero(mbndry,3,mzero), & ijlayers(mbndry,3,m_layers), &
+		numlayerpts(n_layers), ij_perlayer(mbndry,3,m_layers,n_layers), &
 		!
 		parm_srf(mbndry,num_zqt,msrf), &
 		parm_mid(mbndry,num_zqt,mmid), &
@@ -896,8 +909,14 @@ program multifluid
 		b_inner_sim1 = b_inner1 / b_equiv ! Convert b_inner from nT into sim units
 		b_inner_sim2 = b_inner2 / b_equiv
 		erho = denh_inner * rmassh
-		b01 = b_inner_sim1 * r_inner**3
-		b02 = b_inner_sim2 * r_inner**3
+		if(europa) then
+			! Jupiter surface field strength ~ 766.6 μT
+			b01 = 766.6e3/b_equiv * (r_inner * jupiter_rad / eur_rad)**3
+			b02 = b01
+		else
+			b01 = b_inner_sim1 * r_inner**3
+			b02 = b_inner_sim2 * r_inner**3
+		endif
 		alf_lim = 6.00 * b_inner_sim1 / sqrt(erho)
 		b0 = b01
 		write(*,*)'b_equiv, b0 (m * mu_0): ', b_equiv, b0
@@ -1235,9 +1254,7 @@ program multifluid
 		!	**************
 			!	Initialize indices and surface points
 		    !
-		    numsrf=0
-		    nummid=0
-		    numzero=0
+		    allocate(numsrf(mbndry),nummid(mbndry),numzero(mbndry))
 		    !
 		    write(*,*)'Initial torus_inj_dist, rot_angle: ',torus_inj_dist, rot_angle
 		    !
@@ -1277,11 +1294,11 @@ program multifluid
                         !
                         !	Zero interior magnetic field so alfven speed small
                         !
-                        if (ar.lt.zero_bndry) then
-                            bx0(i,j,k,box)=0.
-                            by0(i,j,k,box)=0.
-                            bz0(i,j,k,box)=0.
-                        endif
+!                        if (ar.lt.zero_bndry) then
+ !                           bx0(i,j,k,box)=0.
+  !                          by0(i,j,k,box)=0.
+   !                         bz0(i,j,k,box)=0.
+    !                    endif
                         !
                         !	Set up rotational properties
                         !
@@ -1301,7 +1318,6 @@ program multifluid
 						!	For Europa ionosphere distribution
 						!
 						if(europa) then
-							
 							ar_iono=sqrt(xp**2+yp**2+zp**2)
 							ra = ( (ar_iono+0.5*r_inner) / (1.5*r_inner) )**(-alpha_e)
 							zheight = 1.	! placeholder for now
@@ -1403,6 +1419,22 @@ program multifluid
                                 parm_zero(box,6,numzero(box))=opresx(i,j,k,box)
                                 parm_zero(box,7,numzero(box))=epres(i,j,k,box)
                                 !
+							else if( (ar*re_equiv) .lt. 1.0 ) then
+								numlayerpts(box) = numlayerpts(box) + 1
+								if( (ar*re_equiv) .ge. cond_rads(nlayers+1) ) then
+									
+								endif
+								do ilayer = 1, n_layers
+									if( (ar*re_equiv).lt.cond_rads(ilayer) .and. (ar*re_equiv).ge.cond_rads(ilayer+1) )
+										num_perlayer(ilayer) = num_perlayer(ilayer) + 1
+				                        ijlayers(box,1,numlayerpts(box))=i
+				                        ijlayers(box,2,numlayerpts(box))=j
+				                        ijlayers(box,3,numlayerpts(box))=k
+										ij_perlayer(box,1,numlayerpts(box),ilayer)=i
+										ij_perlayer(box,2,numlayerpts(box),ilayer)=j
+										ij_perlayer(box,3,numlayerpts(box),ilayer)=k
+									endif
+								enddo								
                             else if(ar.lt.mid_bndry) then
                                 nummid(box)=nummid(box)+1
                                 ijmid(box,1,nummid(box))=i
@@ -1439,9 +1471,9 @@ program multifluid
         enddo	! end boxes loop
         !
         write(*,*) 'Interior and zero points:'
-		write(*,'(4(A12))') 'box','srf','mid','zero'
+		write(*,'(5(A12))') 'box','srf','mid','zero','layers'
         do box=1,mbndry
-            write(*,'(4(I12))') box,numsrf(box),nummid(box),numzero(box)
+            write(*,'(5(I12))') box,numsrf(box),nummid(box),numzero(box),sum(numlayerpts)
         enddo
         !
         !	Initialize solar wind plasma. Inserted beyond
@@ -1888,7 +1920,44 @@ program multifluid
     do while(t.lt.tmax)
         !
         write(*,*)'Start main loop, t=',t
-        !
+
+		if(.not.plasma) then
+			call zero_qty(qrho,nx,ny,nz,n_grids) ! We don't zero densities
+		    call zero_qty(qpresx,nx,ny,nz,n_grids)
+		    call zero_qty(qpresy,nx,ny,nz,n_grids)
+		    call zero_qty(qpresz,nx,ny,nz,n_grids)
+		    call zero_qty(qpresxy,nx,ny,nz,n_grids)
+		    call zero_qty(qpresxz,nx,ny,nz,n_grids)
+		    call zero_qty(qpresyz,nx,ny,nz,n_grids)
+		    call zero_qty(qpx,nx,ny,nz,n_grids)
+		    call zero_qty(qpy,nx,ny,nz,n_grids)
+		    call zero_qty(qpz,nx,ny,nz,n_grids)
+		    !
+		    !call zero_qty(hrho,nx,ny,nz,n_grids) ! We don't zero densities
+		    call zero_qty(hpresx,nx,ny,nz,n_grids)
+		    call zero_qty(hpresy,nx,ny,nz,n_grids)
+		    call zero_qty(hpresz,nx,ny,nz,n_grids)
+		    call zero_qty(hpresxy,nx,ny,nz,n_grids)
+		    call zero_qty(hpresxz,nx,ny,nz,n_grids)
+		    call zero_qty(hpresyz,nx,ny,nz,n_grids)
+		    call zero_qty(hpx,nx,ny,nz,n_grids)
+		    call zero_qty(hpy,nx,ny,nz,n_grids)
+		    call zero_qty(hpz,nx,ny,nz,n_grids)
+		    !
+		    !call zero_qty(orho,nx,ny,nz,n_grids) ! We don't zero densities
+		    call zero_qty(opresx,nx,ny,nz,n_grids)
+		    call zero_qty(opresy,nx,ny,nz,n_grids)
+		    call zero_qty(opresz,nx,ny,nz,n_grids)
+		    call zero_qty(opresxy,nx,ny,nz,n_grids)
+		    call zero_qty(opresxz,nx,ny,nz,n_grids)
+		    call zero_qty(opresyz,nx,ny,nz,n_grids)
+		    call zero_qty(opx,nx,ny,nz,n_grids)
+		    call zero_qty(opy,nx,ny,nz,n_grids)
+		    call zero_qty(opz,nx,ny,nz,n_grids)
+		    !
+		    call zero_qty(epres,nx,ny,nz,n_grids)
+		endif
+
         do box=n_grids,1,-1
             t_step(box)=t_stepnew(box)
             !

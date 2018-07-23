@@ -174,59 +174,59 @@ subroutine mak_dip_grd(b0,xdip,ydip,zdip,rot_angle,sin_tilt,cos_tilt,r_inner, &
 			y1 = ( ay - ydip )
 			!
 			do  i=1, nx
-			ax = grid_minvals(1,box) + dx*(i-1)
-			x1 = ( ax - xdip )
-			!
-			!	Rotate coordinates for planet motion
-			!
-			xr =  x1*cos_rot + y1*sin_rot
-			yr = -x1*sin_rot + y1*cos_rot
-			!
-			!	Tilt space to dipole space
-			!
-			xp = xr*cos_tilt - z1*sin_tilt
-			yp = yr
-			zp = xr*sin_tilt + z1*cos_tilt
-			!
-			x2 = xp**2
-			y2 = yp**2
-			z2 = zp**2
-			ar = sqrt( x2 + y2 + z2 )
-			!
-			!	Calculate dipole field in tilted space (dipole axis along z)
-			!
-			! b0 is mu_0 * m, where m is magnetic dipole moment
-			bmag = -b0/ar**5
+				ax = grid_minvals(1,box) + dx*(i-1)
+				x1 = ( ax - xdip )
+				!
+				!	Rotate coordinates for planet motion
+				!
+				xr =  x1*cos_rot + y1*sin_rot
+				yr = -x1*sin_rot + y1*cos_rot
+				!
+				!	Tilt space to dipole space
+				!
+				xp = xr*cos_tilt - z1*sin_tilt
+				yp = yr
+				zp = xr*sin_tilt + z1*cos_tilt
+				!
+				x2 = xp**2
+				y2 = yp**2
+				z2 = zp**2
+				ar = sqrt( x2 + y2 + z2 )
+				!
+				!	Calculate dipole field in tilted space (dipole axis along z)
+				!
+				! b0 is μ_0 * m, where m is magnetic dipole moment
+				bmag = -b0/ar**5
 
-			dbx = -3.*bmag*xp*zp
-			dby = -3.*bmag*yp*zp
-			dbz = bmag*(x2+y2-2.*z2)
-			!
-			!	Tilt B back to coordinate space
-			!
-			rbx =  dbx*cos_tilt + dbz*sin_tilt
-			rby =  dby
-			rbz = -dbx*sin_tilt + dbz*cos_tilt
-			!
-			!	Rotate B for time passed
-			!
-			abx = rbx*cos_rot - rby*sin_rot
-			aby = rbx*sin_rot + rby*cos_rot
-			abz = rbz
-			!
-			!	Zero out B inside the body
-			!	This seems redundant given the conditional for the interior boundary following the loop over grid points. Remove? MJS 6/29/18
-			!
-			if(ar.gt.r_inner-1.5) then
-				bx0(i,j,k,box) = abx
-				by0(i,j,k,box) = aby
-				bz0(i,j,k,box) = abz
-			else
-				bx0(i,j,k,box) = 0.
-				by0(i,j,k,box) = 0.
-				bz0(i,j,k,box) = 0.
-			endif
-			!
+				dbx = -3.*bmag*xp*zp
+				dby = -3.*bmag*yp*zp
+				dbz = bmag*(x2+y2-2.*z2)
+				!
+				!	Tilt B back to coordinate space
+				!
+				rbx =  dbx*cos_tilt + dbz*sin_tilt
+				rby =  dby
+				rbz = -dbx*sin_tilt + dbz*cos_tilt
+				!
+				!	Rotate B for time passed
+				!
+				abx = rbx*cos_rot - rby*sin_rot
+				aby = rbx*sin_rot + rby*cos_rot
+				abz = rbz
+				!
+				!	Zero out B inside the body
+				!	This seems redundant given the conditional for the interior boundary following the loop over grid points. Remove? MJS 6/29/18
+				!
+				if(ar.gt.r_inner-1.5) then
+					bx0(i,j,k,box) = abx
+					by0(i,j,k,box) = aby
+					bz0(i,j,k,box) = abz
+				else
+					bx0(i,j,k,box) = 0.
+					by0(i,j,k,box) = 0.
+					bz0(i,j,k,box) = 0.
+				endif
+				!
 			enddo
 		enddo
 	enddo

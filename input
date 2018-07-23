@@ -7,7 +7,7 @@ $end
 
 $planet
 	bodyname="europa" moonname="none"
-	xdip=0.00001 ydip=0.00000 zdip=0.000000 r_inner=5.0 
+	xdip=0.00000 ydip=0.00000 zdip=0.000000 r_inner=5.0 
 	torus_rad=1.0 tilt1=90.0 tilt2=90.0 tilting =.t. 
 	rmassq=1. rmassh=16. rmasso=32.
 $end
