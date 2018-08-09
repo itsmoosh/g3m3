@@ -27,25 +27,26 @@ subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
 	!
 	! parallelizes loop. RW, oct. 23, 2002
 	!$omp  parallel do
-	do k=1,nz
-        do j=1,ny
-            do i=1,nx
+!	do k=1,nz
+ !       do j=1,ny
+  !          do i=1,nx
+   !             !
+    !            avx=evx(i,j,k)
+     !           avy=evy(i,j,k)
+      !          avz=evz(i,j,k)
+       !         !
+        !        abx=bsx(i,j,k)
+         !       aby=bsy(i,j,k)
+          !      abz=bsz(i,j,k)
+           !     !
+				! Need E to just be derived from B when in vacuum
+                !efldx(i,j,k)=-(avy*abz-avz*aby)
+                !efldy(i,j,k)=-(avz*abx-avx*abz)
+                !efldz(i,j,k)=-(avx*aby-avy*abx)
                 !
-                avx=evx(i,j,k)
-                avy=evy(i,j,k)
-                avz=evz(i,j,k)
-                !
-                abx=bsx(i,j,k)
-                aby=bsy(i,j,k)
-                abz=bsz(i,j,k)
-                !
-                efldx(i,j,k)=-(avy*abz-avz*aby)
-                efldy(i,j,k)=-(avz*abx-avx*abz)
-                efldz(i,j,k)=-(avx*aby-avy*abx)
-                !
-            enddo
-        enddo
-    enddo
+            !enddo
+        !enddo
+    !enddo
     !
     !     add in grad p term
     !
@@ -63,7 +64,11 @@ subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
             do i=2,nx-1
                 ip=i+1
                 im=i-1
-                !
+
+                efldx(i,j,k)=-(avy*abz-avz*aby)
+                efldy(i,j,k)=-(avz*abx-avx*abz)
+                efldz(i,j,k)=-(avx*aby-avy*abx)				
+
                 arho=(qrho(i,j,k,box)/rmassq+hrho(i,j,k,box)/rmassh+ &
                 orho(i,j,k,box)/rmasso)*reynolds
                 !
@@ -83,6 +88,19 @@ subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
     if((box.le.mbndry).and.(resist.lt.5000.))then
         ! parallelizes loop. RW, oct. 23, 2002
         !$omp  parallel do
+		do n=1,nummid(box)
+            i=ijmid(box,1,n)
+            j=ijmid(box,2,n)
+            k=ijmid(box,3,n)
+            !
+            eden=(qrho(i,j,k,box)/rmassq+hrho(i,j,k,box)/rmassh+ &
+            orho(i,j,k,box)/rmasso)
+            !
+            efldx(i,j,k)=efldx(i,j,k)+rst(i,j,k,box)*curx(i,j,k)/eden
+            efldy(i,j,k)=efldy(i,j,k)+rst(i,j,k,box)*cury(i,j,k)/eden
+            efldz(i,j,k)=efldz(i,j,k)+rst(i,j,k,box)*curz(i,j,k)/eden
+        enddo
+        !$omp  parallel do
         do n=1,nummid(box)
             i=ijmid(box,1,n)
             j=ijmid(box,2,n)
@@ -95,10 +113,24 @@ subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
             efldy(i,j,k)=efldy(i,j,k)+rst(i,j,k,box)*cury(i,j,k)/eden
             efldz(i,j,k)=efldz(i,j,k)+rst(i,j,k,box)*curz(i,j,k)/eden
         enddo
+        !$omp  parallel do
         do n=1,numzero(box)
             i=ijzero(box,1,n)
             j=ijzero(box,2,n)
             k=ijzero(box,3,n)
+            !
+            eden=(qrho(i,j,k,box)/rmassq+hrho(i,j,k,box)/rmassh+ &
+            orho(i,j,k,box)/rmasso)
+            !
+            efldx(i,j,k)=efldx(i,j,k)+rst(i,j,k,box)*curx(i,j,k)/eden
+            efldy(i,j,k)=efldy(i,j,k)+rst(i,j,k,box)*cury(i,j,k)/eden
+            efldz(i,j,k)=efldz(i,j,k)+rst(i,j,k,box)*curz(i,j,k)/eden
+        enddo
+        !$omp  parallel do
+        do n=1,numlayerpts(box)
+            i=ijlayers(box,1,n)
+            j=ijlayers(box,2,n)
+            k=ijlayers(box,3,n)
             !
             eden=(qrho(i,j,k,box)/rmassq+hrho(i,j,k,box)/rmassh+ &
             orho(i,j,k,box)/rmasso)

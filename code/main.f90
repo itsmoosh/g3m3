@@ -91,9 +91,9 @@ program multifluid
 		integer mmid	!	Number of grid points in 'mid' region between inner boundary and zero region
 		integer msrf	!	Number of grid points on inner boundary surface
 		integer m_layers	! Number of grid points in conducting layers
-		real,parameter	:: zero_bndry_offset = 0.0
-		real,parameter	:: mid_bndry_offset = 0.1
-		real,parameter	:: srf_bndry_offset = 0.2
+		real,parameter	:: zero_bndry_offset = 0.0	! Offset relative to innermost conducting layer, in R_P
+		real,parameter	:: mid_bndry_offset = 0.1	! Dense ionosphere layer offset from planet surface, in R_P
+		real,parameter	:: srf_bndry_offset = 0.2	! Outermost edge of ionospheric resistance, in R_P beyond planet surface
 		real zero_bndry
 		real mid_bndry
 		real srf_bndry
@@ -101,11 +101,14 @@ program multifluid
 		integer,allocatable	:: ijmid(:,:,:)
 		integer,allocatable	:: ijzero(:,:,:)
 		integer,allocatable :: ijlayers(:,:,:)
-		integer,allocatable :: ij_perlayer(:,:,:,:)
 		integer	numsrf(mbndry)
 		integer	nummid(mbndry)
 		integer	numzero(mbndry)
-		integer,allocatable :: numlayerpts(:) 
+		! Note: num_perlayer is the number of grid points within each
+		!	conducting layer; the final entry, at num_perlayer(n_layers+1),
+		!	refers to the ice shell layer, although the other layers are
+		!	in order of increasing depth.
+		integer,allocatable :: numlayerpts(:), num_perlayer(:), layer_id(:)
 		real,allocatable	:: parm_srf(:,:,:)
 		real,allocatable	:: parm_mid(:,:,:)
 		real,allocatable	:: parm_zero(:,:,:)
@@ -830,7 +833,7 @@ program multifluid
 		!
 		allocate(ijsrf(mbndry,3,msrf), ijmid(mbndry,3,mmid), &
 		ijzero(mbndry,3,mzero), & ijlayers(mbndry,3,m_layers), &
-		numlayerpts(n_layers), ij_perlayer(mbndry,3,m_layers,n_layers), &
+		numlayerpts(n_layers), num_perlayer(n_layers+1), layer_id(m_layers), &
 		!
 		parm_srf(mbndry,num_zqt,msrf), &
 		parm_mid(mbndry,num_zqt,mmid), &
@@ -1169,8 +1172,8 @@ program multifluid
         !	Initialize plasma resistivity
         !
         call set_resist(resistive,nx,ny,nz,mbndry,resist, &
-            ijzero,numzero,ijmid,nummid,ijsrf,numsrf, &
-            msrf,mmid,mzero,1.)
+            ijzero,numzero, ijmid,nummid, ijsrf,numsrf, ijlayers,numlayerpts, &
+            msrf,mmid,mzero,m_layers,1.,conductivities)
         !
 		write(*,*) 'Graphing data.'
 		call write_graphing_data( &
@@ -1421,20 +1424,25 @@ program multifluid
                                 !
 							else if( (ar*re_equiv) .lt. 1.0 ) then
 								numlayerpts(box) = numlayerpts(box) + 1
-								if( (ar*re_equiv) .ge. cond_rads(nlayers+1) ) then
-									
+								if( (ar*re_equiv) .ge. cond_rads(1) ) then
+									write(*,*) "Debug: ice layer, ar = ", ar, "ijk = ", i,j,k
+									num_perlayer(n_layers+1) = num_perlayer(n_layers+1) + 1
+			                        ijlayers(box,1,numlayerpts(box))=i
+			                        ijlayers(box,2,numlayerpts(box))=j
+			                        ijlayers(box,3,numlayerpts(box))=k
+									layer_id(numlayerpts(box)) = n_layers+1
+								else
+									do ilayer = 1, n_layers
+										if( (ar*re_equiv).lt.cond_rads(ilayer) .and. (ar*re_equiv).ge.cond_rads(ilayer+1) )
+											write(*,*) "Debug: ocean layer ",ilayer,", ar = ", ar, "ijk = ", i,j,k
+											num_perlayer(ilayer) = num_perlayer(ilayer) + 1
+						                    ijlayers(box,1,numlayerpts(box))=i
+						                    ijlayers(box,2,numlayerpts(box))=j
+						                    ijlayers(box,3,numlayerpts(box))=k
+											layer_id(numlayerpts(box)) = ilayer
+										endif
+									enddo								
 								endif
-								do ilayer = 1, n_layers
-									if( (ar*re_equiv).lt.cond_rads(ilayer) .and. (ar*re_equiv).ge.cond_rads(ilayer+1) )
-										num_perlayer(ilayer) = num_perlayer(ilayer) + 1
-				                        ijlayers(box,1,numlayerpts(box))=i
-				                        ijlayers(box,2,numlayerpts(box))=j
-				                        ijlayers(box,3,numlayerpts(box))=k
-										ij_perlayer(box,1,numlayerpts(box),ilayer)=i
-										ij_perlayer(box,2,numlayerpts(box),ilayer)=j
-										ij_perlayer(box,3,numlayerpts(box),ilayer)=k
-									endif
-								enddo								
                             else if(ar.lt.mid_bndry) then
                                 nummid(box)=nummid(box)+1
                                 ijmid(box,1,nummid(box))=i
@@ -1473,7 +1481,7 @@ program multifluid
         write(*,*) 'Interior and zero points:'
 		write(*,'(5(A12))') 'box','srf','mid','zero','layers'
         do box=1,mbndry
-            write(*,'(5(I12))') box,numsrf(box),nummid(box),numzero(box),sum(numlayerpts)
+            write(*,'(5(I12))') box,numsrf(box),nummid(box),numzero(box),numlayerpts(box)
         enddo
         !
         !	Initialize solar wind plasma. Inserted beyond
@@ -1639,8 +1647,8 @@ program multifluid
 		!	Initialize plasma resistivity
 		!
 		call set_resist(resistive,nx,ny,nz,mbndry,resist, &
-		    ijzero,numzero,ijmid,nummid,ijsrf,numsrf, &
-		    msrf,mmid,mzero,1.)
+		    ijzero,numzero, ijmid,nummid, ijsrf,numsrf, ijlayers,numlayerpts, &
+		    msrf,mmid,mzero,m_layers,1.,conductivities)
 		!
     endif ! if(.not.start) then
 	!
@@ -2369,6 +2377,43 @@ program multifluid
         !     *******************************
         !
         do ms=1,m_step
+
+if(.not.plasma) then
+	call zero_qty(qrho,nx,ny,nz,n_grids) ! We don't zero densities
+    call zero_qty(qpresx,nx,ny,nz,n_grids)
+    call zero_qty(qpresy,nx,ny,nz,n_grids)
+    call zero_qty(qpresz,nx,ny,nz,n_grids)
+    call zero_qty(qpresxy,nx,ny,nz,n_grids)
+    call zero_qty(qpresxz,nx,ny,nz,n_grids)
+    call zero_qty(qpresyz,nx,ny,nz,n_grids)
+    call zero_qty(qpx,nx,ny,nz,n_grids)
+    call zero_qty(qpy,nx,ny,nz,n_grids)
+    call zero_qty(qpz,nx,ny,nz,n_grids)
+    !
+    !call zero_qty(hrho,nx,ny,nz,n_grids) ! We don't zero densities
+    call zero_qty(hpresx,nx,ny,nz,n_grids)
+    call zero_qty(hpresy,nx,ny,nz,n_grids)
+    call zero_qty(hpresz,nx,ny,nz,n_grids)
+    call zero_qty(hpresxy,nx,ny,nz,n_grids)
+    call zero_qty(hpresxz,nx,ny,nz,n_grids)
+    call zero_qty(hpresyz,nx,ny,nz,n_grids)
+    call zero_qty(hpx,nx,ny,nz,n_grids)
+    call zero_qty(hpy,nx,ny,nz,n_grids)
+    call zero_qty(hpz,nx,ny,nz,n_grids)
+    !
+    !call zero_qty(orho,nx,ny,nz,n_grids) ! We don't zero densities
+    call zero_qty(opresx,nx,ny,nz,n_grids)
+    call zero_qty(opresy,nx,ny,nz,n_grids)
+    call zero_qty(opresz,nx,ny,nz,n_grids)
+    call zero_qty(opresxy,nx,ny,nz,n_grids)
+    call zero_qty(opresxz,nx,ny,nz,n_grids)
+    call zero_qty(opresyz,nx,ny,nz,n_grids)
+    call zero_qty(opx,nx,ny,nz,n_grids)
+    call zero_qty(opy,nx,ny,nz,n_grids)
+    call zero_qty(opz,nx,ny,nz,n_grids)
+    !
+    call zero_qty(epres,nx,ny,nz,n_grids)
+endif
             do box=n_grids,1,-1
                 !
                 !	Test if grid sector needs to be moved in time
@@ -2498,49 +2543,49 @@ program multifluid
                         rx,ry,rz)
                     !
                     !write(*,*)'Entering subroutine: push_ion (q), first pass'
-                    call push_ion(wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
-                        wrkqpx,wrkqpy,wrkqpz, &
-                        oldqrho,oldqpresx,oldqpresy,oldqpresz, &
-                        oldqpx,oldqpy,oldqpz, &
-                        qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
-                        wrkqpresxy,wrkqpresxz,wrkqpresyz, &
-                        oldqpresxy,oldqpresxz,oldqpresyz, &
-                        qpresxy,qpresxz,qpresyz, &
-                        bsx,bsy,bsz,btot,efldx,efldy,efldz,rmassq, &
-                        vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
-                        nx,ny,nz,n_grids,box,0.5*delt,grav,re_equiv,reynolds, &
-                        grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
-                        grid_minvals(3,:), grid_maxvals(3,:), isotropic)
+!                    call push_ion(wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
+ !                       wrkqpx,wrkqpy,wrkqpz, &
+  !                      oldqrho,oldqpresx,oldqpresy,oldqpresz, &
+   !                     oldqpx,oldqpy,oldqpz, &
+    !                    qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
+     !                   wrkqpresxy,wrkqpresxz,wrkqpresyz, &
+      !                  oldqpresxy,oldqpresxz,oldqpresyz, &
+       !                 qpresxy,qpresxz,qpresyz, &
+        !                bsx,bsy,bsz,btot,efldx,efldy,efldz,rmassq, &
+         !               vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
+          !              nx,ny,nz,n_grids,box,0.5*delt,grav,re_equiv,reynolds, &
+           !             grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
+            !            grid_minvals(3,:), grid_maxvals(3,:), isotropic)
 					!
                     !write(*,*)'Entering subrout: push_ion (h), first pass'
-                    call push_ion(wrkhrho,wrkhpresx,wrkhpresy,wrkhpresz, &
-                        wrkhpx,wrkhpy,wrkhpz, &
-                        oldhrho,oldhpresx,oldhpresy,oldhpresz, &
-                        oldhpx,oldhpy,oldhpz, &
-                        hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
-                        wrkhpresxy,wrkhpresxz,wrkhpresyz, &
-                        oldhpresxy,oldhpresxz,oldhpresyz, &
-                        hpresxy,hpresxz,hpresyz, &
-                        bsx,bsy,bsz,btot,efldx,efldy,efldz,rmassh, &
-                        vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
-                        nx,ny,nz,n_grids,box,0.5*delt,grav,re_equiv,reynolds, &
-                        grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
-                        grid_minvals(3,:), grid_maxvals(3,:), isotropic)
+!                    call push_ion(wrkhrho,wrkhpresx,wrkhpresy,wrkhpresz, &
+ !                       wrkhpx,wrkhpy,wrkhpz, &
+  !                      oldhrho,oldhpresx,oldhpresy,oldhpresz, &
+   !                     oldhpx,oldhpy,oldhpz, &
+    !                    hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
+     !                   wrkhpresxy,wrkhpresxz,wrkhpresyz, &
+      !                  oldhpresxy,oldhpresxz,oldhpresyz, &
+       !                 hpresxy,hpresxz,hpresyz, &
+        !                bsx,bsy,bsz,btot,efldx,efldy,efldz,rmassh, &
+         !               vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
+          !              nx,ny,nz,n_grids,box,0.5*delt,grav,re_equiv,reynolds, &
+           !             grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
+            !            grid_minvals(3,:), grid_maxvals(3,:), isotropic)
                     !
                     !write(*,*)'Entering subroutine: push_ion (o), first pass'
-                    call push_ion(wrkorho,wrkopresx,wrkopresy,wrkopresz, &
-                        wrkopx,wrkopy,wrkopz, &
-                        oldorho,oldopresx,oldopresy,oldopresz, &
-                        oldopx,oldopy,oldopz, &
-                        orho,opresx,opresy,opresz,opx,opy,opz, &
-                        wrkopresxy,wrkopresxz,wrkopresyz, &
-                        oldopresxy,oldopresxz,oldopresyz, &
-                        opresxy,opresxz,opresyz, &
-                        bsx,bsy,bsz,btot,efldx,efldy,efldz,rmasso, &
-                        vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
-                        nx,ny,nz,n_grids,box,0.5*delt,grav,re_equiv,reynolds, &
-                        grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
-                        grid_minvals(3,:), grid_maxvals(3,:), isotropic)
+!                    call push_ion(wrkorho,wrkopresx,wrkopresy,wrkopresz, &
+ !                       wrkopx,wrkopy,wrkopz, &
+  !                      oldorho,oldopresx,oldopresy,oldopresz, &
+   !                     oldopx,oldopy,oldopz, &
+    !                    orho,opresx,opresy,opresz,opx,opy,opz, &
+     !                   wrkopresxy,wrkopresxz,wrkopresyz, &
+      !                  oldopresxy,oldopresxz,oldopresyz, &
+       !                 opresxy,opresxz,opresyz, &
+        !                bsx,bsy,bsz,btot,efldx,efldy,efldz,rmasso, &
+         !               vvx,vvy,vvz,tvx,tvy,tvz,gamma,gamma1, &
+          !              nx,ny,nz,n_grids,box,0.5*delt,grav,re_equiv,reynolds, &
+           !             grid_minvals(1,:), grid_maxvals(1,:), grid_minvals(2,:), grid_maxvals(2,:), &
+            !            grid_minvals(3,:), grid_maxvals(3,:), isotropic)
                     !
                     !write(*,*)'Entering subroutine: push_bfld'
                     call push_bfld(wrkbx,wrkby,wrkbz,oldbx,oldby,oldbz, &
