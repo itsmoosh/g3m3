@@ -13,10 +13,10 @@
 
 set -e
 
-execdir=$HOME/multifluid # If any data/run directory or input name is changed here it must also be changed in archive.run
-scriptdir=$HOME/multifluid/scripts
-datadir=$HOME/multifluid/data
-compdir=$HOME/multifluid/data/complete
+execdir=$HOME/g3m3 # If any data/run directory or input name is changed here it must also be changed in archive.run
+scriptdir=$HOME/g3m3/scripts
+datadir=$HOME/g3m3/data
+compdir=$HOME/g3m3/data/complete
 runname=$1 # Passed to archive.run
 inp=input_${runname}_
 myemail=mjstyczi@uw.edu

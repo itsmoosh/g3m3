@@ -5,8 +5,8 @@
 # Input files may be created for every individual run, if desired. Existing input files are required for the first time step for each new runname$k.
 set -e
 
-execdir=$HOME/multifluid
-scriptdir=$HOME/multifluid/scripts
+execdir=$HOME/g3m3
+scriptdir=$HOME/g3m3/scripts
 runname=master
 
 # Number of times to continue time-stepping with each parameter set

@@ -5,7 +5,7 @@
 #		scripts/mv_names.run runname
 #	Appends runname to filenames before extension
 
-execdir=$HOME/multifluid
+execdir=$HOME/g3m3
 
 if [[ -z $1 ]] ; then
 	echo "Error: run name omitted. Run as scripts/mv_names.run runname"
