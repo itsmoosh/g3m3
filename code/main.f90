@@ -747,7 +747,7 @@ program multifluid
 			tilt = eur_dip_tilt
 			rot_angle = eur_dip_rot
 			if(layers) then
-				allocate( depths(n_layers+1), conductivities(n_layers) )
+				allocate( depths(n_layers+1), conductivities(n_layers), cond_rads(n_layers+1) )
 				call planetprofile_layers( fname_planetprofile, &
 					planetprofile_f, n_layers, planet_rad, &
 					depths, conductivities )
@@ -759,7 +759,6 @@ program multifluid
 				conductivities(1) = 0.0
 			endif
 
-			allocate(cond_rads(n_layers+1))
 			cond_rads(:) = 1.0 - depths(:)
 
 			write(*,*) " "
