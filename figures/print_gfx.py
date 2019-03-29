@@ -266,7 +266,7 @@ for box in range(1,n_grids+1):
 	fig,b_axes = gfx.new_fig(fig_size,deltas,diagnostic,rows,r_units)
 	if(stack): this_cbp = cbar_pos31
 	cbar_title = r'$\frac{|\vec{v}_\mathrm{net}|}{V_\mathrm{Alf}}$'
-	cbmin = 300.0
+	cbmin = 0.0
 	cbmax = alfmax[box-1]
 #	cbmax = xy_alfmach.max()
 	cbparams = (cbmin,cbmax,this_cbp,cbar_title)
