@@ -4,5 +4,5 @@ $params_europa
 	sheet_vel=0.1	! Initialization speed for torus plasma in Mm/s
 $end
 $params_interior
-	layers=.t. n_layers=1
+	layers=.f. n_layers=1
 $end
