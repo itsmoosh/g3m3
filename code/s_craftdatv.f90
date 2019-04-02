@@ -10,6 +10,7 @@ subroutine crafdatv(bx,by,bz, &
     !       sub-grid and then write to binary file 13
     !
     integer box
+	real hpressx, hpressy, hpressz
     dimension bx(nx,ny,nz),by(nx,ny,nz), &
     bz(nx,ny,nz),epres(nx,ny,nz,n_grids), &
     qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids),qpz(nx,ny,nz,n_grids), &
@@ -300,9 +301,9 @@ subroutine crafdatv(bx,by,bz, &
     rden=qden/(qden+oden+hden)
     xden=oden/(qden+oden+hden)
     !
-    rtx=hpressx/(hpressx+hpressy+hpressz+1.e-8)
-    rty=hpressy/(hpressx+hpressy+hpressz+1.e-8)
-    rtz=hpressz/(hpressx+hpressy+hpressz+1.e-8)
+    rtx=hpres1/(hpres1+hpres2+hpres3+1.e-8)
+    rty=hpres2/(hpres1+hpres2+hpres3+1.e-8)
+    rtz=hpres3/(hpres1+hpres2+hpres3+1.e-8)
     !
     mout=50+n
     write(mout,*)ut,ax,ay,az
