@@ -2605,7 +2605,7 @@ program multifluid
                         rx,ry,rz)
                     !
                     !write(*,*)'Entering subroutine: push_*, second pass'
-                    call push_elec(epres,oldepres,wrkepres,evx,evy,evz, &
+                    call push_elec(wrkepres,oldepres,epres,evx,evy,evz, &
                         gamma,gamma1,nx,ny,nz,n_grids,box,delt, &
                         rx,ry,rz)
                     !

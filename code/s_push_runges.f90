@@ -60,7 +60,7 @@ end
 !	****************************************
 !
 !
-subroutine push_elec(epres,oldepres,wrkepres,evx,evy,evz, &
+subroutine push_elec(wrkepres,oldepres,epres,evx,evy,evz, &
     gamma,gamma1,nx,ny,nz,n_grids,box,delt,rx,ry,rz)
     !
     !      evolves the electron pressure equation
