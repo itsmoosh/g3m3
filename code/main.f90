@@ -2686,13 +2686,16 @@ program multifluid
                         endif
 						!
                         call bndry_flanks( &
-                            qrho,qpx,qpy,qpz, &
-                            qpresx,qpresy,qpresz,qpresxy,qpresxz,qpresyz, &
-                            hrho,hpx,hpy,hpz, &
-                            hpresx,hpresy,hpresz,hpresxy,hpresxz,hpresyz, &
-                            orho,opx,opy,opz, &
-                            opresx,opresy,opresz,opresxy,opresxz,opresyz, &
-                            epres,bx,by,bz, &
+                            wrkqrho,wrkqpx,wrkqpy,wrkqpz, &
+                            wrkqpresx,wrkqpresy,wrkqpresz, &
+							wrkqpresxy,wrkqpresxz,wrkqpresyz, &
+                            wrkhrho,wrkhpx,wrkhpy,wrkhpz, &
+                            wrkhpresx,wrkhpresy,wrkhpresz, &
+							wrkhpresxy,wrkhpresxz,wrkhpresyz, &
+                            wrkorho,wrkopx,wrkopy,wrkopz, &
+                            wrkopresx,wrkopresy,wrkopresz, &
+							wrkopresxy,wrkopresxz,wrkopresyz, &
+                            wrkepres,wrkbx,wrkby,wrkbz, &
                             qrho,qpx,qpy,qpz,qpresx,qpresy,qpresz, &
                             qpresxy,qpresxz,qpresyz, &
                             hrho,hpx,hpy,hpz,hpresx,hpresy,hpresz, &

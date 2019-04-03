@@ -22,6 +22,9 @@ subroutine fcsmooth(px,oldpx,wrkpx,nx,ny,nz,n_grids,box,chipx, &
     deltaz,delta1z,fnz
     !
     !      save initial unperturbed values in temp array
+	!		MJS 4/3/19: What's the point of this? We just assign
+	!			values on top of these in the next step, without
+	!			using the temporary values in the interim.
     !
     !$omp  parallel do
     do k=1,nz
