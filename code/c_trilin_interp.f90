@@ -1,13 +1,14 @@
+!
+!   Performs trilinear interpolation to approximate the value
+!	of the measurable quantity qty at the spatial coordinate
+!	of the spacecraft sxyz using the nearest xyz above and below
+!	the spacecraft location. Grid is assumed regular, so gridpts
+!	is only two ordered triplets: (x0,y0,z0) and (x1,y1,z1).
+!	Only accepts scalar input. Call for each component of measured
+!	vectors.
+!
 subroutine trilin_interp(sxyz,gridpts,qty,scdata)
-    !
-    !   Performs trilinear interpolation to approximate the value
-	!		of the measurable quantity qty at the spatial coordinate
-	!		of the spacecraft sxyz using the nearest xyz above and below
-	!		the spacecraft location. Grid is assumed regular, so gridpts
-	!		is only two ordered triplets: (x0,y0,z0) and (x1,y1,z1).
-	!	Only accepts scalar input. Call for each component of measured
-	!		vectors.
-    !
+
 	implicit none
 
 	real, intent(in) :: sxyz(3), gridpts(3,2), qty(2,2,2)
@@ -21,9 +22,9 @@ subroutine trilin_interp(sxyz,gridpts,qty,scdata)
 	real face0, face1
 	
 	real xd, yd, zd
-	!
+	
 	!	**********************************
-	!
+	
 	x0=gridpts(1,1)
 	x1=gridpts(1,2)
 	y0=gridpts(2,1)
@@ -36,20 +37,20 @@ subroutine trilin_interp(sxyz,gridpts,qty,scdata)
 	yd = (sxyz(2) - y0)/(y1 - y0)
 	zd = (sxyz(3) - z0)/(z1 - z0)
 	
-	!	Find interpolated value at the right % from low-x face to high-x face
-	!		along each of the x-parallel edges
+	!	Find interpolated value at the right % from low-x face to
+	!	high-x face along each of the x-parallel edges
 	edge00 = qty(1,1,1)*(1-xd) + qty(2,1,1)*xd
 	edge01 = qty(1,1,2)*(1-xd) + qty(2,1,2)*xd
 	edge10 = qty(1,2,1)*(1-xd) + qty(2,2,1)*xd
 	edge11 = qty(1,2,2)*(1-xd) + qty(2,2,2)*xd
 	
 	!	Use interpolated edge values to interpolate along y-parallel
-	!		direction to find values above and below the desired point in z
+	!	direction to find values above and below the desired point in z
 	face0 = edge00*(1-yd) + edge10*yd
 	face1 = edge01*(1-yd) + edge11*yd
 	
 	!	Interpolate between face values to get trilinearly interpolated
-	!		value for qty at sxyz location
+	!	value for qty at sxyz location
 	scdata = face0*(1-zd) + face1*zd
 	
 	!write(*,*) 'TRILIN_INTERP DIAGNOSTICS:'

@@ -25,9 +25,11 @@ subroutine write_graphing_data( &
 	curx,cury,curz, &
 	ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
 	ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
-	r_inner, run_name, dummy_f, diagnostics, nplots)
+	r_inner, run_name, dummy_f, diagnostics, nplots, &
+	isotropic)
 
 	use astrometry
+
 	implicit none
 
 	!	double precision

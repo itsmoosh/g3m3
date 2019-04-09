@@ -2,6 +2,7 @@ subroutine store_array(bx,bx0,nx,ny,nz,n_grids,box)
     !
     !     calculates the total magnetic field from the perturbed and
     !        stationary magnetic field
+	! REDUNDANT AND SCHEDULED FOR TRASHING
     !
     integer box
     dimension bx(nx,ny,nz,n_grids),bx0(nx,ny,nz,n_grids)
@@ -16,4 +17,4 @@ subroutine store_array(bx,bx0,nx,ny,nz,n_grids,box)
     enddo
     !
     return
-end
+end subroutine store_array

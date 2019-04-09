@@ -1,7 +1,8 @@
+!
+!	Prints craft output headers to a file and checks how many lines were printed.
+!
 subroutine count_hlines(dat_header, dummy_f, nheadlines)
-	!
-	!	Prints craft output headers to a file and checks how many lines were printed.
-	!
+	
 	implicit none
 
 	character*200, intent(in)	:: dat_header
@@ -27,7 +28,7 @@ subroutine count_hlines(dat_header, dummy_f, nheadlines)
 
 	inquire(file=trim(dummy_craft), exist=dummy_exists)
 	if(dummy_exists) call system ('rm '//trim(dummy_craft))
-	!
+	
 	open(dummy_f,file=trim(dummy_craft),status='unknown',form='formatted')
 		write(dummy_f,crafthead)
 		write(dummy_f,*) trim(dat_header)

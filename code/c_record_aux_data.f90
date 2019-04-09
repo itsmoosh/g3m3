@@ -1,7 +1,9 @@
-subroutine record_aux_data( i_craft, scout, num_inst, scfmt, ut, sxyz, cube_vertices, meas_qty, ntimesn )
-	!
-	!	Writes spacecraft measurements to output data file.
-	!
+!
+!	Writes spacecraft measurements to output data file.
+!
+subroutine record_aux_data( i_craft, scout, num_inst, scfmt, ut, &
+	sxyz, cube_vertices, meas_qty, ntimesn )
+	
 	implicit none
 
 	integer, intent(in)		:: i_craft
@@ -19,9 +21,11 @@ subroutine record_aux_data( i_craft, scout, num_inst, scfmt, ut, sxyz, cube_vert
 	integer nn		!	Loop counter
 	real	scdata(num_inst)
 
-	!	Separate trilin_interp calls needed for each scalar measurement and each component of vector quantities
+	!	Separate trilin_interp calls needed for each scalar measurement
+	!	and each component of vector quantities
 	do nn=1,num_inst
-		call trilin_interp( sxyz, cube_vertices, meas_qty(:,:,:,nn), scdata(nn) )
+		call trilin_interp( sxyz, cube_vertices, meas_qty(:,:,:,nn), &
+			scdata(nn) )
 	enddo
 
 	!	Write all spacecraft instruments to .dat file

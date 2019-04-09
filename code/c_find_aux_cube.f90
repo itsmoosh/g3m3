@@ -1,7 +1,10 @@
-subroutine find_aux_cube( cname, i_craft, scout, n_grids, grid_minvals, grid_maxvals, xspac, re_equiv, xcraftn, zcraftn, ut, ntimesn, recordingn, gridpt, sxyz, cube_vertices )
-	!
-	!	Writes spacecraft measurements to output data file.
-	!
+!
+!	Writes spacecraft measurements to output data file.
+!
+subroutine find_aux_cube( cname, i_craft, scout, n_grids, &
+	grid_minvals, grid_maxvals, xspac, re_equiv, xcraftn, zcraftn, ut, &
+	ntimesn, recordingn, gridpt, sxyz, cube_vertices )
+	
 	implicit none
 
 	character*8, intent(in)	:: cname
@@ -21,8 +24,11 @@ subroutine find_aux_cube( cname, i_craft, scout, n_grids, grid_minvals, grid_max
 	integer, intent(inout)	:: ntimesn(2)
 	logical, intent(inout)	:: recordingn
 
-	integer, intent(out)	:: gridpt(4)	!	Grid index values for point just below sxyz in each dimension, and number of smallest box that fits the craft
-	real, intent(out)		:: sxyz(3)	!	Interpolated location of spacecraft in simulation coordinates
+	!	Grid index values for point just below sxyz in each dimension,
+	!	and number of smallest box that fits the craft
+	integer, intent(out)	:: gridpt(4)
+	!	Interpolated location of spacecraft in simulation coordinates
+	real, intent(out)		:: sxyz(3)
 	real, intent(out)		:: cube_vertices(3,2)
 
 	integer	cbox	!	Dummy for smallest box that fits craft point
@@ -36,7 +42,9 @@ subroutine find_aux_cube( cname, i_craft, scout, n_grids, grid_minvals, grid_max
 	!	Find closest xyz values below
 	call findgrid(sxyz,n_grids,grid_minvals,grid_maxvals,xspac,gridpt,re_equiv,cname)
 	cbox = gridpt(4)
-	!	gridpt now contains x,y,z,box indices: the indices of the closest xyz LESS THAN the craft location, and the smallest box the craft fits within.
+	!	gridpt now contains x,y,z,box indices: the indices of the
+	!	closest xyz LESS THAN the craft location, and the smallest box
+	!	the craft fits within.
 
 	!	x index is set to zero if there is a problem.
 	if(gridpt(1) .le. 0) then
@@ -47,8 +55,10 @@ subroutine find_aux_cube( cname, i_craft, scout, n_grids, grid_minvals, grid_max
 		return
 	endif
 
-	!	Indices in gridpt are used to identify the physical parameters at nearby points
-	!	Position values in cube_vertices are used to interpolate measurement values
+	!	Indices in gridpt are used to identify the physical parameters
+	!	at nearby points
+	!	Position values in cube_vertices are used to interpolate
+	!	measurement values
 	do axis=1,3
 		cube_vertices(axis,1) = ( grid_minvals(axis,cbox) + (gridpt(axis)-1.)*xspac(cbox) )*re_equiv
 		cube_vertices(axis,2) = cube_vertices(axis,1) + xspac(cbox)*re_equiv

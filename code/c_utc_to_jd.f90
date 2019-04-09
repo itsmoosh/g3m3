@@ -1,7 +1,10 @@
+!
+!	Converts a UTC string to JD number.
+!	Expects a string with format YYYY-MM-DDTHH:MM:SS.SSS
+!	Outputs a real number that requires at least double precision
+!
 subroutine utc_to_jd(ut_string, jd)
-	!	Converts a UTC string to JD number.
-	!	Expects a string with format YYYY-MM-DDTHH:MM:SS.SSS
-	!	Outputs a real number that requires at least double precision
+
 	implicit none
 
 	integer, parameter	:: dp = selected_real_kind(17,300)
@@ -29,7 +32,8 @@ subroutine utc_to_jd(ut_string, jd)
 	read(ut_string(15:16),*) mins
 	read(ut_string(18:23),*) seconds
 
-	!	Adds or subtracts extra days for each leap year between current year and J2000.0
+	!	Adds or subtracts extra days for each leap year between current
+	!	year and J2000.0
 	leapdays = int((year-2000.0)/4.0)
 	!	Accounts for leap days during leap years
 	if ( (mod(year,4).eq.0) .and. (month.gt.2) ) leapdays = leapdays + 1

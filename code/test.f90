@@ -2,6 +2,7 @@
 !	For testing code snippets.
 !
 program test
+
 	implicit none
 
 	!	Declarations
