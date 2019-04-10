@@ -189,4 +189,4 @@ subroutine flux_correct(qrho,qpresx,qpresy,qpresz, &
 		vvx,vvy,vvz)
 	
 	return
-end subroutine lap_smooth
+end subroutine flux_correct
