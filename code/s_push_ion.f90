@@ -110,27 +110,27 @@ subroutine push_ion(qrho,qpresx,qpresy,qpresz, &
 					+( (wrkqpz(i,j,kk,box) - wrkqpz(i,j,km,box))/dzt) )
 				
 				aqpx = oldqpx(i,j,k,box) - delt * ( &
-					( (wrkqpx(ii,j,k,box)*qvx(ii,j,k) &
-					- wrkqpx(im,j,k,box)*qvx(im,j,k) /dxt ) &
-					+ ( (wrkqpx(i,jj,k,box)*qvy(i,jj,k) &
+					((wrkqpx(ii,j,k,box)*qvx(ii,j,k) &
+					- wrkqpx(im,j,k,box)*qvx(im,j,k)) /dxt ) &
+					+ ((wrkqpx(i,jj,k,box)*qvy(i,jj,k) &
 					- wrkqpx(i,jm,k,box)*qvy(i,jm,k)) /dyt ) &
-					+ ( (wrkqpx(i,j,kk,box)*qvz(i,j,kk) &
+					+ ((wrkqpx(i,j,kk,box)*qvz(i,j,kk) &
 					- wrkqpx(i,j,km,box)*qvz(i,j,km)) /dzt ) )
 				
 				aqpy = oldqpy(i,j,k,box) - delt * ( &
-					( (wrkqpy(ii,j,k,box)*qvx(ii,j,k) &
+					((wrkqpy(ii,j,k,box)*qvx(ii,j,k) &
 					- wrkqpy(im,j,k,box)*qvx(im,j,k)) /dxt ) &
-					+ ( (wrkqpy(i,jj,k,box)*qvy(i,jj,k) &
+					+ ((wrkqpy(i,jj,k,box)*qvy(i,jj,k) &
 					- wrkqpy(i,jm,k,box)*qvy(i,jm,k)) /dyt ) &
-					+ ( (wrkqpy(i,j,kk,box)*qvz(i,j,kk) &
+					+ ((wrkqpy(i,j,kk,box)*qvz(i,j,kk) &
 					- wrkqpy(i,j,km,box)*qvz(i,j,km)) /dzt ) )
 				
 				aqpz = oldqpz(i,j,k,box) - delt * ( &
-					( (wrkqpz(ii,j,k,box)*qvx(ii,j,k) &
+					((wrkqpz(ii,j,k,box)*qvx(ii,j,k) &
 					- wrkqpz(im,j,k,box)*qvx(im,j,k)) /dxt ) &
-					+ ( (wrkqpz(i,jj,k,box)*qvy(i,jj,k) &
+					+ ((wrkqpz(i,jj,k,box)*qvy(i,jj,k) &
 					- wrkqpz(i,jm,k,box)*qvy(i,jm,k)) /dyt ) &
-				 	+ ( (wrkqpz(i,j,kk,box)*qvz(i,j,kk) &
+				 	+ ((wrkqpz(i,j,kk,box)*qvz(i,j,kk) &
 					- wrkqpz(i,j,km,box)*qvz(i,j,km)) /dzt ) )
 				
 				!	Add increments from spatial derivatives

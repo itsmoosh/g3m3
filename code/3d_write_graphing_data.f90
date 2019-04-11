@@ -113,6 +113,7 @@ subroutine write_graphing_data( &
 	character*8, intent(in) :: run_name
 	integer, intent(in) :: dummy_f
 	logical, intent(in) :: diagnostics
+	logical, intent(in) :: isotropic
 
 	integer, intent(out) :: nplots
 
