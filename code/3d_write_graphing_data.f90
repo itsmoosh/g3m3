@@ -1,5 +1,5 @@
 !
-!   This subroutine prints simulation data for plotting. It is derived
+!	This subroutine prints simulation data for plotting. It is derived
 !	from a cutter file, and prints ASCII text files intended for matplotlib.
 !	
 subroutine write_graphing_data( &
@@ -32,10 +32,10 @@ subroutine write_graphing_data( &
 
 	implicit none
 
-	!	double precision
+	!	Double precision
 	integer, parameter :: dp = kind(1.d0)
 
-	!	graphing parameters
+	!	Graphing parameters
 	integer, parameter :: n_cuts=3	! Number of cuts to make
 	integer, parameter :: nlines=479 ! Synthetic trajectory length
 	integer, parameter :: skip=1 ! Sample skip for flythrough data
@@ -43,7 +43,7 @@ subroutine write_graphing_data( &
 	integer, parameter :: phi_res=10 ! Number of angle bins on Y-axis
 	integer, parameter :: x_adj(5) = [0, 0, 0, 0, -15]	! Position offset for offset boxes
 
-	!	file naming
+	!	File naming
 	character*32, parameter :: python_dir = "figures/"
 	character*32, parameter :: python_data = "figures/data/"
 	character*32, parameter :: image_dir = "figures/images/"
@@ -55,14 +55,14 @@ subroutine write_graphing_data( &
 	character*5, parameter :: fname4 = 'bande'
 	character*5, parameter :: fname5 = 'model'
 
-	!	file IDs
+	!	File IDs
 	integer, parameter :: plas_f(n_cuts) = [111, 121, 131]
 	integer, parameter :: flow_f(n_cuts) = [112, 122, 132]
 	integer, parameter :: pres_f(n_cuts) = [113, 123, 133]
 	integer, parameter :: bande_f(n_cuts) = [114, 124, 134]
 	integer, parameter :: model_f(n_cuts) = [115, 125, 135]
 
-!       header information
+!	Header information
 	character*300 plas_header, flow_header, bande_header, model_header, &
 		efld_header, pres_header
 	character*53, parameter :: header_intro = "This file contains data for the following quantities:"
@@ -73,39 +73,25 @@ subroutine write_graphing_data( &
 	!**********************
 	!	grid quantities
 	integer, intent(in) :: nx, ny, nz, n_grids
-	real, intent(in) :: limit, xspac(n_grids), &
-		grid_minvals(3,n_grids), grid_maxvals(3,n_grids)
+	real, intent(in) :: limit, xspac(n_grids)
+	real, intent(in), dimension(3,n_grids) :: grid_minvals, grid_maxvals
 	integer, intent(in) :: mbndry, num_zqt, msrf, mmid, mzero
 	!	physics sim quantities
 	real(dp), intent(in) :: ut, t
-	real, intent(in) ::	qrho(nx,ny,nz,n_grids), qpx(nx,ny,nz,n_grids), &
-		qpy(nx,ny,nz,n_grids), qpz(nx,ny,nz,n_grids), &
-		qpresx(nx,ny,nz,n_grids), qpresy(nx,ny,nz,n_grids), &
-		qpresz(nx,ny,nz,n_grids), qpresxy(nx,ny,nz,n_grids), &
-		qpresxz(nx,ny,nz,n_grids), qpresyz(nx,ny,nz,n_grids)
-	real, intent(in) :: hrho(nx,ny,nz,n_grids), hpx(nx,ny,nz,n_grids), &
-		hpy(nx,ny,nz,n_grids), hpz(nx,ny,nz,n_grids), &
-		hpresx(nx,ny,nz,n_grids), hpresy(nx,ny,nz,n_grids), &
-		hpresz(nx,ny,nz,n_grids), hpresxy(nx,ny,nz,n_grids), &
-		hpresxz(nx,ny,nz,n_grids), hpresyz(nx,ny,nz,n_grids)
-	real, intent(in) :: orho(nx,ny,nz,n_grids), opx(nx,ny,nz,n_grids), &
-		opy(nx,ny,nz,n_grids), opz(nx,ny,nz,n_grids), &
-		opresx(nx,ny,nz,n_grids), opresy(nx,ny,nz,n_grids), &
-		opresz(nx,ny,nz,n_grids), opresxy(nx,ny,nz,n_grids), &
-		opresxz(nx,ny,nz,n_grids), opresyz(nx,ny,nz,n_grids)
-	real, intent(in) :: bx(nx,ny,nz,n_grids), by(nx,ny,nz,n_grids), &
-		bz(nx,ny,nz,n_grids), epres(nx,ny,nz,n_grids), &
-		bx0(nx,ny,nz,n_grids), by0(nx,ny,nz,n_grids), bz0(nx,ny,nz,n_grids)
+	real, intent(in), dimension(nx,ny,nz,n_grids) :: &
+		qrho, qpx,qpy,qpz, qpresx,qpresy,qpresz,qpresxy,qpresxz,qpresyz, &
+		hrho, hpx,hpy,hpz, hpresx,hpresy,hpresz,hpresxy,hpresxz,hpresyz, &
+		orho, opx,opy,opz, opresx,opresy,opresz,opresxy,opresxz,opresyz, &
+		bx,by,bz, epres, bx0,by0,bz0
 	!	zeroed quantities
 	real, intent(in) :: parm_srf(mbndry,num_zqt,msrf), &
 		parm_mid(mbndry,num_zqt,mmid), parm_zero(mbndry,num_zqt,mzero)
 	integer, intent(in) :: ijzero(mbndry,3,mzero), numzero(mbndry), &
 		ijmid(mbndry,3,mmid), nummid(mbndry), &
 		ijsrf(mbndry,3,msrf), numsrf(mbndry)
-	real, intent(in) :: bsx(nx,ny,nz), bsy(nx,ny,nz), bsz(nx,ny,nz)
+	real, intent(in), dimension(nx,ny,nz) :: bsx,bsy,bsz, curx,cury,curz
 	real, intent(in) :: rmassq, rmassh, rmasso, &
 		reynolds, resistive(nx,ny,nz,mbndry), resist
-	real, intent(in) :: curx(nx,ny,nz), cury(nx,ny,nz), curz(nx,ny,nz)
 	integer, intent(in) :: ncraft
 	real, intent(in) :: xcraft(4,ncraft), re_equiv, b_equiv, v_equiv, &
 		t_equiv, ti_te, rho_equiv, planet_rad, planet_per, moon_rad
@@ -117,52 +103,37 @@ subroutine write_graphing_data( &
 
 	integer, intent(out) :: nplots
 
-!     --------------------------------------------------------------
+!--------------------------------------------------------------
 
-	!	grid spacing working values
+	!	Grid spacing working values
 	real rx,ry,rz
 
-	!	string dump working variables
+	!	String dump working variables
 	character*40 fname_ending(n_cuts)
 	character*40 fname_starting
 
-!      grid limits now set by grd_min grd_max arrays
-!      ncore denotes couser grid to be hollowed out by fine grid
-!      nbndry denotes finer grid to which coarser grid sets flanks
-!      xspac is the relative grid spacing relative to inner grid system
-!      main_n_grids gives the box number from which the fine gridding is
-!                   interpolated
+	!	ncore denotes couser grid to be hollowed out by fine grid
+	!	nbndry denotes finer grid to which coarser grid sets flanks
+	!	xspac is the grid spacing relative to inner grid system
 
 	integer ncore(n_grids), nbndry(n_grids)
 	integer box
 
-	!      xcraft is the actual position of the spacecraft in RE
-	!          4th dimension of the actual time
-	!      zcraft is the future position of the spacecraft in RE
-	!      rcraft is the position of the spacecraft for which
-	!           IMF is reference. NO alteration from boundary conditions applied
-	!
-
-	!	physics plasma quantities
-	real qpara(nx,ny,nz,n_grids), qperp(nx,ny,nz,n_grids), &
-		qcross(nx,ny,nz,n_grids)
-	real hpara(nx,ny,nz,n_grids), hperp(nx,ny,nz,n_grids), &
-		hcross(nx,ny,nz,n_grids)
-	real opara(nx,ny,nz,n_grids), operp(nx,ny,nz,n_grids), &
-		ocross(nx,ny,nz,n_grids)
-	real tvx(nx,ny,nz), tvy(nx,ny,nz), tvz(nx,ny,nz)
-	real evelx(nx,ny,nz,n_grids), evely(nx,ny,nz,n_grids), &
-		evelz(nx,ny,nz,n_grids)
-	real evx(nx,ny,nz), evy(nx,ny,nz), evz(nx,ny,nz)
-	real qvx(nx,ny,nz), qvy(nx,ny,nz), qvz(nx,ny,nz)
-	real hvx(nx,ny,nz), hvy(nx,ny,nz), hvz(nx,ny,nz)
-	real ovx(nx,ny,nz), ovy(nx,ny,nz), ovz(nx,ny,nz)
-	real ex(nx,ny,nz), ey(nx,ny,nz), ez(nx,ny,nz)
+	!	xcraft is the actual position of the spacecraft in RE
+	!	4th dimension is the time in UT
+	!	zcraft is the future position of the spacecraft in RE
+	!	rcraft is the position of the spacecraft for which
+	!	IMF is reference.
+	
+	!	Physics plasma quantities
+	real, dimension(nx,ny,nz,n_grids) :: qpara,qperp,qcross, &
+		hpara,hperp,hcross, opara,operp,ocross, evelx,evely,evelz
+	real, dimension(nx,ny,nz) :: tvx,tvy,tvz, evx,evy,evz, qvx,qvy,qvz, &
+		hvx,hvy,hvz, ovx,ovy,ovz, ex,ey,ez
 
 	!	Unperturbed quantities
-	real bxs(nx,ny,nz,n_grids),bys(nx,ny,nz,n_grids),bzs(nx,ny,nz,n_grids)
-	real br0(nx,ny,nz,n_grids),bt0(nx,ny,nz,n_grids),bp0(nx,ny,nz,n_grids)
-	real bxt(nx,ny,nz),byt(nx,ny,nz),bzt(nx,ny,nz),btot(nx,ny,nz)
+	real, dimension(nx,ny,nz,n_grids) :: bxs,bys,bzs, br0,bt0,bp0
+	real, dimension(nx,ny,nz) :: bxt,byt,bzt,btot
 
 	real curx_all, cury_all, curz_all
 
@@ -185,40 +156,38 @@ subroutine write_graphing_data( &
 	character*5 update_gifs
 	character*5 diag
 
-	character*64 wd1(n_cuts), wd2(n_cuts), wd3(n_cuts), wd4(n_cuts), &
-		wd5(n_cuts), wd6(n_cuts), wd7(n_cuts), wd8(n_cuts), &
-		wd9(n_cuts), wd0(n_cuts)
+	character*64, dimension(n_cuts) :: wd1,wd2,wd3,wd4,wd5,wd6,wd7,wd8,wd9,wd0
 	character*64 dummy_fname, data_grep, fig_grep
 	character*80 args, argfmt
 	logical dummy_exists
 	logical cuts(n_cuts)
 	integer cuts_vals(n_cuts)
 
-	!     rho,pres,erg,px,py are the density, pressure, energy and momentum
-	!              in the x and y directions, respectively, of the fluid
-	!       the indices 1, 2 is required to store old and new values
-	!
-	!     ijsrf give position of ionosphere in grid units - plasma
-	!           parameters stored in parm_srf
-	!     ijmid gives intermediate boundary - say representing the
-	!            atmosphere - plasma parameters stored in parm_mid
-	!     ijzero gives position of all grid units interior to surface
-	!
-	!     frho,ferg and fpx,fpy are the estimates of the fluid quantities
-	!           at n+1/2 as defined by the Lax-Wendroff scheme
-	!       the index of 3 is needed to store adjacent x values for these fns
-	!
-	!     d_min is the minimum allowable density
-	!     stepsz is the size of the time step in terms of delta_x,y/(|umax|+c_s)
-	!
-	!     system dimensions are nx,ny,nz
-	!     variable grid spacing enabled with rxyz >1
-	!           rx,ry,rz should not be set identically to zero
+	!	rho,pres,erg,px,py are the density, pressure, energy and momentum
+	!	in the x and y directions, respectively, of the fluid
+	!	The indices 1, 2 indicate old and new values
+	
+	!	ijsrf gives position of ionosphere in grid units - plasma
+	!	parameters stored in parm_srf
+	!	ijmid gives intermediate boundary, representing the
+	!	atmosphere. Plasma parameters stored in parm_mid
+	!	ijzero gives position of all grid units interior to surface.
+	
+	!	d_min is the minimum allowable density
+	!	stepsz is the size of the time step in terms of delta_x,y/(|umax|+c_s)
+	
+	!	System dimensions are nx,ny,nz
+	!	rx,ry,rz should not be set identically to zero
 
-	real temp_equiv	!1.0432e4 with v_equiv = 1000.
-	real pres_equiv	!3.34e-10 with rho_equiv = 0.2, v_equiv = 1000.
-	real cur_equiv	!1.3725e-9 with re_equiv = 0.2, planet_rad = 60268., b_equiv = 20.79 (rho_equiv = 0.2, v_equiv = 1000.)
-	real e_equiv	!20.79e6 with b_equiv = 20.79 and v_equiv = 1000.
+	!	temp_equiv = 1.0432e4 with v_equiv = 1000.
+	real temp_equiv
+	!	pres_equiv = 3.34e-10 with rho_equiv = 0.2, v_equiv = 1000.
+	real pres_equiv
+	!	cur_equiv = 1.3725e-9 with re_equiv = 0.2, planet_rad = 60268.,
+	!	b_equiv = 20.79 (rho_equiv = 0.2, v_equiv = 1000.)
+	real cur_equiv
+	!	20.79e6 with b_equiv = 20.79 and v_equiv = 1000.
+	real e_equiv
 
 
 !~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
@@ -226,7 +195,6 @@ subroutine write_graphing_data( &
 !	Executions
 !
 !~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
-
 
 	! These multipliers are in SI units but are calculated from sim units.
 	! Numerical factors appear for the following conversions:
@@ -382,9 +350,9 @@ subroutine write_graphing_data( &
 		bxt(:,:,:) = bx0(:,:,:,box) + bx(:,:,:,box)
 		byt(:,:,:) = by0(:,:,:,box) + by(:,:,:,box)
 		bzt(:,:,:) = bz0(:,:,:,box) + bz(:,:,:,box)
-		!
+		
 		!	Find magnitude of B
-		!
+		
 		call tot_b(btot,bxt,byt,bzt,nx,ny,nz)
 
 		call fnd_evel(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
@@ -400,7 +368,7 @@ subroutine write_graphing_data( &
 			rx,ry,rz)
 
 		!	Find anisotropy values for each species:
-		!
+		
 		!	*********
 		!	Species q
 		!	*********
