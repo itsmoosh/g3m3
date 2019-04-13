@@ -8,9 +8,9 @@
 !
 !
 !	This is a 3D, three-fluid simulation using
-!		electrons    : arrays starting with e
-!		[solar] wind : arrays starting with q (protons)
-!		ionospheric  : arrays starting with o oxygen,
+!		electrons	: arrays starting with e
+!		[solar] wind: arrays starting with q (protons)
+!		ionospheric	: arrays starting with o oxygen,
 !		h hydrogen
 !
 !	Warnings:
@@ -345,10 +345,7 @@ program multifluid
 	real t_equiv
 	!	For checking t and ut upon restart to warn of drastic changes
 	real t_diff
-	!	Set sc_delt to less than the interval between spacecraft
-	!	measurements. t_step is capped at this amount if
-	!	spacecraft = .true. This number is in seconds.
-	real, parameter :: sc_delt = 0.30
+
 	real, parameter :: t_step_max_def = 20.0
 	real :: t_step_max = t_step_max_def
 	
@@ -452,17 +449,13 @@ program multifluid
 	!	and no data recorded. Not included in ncraft or ndef_craft.
 	!	craft_info is directory for spacecraft position/times
 	!	(relative to main directory)
-	!	craft_data is directory for output data (relative to main
+	!	craft_datadir is directory for output data (relative to main
 	!	directory)
 
 	!	craftpos contains all (x,y,z,t) for all aux craft 
 	!	sxyz is linearly interpolated spacecraft xyz for a given UT.
 	!	gridpts holds two vertices of the cube containing the 8 grid
 	!	coordinates closest to the spacecraft for a given UT.
-	!	meas_qty(i) are scalar physical quantities to be measured by a
-	!	spacecraft
-	!	scdata(i) are the interpolated values corresponding to
-	!	meas_qty(i) that a spacecraft actually records.
 	!	num_inst is how many 'instruments' the spacecraft has,
 	!	i.e. how many scalar quantities are output to .dat file.
 	!	When new measurements are to be added to spacecraft .dat files,
@@ -505,7 +498,7 @@ program multifluid
 	!	number of header lines is stored in nheadlines.
 	
 	character*32, parameter	:: craft_info='spacecraft_info/'
-	character*32, parameter	:: craft_data='data/spacecraft_data/'
+	character*32, parameter	:: craft_datadir='data/spacecraft_data/'
 	character*120	junkline
 	character*8		numstring
 	
@@ -523,12 +516,6 @@ program multifluid
 	integer nheadlines
 	integer vals
 	
-	!	For handling skipped measurement times:
-	logical :: sc_stepping = .false.
-	logical :: sc_record = .false.
-	logical :: sc_fast_forward = .false.
-	integer :: sc_ff_count = 0
-	
 	!	For formatting spacecraft .dat file output:
 	character*2 :: num_inst_char
 	character*9 :: scfmt = '('
@@ -536,9 +523,7 @@ program multifluid
 	character*14 :: sc_headfmt = '('
 	character*11 :: sc_headfmt_end = '(6X,A8,1X))'
 	
-	real	meas_qty(2,2,2,num_inst)
 	real	scdata(num_inst)
-	real	cube_vertices(3,2)
 	real	rcraft(3)
 	real	sxyz(3)
 	real	sctime
@@ -702,7 +687,7 @@ program multifluid
 		grid_minvals(1,i) = -limit*xspac(i)
 		grid_maxvals(1,i) = limit*xspac(i)
 		grid_minvals(2,i) = -limit*xspac(i)
-		grid_maxvals(2,i) = limit*xspac(i)        
+		grid_maxvals(2,i) = limit*xspac(i)
 		grid_minvals(3,i) = -limit/2*xspac(i)
 		grid_maxvals(3,i) = limit/2*xspac(i)
 		
@@ -818,7 +803,7 @@ program multifluid
 		zdip = 0.
 	endif
 	
-	!   Gravity in m/s**2 at planet's surface 
+	!	Gravity in m/s**2 at planet's surface 
 	!	Need t_equiv in normalization
 	t_equiv = planet_rad * re_equiv / v_equiv
 	grav = gravity * (planet_rad*re_equiv*1000.) / (1000.*v_equiv)**2
@@ -1625,10 +1610,10 @@ program multifluid
 		!	Count crafts named in craft_info directory.
 		call countcraft(craft_info,scin,ncraft,ndef_craft,naux_craft)
 		
-		allocate ( xcraft(4,ncraft), zcraft(4,ncraft) )
-		allocate ( craftnames(ncraft), ntimes(ncraft,2), &
+		allocate( xcraft(4,ncraft), zcraft(4,ncraft) )
+		allocate( craftnames(ncraft), ntimes(ncraft,2), &
 			recording(ncraft) )
-		allocate ( cgridpt(4,ncraft), craft_rot_ca(ncraft), &
+		allocate( cgridpt(4,ncraft), craft_rot_ca(ncraft), &
 			flyby_ref_time(ncraft) )
 		
 		call count_hlines( dat_header, dummy_f, nheadlines)
@@ -1639,16 +1624,16 @@ program multifluid
 		write(*,'(5(A,1X))') 'Trajectory spacecraft found: ', &
 			craftnames(ndef_craft+1:ncraft)
 		
-		vals = maxval(ntimes(:,2))
+		n_vals = maxval(ntimes(:,2))
 		!	Allocate array which stores all spacecraft position/time
 		!	input values
-		allocate(craftpos(4, ncraft, vals))
+		allocate(craftpos(4, ncraft, n_vals))
 		
 		!	Fill in spacecraft info arrays and initialize/seek output
 		!	files
-		call initcraft( craft_info, craft_data, craftnames, scin, &
+		call initcraft( craft_info, craft_datadir, craftnames, scin, &
 			scout, dat_header, ncraft, ndef_craft, naux_craft, &
-			nheadlines, recording, ntimes, vals, cgridpt, craftpos, &
+			nheadlines, recording, ntimes, n_vals, cgridpt, craftpos, &
 			craft_rot_ca, n_grids, re_equiv, xspac, grid_minvals, &
 			grid_maxvals, git_hash )
 		
@@ -1818,40 +1803,40 @@ program multifluid
 	!	write(*,*) 'checking set speed'
 	do box=n_grids,1,-1
 	
-	!	Sync time steps
+		!	Sync time steps
 	
-	t_old(box)=0.
-	t_new(box)=0.
+		t_old(box)=0.
+		t_new(box)=0.
 	
-	!	Check density
+		!	Check density
 	
-	call set_rho(qrho,qpresx,qpresy,qpresz, &
-		qpresxy,qpresxz,qpresyz,rmassq, &
-		hrho,hpresx,hpresy,hpresz, &
-		hpresxy,hpresxz,hpresyz,rmassh, &
-		orho,opresx,opresy,opresz, &
-		opresxy,opresxz,opresyz,rmasso, &
-		epres,nx,ny,nz,n_grids,box,o_conc)
+		call set_rho(qrho,qpresx,qpresy,qpresz, &
+			qpresxy,qpresxz,qpresyz,rmassq, &
+			hrho,hpresx,hpresy,hpresz, &
+			hpresxy,hpresxz,hpresyz,rmassh, &
+			orho,opresx,opresy,opresz, &
+			opresxy,opresxz,opresyz,rmasso, &
+			epres,nx,ny,nz,n_grids,box,o_conc)
 	
-	!	Check speeds of individual grids
+		!	Check speeds of individual grids
 	
-	vlim=0.6*box
+		vlim=0.6*box
 
-	!	Find maximum velocity to determine time step
-	call set_speed_agrd( &
-		qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
-		hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
-		orho,opresx,opresy,opresz,opx,opy,opz, &
-		epres,qpresxy,qpresxz,qpresyz, &
-		hpresxy,hpresxz,hpresyz,opresxy,opresxz,opresyz, &
-		bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz,btot, &
-		vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
-		rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
-		pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-		vlim,alf_lim,o_conc,fastest,isotropic)
-	write(*,speeds_fmt) box,csmax,alfmax,pxmax,pymax,pzmax
+		!	Find maximum velocity to determine time step
+		call set_speed_agrd( &
+			qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
+			hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
+			orho,opresx,opresy,opresz,opx,opy,opz, &
+			epres,qpresxy,qpresxz,qpresyz, &
+			hpresxy,hpresxz,hpresyz,opresxy,opresxz,opresyz, &
+			bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz,btot, &
+			vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
+			rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
+			pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
+			vlim,alf_lim,o_conc,fastest,isotropic)
+		write(*,speeds_fmt) box,csmax,alfmax,pxmax,pymax,pzmax
 	
-	t_stepnew(box)=amin1( stepsz*xspac(box)/fastest, t_step_max )
+		t_stepnew(box)=amin1( stepsz*xspac(box)/fastest, t_step_max )
 	enddo
 	write(*,*)'Speeds checked.'
 	
@@ -1863,14 +1848,14 @@ program multifluid
 	write(*,init_fmt) 'Init: t=', t, tab//'dt=', delt, tab//'ut=', ut
 
 	write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
-	write(*,*) '    INITIALIZATION COMPLETED!    '
+	write(*,*) '	INITIALIZATION COMPLETED!	'
 	write(*,*) '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
 	
 	
 	!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	!		@		********************************		@
 	!		@			START MAIN TIME SEQUENCE			@
-	!     	@		********************************		@
+	!	  	@		********************************		@
 	!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	
 	
@@ -2031,197 +2016,19 @@ program multifluid
 		!		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 		
 		if(spacecraft) then
-		
-			!	---------------------
-			!		DEFAULT CRAFT
-			!	---------------------
-		
-			!	Only record values for default craft every
-			!	deflt_rec_skp number of loops
-			if(nskipped.ge.deflt_rec_skp .or. t.ge.tgraph) then
-				write(*,*) 'Recording default spacecraft measurements.'
-		
-				!	Update position of moon diagnostic craft
-				if(trim(craftnames(2)) == 'moondgn') then
-					xcraft(1,2)=xmoon*re_equiv*1.05
-					xcraft(2,2)=ymoon*re_equiv*1.05
-					xcraft(3,2)=zmoon*re_equiv*1.05
-					xcraft(4,2)=ut
-					call findgrid( xcraft(1:3,2),n_grids,grid_minvals, &
-						grid_maxvals,xspac,cgridpt(:,2),re_equiv, &
-						craftnames(2) )
-				endif
+			!	WARNING: Arguments to craft_handling must be updated
+			!	each time num_inst is incremented, to add the new
+			!	quantities.
+
+			call craft_handling( nx, ny, nz, n_grids, ncraft, n_vals, &
+				ndef_craft, deflt_rec_skp, scout, t, ut, utold, tgraph, &
+				t_equiv, t_step_max_def, xmoon, ymoon, zmoon, sxyz, &
+				re_equiv, moon_per, repeat_flybys, craft_datadir, &
+				grid_minvals, grid_maxvals, xspac, craftnames, scfmt, &
+				dat_header, num_inst, spam_limit, scdata, craftpos, bx,by,bz, &
+				nskipped, recording, ntimes, cgridpt, t_step_max, &
+				flyby_ref_time, xcraft, zcraft )
 			
-				do n=1,ndef_craft
-					if(recording(n)) then
-						!	WARNING: A line must be added below each time
-						!	num_inst is incremented, to add the new
-						!	quantity to the array scdata.
-						sctime = ut
-						scdata(1) = bx( cgridpt(1,n),cgridpt(2,n), &
-							cgridpt(3,n),cgridpt(4,n) )
-						scdata(2) = by( cgridpt(1,n),cgridpt(2,n), &
-							cgridpt(3,n),cgridpt(4,n) )
-						scdata(3) = bz( cgridpt(1,n),cgridpt(2,n), &
-							cgridpt(3,n),cgridpt(4,n) )
-						!	Default craft xyz are in simulation
-						!	coordinates, including measurements.
-						write(scout+n, scfmt) sctime, xcraft(1:3,n), &
-							scdata
-					endif
-				enddo
-			
-				ntimes(n,1) = ntimes(n,1) + 1
-				nskipped = 0
-			else
-				nskipped = nskipped + 1
-			endif
-		
-			!	-----------------
-			!		AUX CRAFT
-			!	-----------------
-		
-			do n=ndef_craft+1,ncraft
-				if( recording(n) ) then
-					if( utold.le.xcraft(4,n) &
-						.and. ut.gt.xcraft(4,n) ) then
-						sc_record = .true.
-					else if( utold.gt.xcraft(4,n) ) then
-						write(*,*) 'WARNING: t_step too large, ', &
-							'fast-forwarding for craft: ', &
-							craftnames(n), ' at ut = ', ut, &
-							' with xcraft(t) = ', xcraft(4,n)
-						sc_record = .true.
-						sc_fast_forward = .true.
-						sc_ff_count = 0
-					endif
-
-					do while(sc_record)
-						if( (spam_reduct .ge. spam_limit) &
-							.or. (ntimes(n,1).eq.ntimes(n,2)-1) ) then
-							write(*,*) '-'
-							write(*,*) 'Recording data for craft: ', &
-								craftnames(n)
-							write(*,*) '-'
-							write(*,*) ntimes(n,1)+1, ' of ', &
-								ntimes(n,2), 'ut = ', ut, &
-								'flyby_ref_time = ', &
-								flyby_ref_time(n), 'xcraft(t) = ', &
-								xcraft(4,n), 'craftpos(t) = ', &
-								craftpos(4,n,ntimes(n,1)+1)
-							spam_reduct = 1
-						else
-							spam_reduct = spam_reduct + 1
-						endif
-
-						sctime = ut
-						call find_aux_cube( craftnames(n), n, scout, &
-							n_grids, grid_minvals, grid_maxvals, &
-							xspac, re_equiv, xcraft(:,n), zcraft(:,n), &
-							sctime, ntimes(n,:), recording(n), &
-							cgridpt(:,n), sxyz, cube_vertices, scfmt )
-
-						!	WARNING: Each time num_inst is incremented,
-						!	a line must be added below to add the new
-						!	quantity to the array meas_qty. The lines
-						!	are identical except the final index of
-						!	meas_qty and the name of the array we are
-						!	pulling a measurement from.
-						meas_qty(:,:,:,1) = bx( &
-							cgridpt(1,n):cgridpt(1,n)+1, &
-							cgridpt(2,n):cgridpt(2,n)+1, &
-							cgridpt(3,n):cgridpt(3,n)+1, cgridpt(4,n) )
-						meas_qty(:,:,:,2) = by( &
-							cgridpt(1,n):cgridpt(1,n)+1, &
-							cgridpt(2,n):cgridpt(2,n)+1, &
-							cgridpt(3,n):cgridpt(3,n)+1, cgridpt(4,n) )
-						meas_qty(:,:,:,3) = bz( &
-							cgridpt(1,n):cgridpt(1,n)+1, &
-							cgridpt(2,n):cgridpt(2,n)+1, &
-							cgridpt(3,n):cgridpt(3,n)+1, cgridpt(4,n) )
-
-						!	Writes data to disk and increments
-						!	ntimes(n,1)
-						call record_aux_data( n, scout, num_inst, &
-							scfmt, sctime, sxyz, cube_vertices, &
-							meas_qty, ntimes(n,:) )
-					
-						!	Check if spacecraft has finished its whole
-						!	trajectory
-						if(ntimes(n,1).ge.ntimes(n,2)) then
-							if(repeat_flybys) then
-								flyby_ref_time(n) = flyby_ref_time(n) &
-									+ moon_per
-								call new_trajec( craft_data, &
-									dat_header, scout+n, recording(n) )
-								ntimes(n,1) = 0
-								xcraft(:,n) = craftpos(:,n,1)
-								xcraft(4,n) = xcraft(4,n) &
-									+ flyby_ref_time(n)
-								zcraft(:,n) = craftpos(:,n,2)
-								zcraft(4,n) = zcraft(4,n) &
-									+ flyby_ref_time(n)
-							else
-								recording(n) = .false.
-								!	Arbitrarily high number so it's
-								!	always greater than ut
-								xcraft(4,n) = 9.9e30
-								write(*,*) 'Finished recording ', &
-									'trajectory for craft: ', &
-									craftnames(n)
-							endif
-
-							!	Speed time stepping back up if we're not
-							!	near another flyby
-							if( ut+(ut-utold)*2 .le. &
-								minval(xcraft(4,ndef_craft+1:ncraft)) &
-								) then
-
-								sc_stepping = .false.
-								write(*,*) 'Trajectory finished, ', &
-									'speeding back up.'
-							endif
-						else if( ntimes(n,1).ge.(ntimes(n,2)-1) ) then
-							xcraft(:,n) = zcraft(:,n)
-						else
-							xcraft(:,n) = zcraft(:,n)
-							zcraft(:,n) = craftpos(:,n,ntimes(n,1)+1)
-							zcraft(4,n) = zcraft(4,n) &
-								+ flyby_ref_time(n)
-						endif	!end if(finished trajectory?)
-
-						sc_ff_count = sc_ff_count + 1
-						if(.not. sc_fast_forward) then
-							sc_record = .false.
-						else if(xcraft(4,n) .ge. ut) then
-							sc_record = .false.
-							write(*,*) '-'
-							write(*,*) 'Done fast-forwarding, ', &
-								'recorded ', sc_ff_count, &
-								' points at once.'
-							write(*,*) '-'
-							sc_ff_count = 0
-							sc_fast_forward = .false.
-						endif
-					enddo	!end do while(sc_record)
-				endif	!end if(recording)
-			enddo
-		
-			if(.not. sc_stepping) then
-				!	When we get close to spacecraft recording times,
-				!	slow down the time stepping so we don't skip points.
-				if( ut+(ut-utold)*2 .ge. &
-					minval(xcraft(4,ndef_craft+1:ncraft)) ) then
-					write(*,*) 'Slowing down at ut = ', ut, &
-						' for measurement at ut = ', &
-						minval(xcraft(4,ndef_craft+1:ncraft)), &
-						' with ut-utold = ', ut-utold
-					sc_stepping = .true.
-					t_step_max = sc_delt/t_equiv
-				else
-					t_step_max = t_step_max_def
-				endif
-			endif
 		endif	!end if(spacecraft)
 		
 		if(input_fluid) then
@@ -2265,9 +2072,9 @@ program multifluid
 			delay=t_equiv*distance/svelx/3600.
 		endif	!end if(input_fluid)
 		
-		!     *******************************
-		!     Main grid loop over delt/m_step
-		!     *******************************
+		!	*******************************
+		!	Main grid loop over delt/m_step
+		!	*******************************
 		
 		do ms=1,m_step
 			do box=n_grids,1,-1
@@ -2316,9 +2123,9 @@ program multifluid
 							grid_minvals(3,:), grid_maxvals(3,:) )
 					endif
 					
-					!    *******************************
-					!    Store initial plasma parameters
-					!    *******************************
+					!	*******************************
+					!	Store initial plasma parameters
+					!	*******************************
 					
 					call store_array(oldqrho,qrho,nx,ny,nz,n_grids,box)
 					call store_array(oldqpresx,qpresx,nx,ny,nz,n_grids,box)
@@ -2999,9 +2806,9 @@ program multifluid
 					
 					!	write(*,*) 'Lapidus smoothing complete.'
 					
-					!     ....................................
-					!     Add a little bit of flux correction:
-					!     ....................................
+					!	....................................
+					!	Add a little bit of flux correction:
+					!	....................................
 					
 					!	write(*,*)'Entering subroutine: flux_correct'
 					call flux_correct(qrho,qpresx,qpresy,qpresz, &
@@ -3169,7 +2976,7 @@ program multifluid
 					
 				endif	! yes_step of main grid
 			enddo	! lores box increment
-		enddo	! box sweep of lores grid            
+		enddo	! box sweep of lores grid
 		
 		!	write(*,*) 'Final sync on boundary conditions.'
 		t_old(1)=t_new(1)
@@ -3294,10 +3101,10 @@ program multifluid
 						ar_tmid=sqrt(ax**2+ay**2)*re_equiv
 						dr_tmid=abs(ar_tmid - torus_inj_dist)
 						
-						! MAT - Corrected, according to 
-						!   doi:10.1029/2009JE003372
-						!   and
-						!   doi:10.1029/JA091iA08p08749
+						!	MAT - Corrected, according to 
+						!	doi:10.1029/2009JE003372
+						!	and
+						!	doi:10.1029/JA091iA08p08749
 						
 						if( (abs(dr_tmid).lt.2.*torus_rad) &
 							.and. (ar.gt.srf_bndry) ) then
@@ -3344,12 +3151,12 @@ program multifluid
 							qpy(i,j,k,box)=qpy(i,j,k,box) &
 								+ reduct*qden*rvy
 							
-							! Inject o species 
+							!	Inject o species 
 							
 							oden=deno_torus*rmasso*rscale*zscale*dscale 
 							orho(i,j,k,box)=orho(i,j,k,box)+oden
 							!	Temp. is proportional to v**2
-							del_op=(oden/rmasso)*(corotate**2)*t_torus    
+							del_op=(oden/rmasso)*(corotate**2)*t_torus 
 							opresx(i,j,k,box) = opresx(i,j,k,box)+del_op
 							opresy(i,j,k,box) = opresy(i,j,k,box)+del_op
 							opresz(i,j,k,box) = opresz(i,j,k,box) &
