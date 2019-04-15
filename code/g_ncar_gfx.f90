@@ -75,9 +75,9 @@ subroutine visual( &
         call totfld(by,by0,bsy,nx,ny,nz,n_grids,box)
         call totfld(bz,bz0,bsz,nx,ny,nz,n_grids,box)
         !
-        call qvset(0.,curx,nx*ny*nz)
-        call qvset(0.,cury,nx*ny*nz)
-        call qvset(0.,curz,nx*ny*nz)
+		curx(:,:,:) = 0.
+		cury(:,:,:) = 0.
+		curz(:,:,:) = 0.
         !
         if(box.le.3)then
             preslim=20.0/float(box)
@@ -403,9 +403,9 @@ subroutine visual( &
         call totfld(by,by0,bsy,nx,ny,nz,n_grids,box)
         call totfld(bz,bz0,bsz,nx,ny,nz,n_grids,box)
         !
-        call qvset(0.,curx,nx*ny*nz)
-        call qvset(0.,cury,nx*ny*nz)
-        call qvset(0.,curz,nx*ny*nz)
+		curx(:,:,:) = 0.
+		cury(:,:,:) = 0.
+		curz(:,:,:) = 0.
         !
     	!
         label='box '//wd1
@@ -505,9 +505,9 @@ subroutine visual( &
         enddo
         !
         !
-        call qvset(0.,curx,nx*ny*nz)
-        call qvset(0.,cury,nx*ny*nz)
-        call qvset(0.,curz,nx*ny*nz)
+		curx(:,:,:) = 0.
+		cury(:,:,:) = 0.
+		curz(:,:,:) = 0.
         !
         label='alf_mach '//wd1 
         call conhot(efldy,curx,cury,curz,nx,ny,nz,1,1,box, &
@@ -604,9 +604,9 @@ subroutine visual( &
         !
         !       plot mass flows : solar wind
         !
-        call qvset(0.,curx,nx*ny*nz)
-        call qvset(0.,cury,nx*ny*nz)
-        call qvset(0.,curz,nx*ny*nz)
+		curx(:,:,:) = 0.
+		cury(:,:,:) = 0.
+		curz(:,:,:) = 0.
         !       call fnd_vel(qpx,qpy,qpz,qrho,curx,cury,curz,nx,ny,nz,n_grids,box)
         do k=1,nz
             do j=1,ny
