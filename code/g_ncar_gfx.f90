@@ -87,7 +87,9 @@ subroutine visual( &
             po=preslim*0.33
         endif
         !
-        call fnd_vel(qpx,qpy,qpz,qrho,curx,cury,curz,nx,ny,nz,n_grids,box)
+   		curx(:,:,:) = qpx(:,:,:,box) / amax1( qrho(:,:,:,box), smallbit )
+		cury(:,:,:) = qpy(:,:,:,box) / amax1( qrho(:,:,:,box), smallbit )
+		curz(:,:,:) = qpz(:,:,:,box) / amax1( qrho(:,:,:,box), smallbit )
         !
         do k=1,nz
             do j=1,ny
@@ -176,7 +178,9 @@ subroutine visual( &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
     	!
-        call fnd_vel(hpx,hpy,hpz,hrho,curx,cury,curz,nx,ny,nz,n_grids,box)
+		curx(:,:,:) = hpx(:,:,:,box) / amax1( hrho(:,:,:,box), smallbit )
+		cury(:,:,:) = hpy(:,:,:,box) / amax1( hrho(:,:,:,box), smallbit )
+		curz(:,:,:) = hpz(:,:,:,box) / amax1( hrho(:,:,:,box), smallbit )
         !
         do k=1,nz
             do j=1,ny
@@ -262,7 +266,9 @@ subroutine visual( &
             grd_xmin,grd_xmax,grd_ymin,grd_ymax,grd_zmin,grd_zmax)
         !
     	!
-        call fnd_vel(opx,opy,opz,orho,curx,cury,curz,nx,ny,nz,n_grids,box)
+		curx(:,:,:) = opx(:,:,:,box) / amax1( orho(:,:,:,box), smallbit )
+		cury(:,:,:) = opy(:,:,:,box) / amax1( orho(:,:,:,box), smallbit )
+		curz(:,:,:) = opz(:,:,:,box) / amax1( orho(:,:,:,box), smallbit )
         !
         do k=1,nz
             do j=1,ny

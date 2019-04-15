@@ -2664,8 +2664,12 @@ program multifluid
 
 					!	Species q
 					
-					call fnd_vel(qpx,qpy,qpz,qrho, &
-						curx,cury,curz,nx,ny,nz,n_grids,box)
+					curx(:,:,:) = qpx(:,:,:,box) &
+						/ amax1( qrho(:,:,:,box), smallbit )
+					cury(:,:,:) = qpy(:,:,:,box) &
+						/ amax1( qrho(:,:,:,box), smallbit )
+					curz(:,:,:) = qpz(:,:,:,box) &
+						/ amax1( qrho(:,:,:,box), smallbit )
 					call lap_plasma(qrho,qpx,qpy,qpz, &
 						qpresx,qpresy,qpresz, &
 						qpresxy,qpresxz,qpresyz, &
@@ -2678,8 +2682,12 @@ program multifluid
 					
 					!	Species h
 					
-					call fnd_vel(hpx,hpy,hpz,hrho, &
-						curx,cury,curz,nx,ny,nz,n_grids,box)
+					curx(:,:,:) = hpx(:,:,:,box) &
+						/ amax1( hrho(:,:,:,box), smallbit )
+					cury(:,:,:) = hpy(:,:,:,box) &
+						/ amax1( hrho(:,:,:,box), smallbit )
+					curz(:,:,:) = hpz(:,:,:,box) &
+						/ amax1( hrho(:,:,:,box), smallbit )
 					call lap_plasma(hrho,hpx,hpy,hpz, &
 						hpresx,hpresy,hpresz, &
 						hpresxy,hpresxz,hpresyz, &
@@ -2692,8 +2700,12 @@ program multifluid
 
 					!	Species o
 					
-					call fnd_vel(opx,opy,opz,orho, &
-						curx,cury,curz,nx,ny,nz,n_grids,box)
+					curx(:,:,:) = opx(:,:,:,box) &
+						/ amax1( orho(:,:,:,box), smallbit )
+					cury(:,:,:) = opy(:,:,:,box) &
+						/ amax1( orho(:,:,:,box), smallbit )
+					curz(:,:,:) = opz(:,:,:,box) &
+						/ amax1( orho(:,:,:,box), smallbit )
 					call lap_plasma(orho,opx,opy,opz, &
 						opresx,opresy,opresz, &
 						opresxy,opresxz,opresyz, &

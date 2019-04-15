@@ -374,10 +374,14 @@ subroutine write_graphing_data( &
 		!	Species q
 		!	*********
 
-		call fnd_vel(qpx,qpy,qpz,qrho,qvx,qvy,qvz,nx,ny,nz,n_grids,box)
+		qvx(:,:,:) = qpx(:,:,:,box) / amax1( qrho(:,:,:,box), smallbit )
+		qvy(:,:,:) = qpy(:,:,:,box) / amax1( qrho(:,:,:,box), smallbit )
+		qvz(:,:,:) = qpz(:,:,:,box) / amax1( qrho(:,:,:,box), smallbit )
+
 		call fnd_pres(qpresx,qpresy,qpresz,qpresxy,qpresxz,qpresyz,&
 			qpara,qperp,qcross, &
 			qvx,qvy,qvz,bxt,byt,bzt,nx,ny,nz,n_grids,box)
+
 		qvx(:,:,:) = qvx(:,:,:)*v_equiv
 		qvy(:,:,:) = qvy(:,:,:)*v_equiv
 		qvz(:,:,:) = qvz(:,:,:)*v_equiv
@@ -386,21 +390,30 @@ subroutine write_graphing_data( &
 		!	Species h
 		!	*********
 
-		call fnd_vel(hpx,hpy,hpz,hrho,hvx,hvy,hvz,nx,ny,nz,n_grids,box)
+		hvx(:,:,:) = hpx(:,:,:,box) / amax1( hrho(:,:,:,box), smallbit )
+		hvy(:,:,:) = hpy(:,:,:,box) / amax1( hrho(:,:,:,box), smallbit )
+		hvz(:,:,:) = hpz(:,:,:,box) / amax1( hrho(:,:,:,box), smallbit )
+
 		call fnd_pres(hpresx,hpresy,hpresz,hpresxy,hpresxz,hpresyz,&
 			hpara,hperp,hcross, &
 			hvx,hvy,hvz,bxt,byt,bzt,nx,ny,nz,n_grids,box)
+
 		hvx(:,:,:) = hvx(:,:,:)*v_equiv
 		hvy(:,:,:) = hvy(:,:,:)*v_equiv
 		hvz(:,:,:) = hvz(:,:,:)*v_equiv
+
 		!	*********
 		!	Species o
 		!	*********
 
-		call fnd_vel(opx,opy,opz,orho,ovx,ovy,ovz,nx,ny,nz,n_grids,box)
+		ovx(:,:,:) = opx(:,:,:,box) / amax1( orho(:,:,:,box), smallbit )
+		ovy(:,:,:) = opy(:,:,:,box) / amax1( orho(:,:,:,box), smallbit )
+		ovz(:,:,:) = opz(:,:,:,box) / amax1( orho(:,:,:,box), smallbit )
+
 		call fnd_pres(opresx,opresy,opresz,opresxy,opresxz,opresyz,&
 			opara,operp,ocross, &
 			ovx,ovy,ovz,bxt,byt,bzt,nx,ny,nz,n_grids,box)
+
 		ovx(:,:,:) = ovx(:,:,:)*v_equiv
 		ovy(:,:,:) = ovy(:,:,:)*v_equiv
 		ovz(:,:,:) = ovz(:,:,:)*v_equiv
