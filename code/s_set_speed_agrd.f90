@@ -41,20 +41,24 @@ subroutine set_speed_agrd( &
 	bx0(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids),bz0(nx,ny,nz,n_grids), &
 	bsx(nx,ny,nz),bsy(nx,ny,nz),bsz(nx,ny,nz),btot(nx,ny,nz)
 	
-	integer fluxs_f
-	integer speed_f
-	integer concs_f
-	integer grdpt_f
-	integer recdt_f
-	common /output_f/fluxs_f, speed_f, concs_f, grdpt_f, recdt_f
+	real, intent(inout), dimension(nx,ny,nz,n_grids) :: &
+		qrho, qpx,qpy,qpz, qpresx,qpresy,qpresz,qpresxy,qpresxz,qpresyz, &
+		hrho, hpx,hpy,hpz, hpresx,hpresy,hpresz,hpresxy,hpresxz,hpresyz, &
+		orho, opx,opy,opz, opresx,opresy,opresz,opresxy,opresxz,opresyz, &
+		bx,by,bz, epres, bx0,by0,bz0
+
+	!	0 or 1 to efficiently reset pressure tensor cross terms when isotropic
+	real :: iso_flag = 1.
 	
-	common /gridding/grd_xmin(9),grd_xmax(9),grd_ymin(9),grd_ymax(9), &
-	grd_zmin(9),grd_zmax(9),xspac(9),ncore(9),nbndry(9), &
-	rx,ry,rz,xdip,ydip,zdip,r_inner,b0, &
-	sin_tilt,cos_tilt
-	
-	!	Determine speeds on the code and changes accordingly
-	
+	!	**********
+	!	Executions
+	!	**********	
+
+	!	Multiply off-diagonal pressure tensor components by 0 if isotropic
+	if(isotropic) iso_flag = 0.
+
+	!	Determine speeds on the code and changes accordingly	
+
 	fastest=0.
 	
 	pxmax=0.
@@ -99,6 +103,15 @@ subroutine set_speed_agrd( &
 			enddo
 		enddo
 	enddo
+
+	if(isotropic) then
+		presx(:,:,:) = qpresx(:,:,:,box)
+		presy(:,:,:) = qpresx(:,:,:,box)
+		presz(:,:,:) = qpresx(:,:,:,box)
+		presxy(:,:,:) = 0.
+		presxz(:,:,:) = 0.
+		presyz(:,:,:) = 0.
+	endif
 	
 	d_min=0.0333
 	
@@ -144,13 +157,13 @@ subroutine set_speed_agrd( &
 					qpresz(i,j,k,box) = ( presz(ip,j,k)+presz(im,j,k) &
 						+presz(i,jp,k)+presz(i,jm,k)+presz(i,j,kp) &
 						+presz(i,j,km) )/6.
-					qpresxy(i,j,k,box) = ( presxy(ip,j,k) &
+					qpresxy(i,j,k,box) = iso_flag * ( presxy(ip,j,k) &
 						+presxy(im,j,k)+presxy(i,jp,k)+presxy(i,jm,k) &
 						+presxy(i,j,kp)+presxy(i,j,km) )/6.
-					qpresxz(i,j,k,box) = ( presxz(ip,j,k) &
+					qpresxz(i,j,k,box) = iso_flag * ( presxz(ip,j,k) &
 						+presxz(im,j,k)+presxz(i,jp,k)+presxz(i,jm,k) &
 						+presxz(i,j,kp)+presxz(i,j,km) )/6.
-					qpresyz(i,j,k,box) = ( presyz(ip,j,k) &
+					qpresyz(i,j,k,box) = iso_flag * ( presyz(ip,j,k) &
 						+presyz(im,j,k)+presyz(i,jp,k)+presyz(i,jm,k) &
 						+presyz(i,j,kp)+presyz(i,j,km) )/6.
 				endif
@@ -187,6 +200,15 @@ subroutine set_speed_agrd( &
 			enddo
 		enddo
 	enddo
+
+	if(isotropic) then
+		presx(:,:,:) = hpresx(:,:,:,box)
+		presy(:,:,:) = hpresx(:,:,:,box)
+		presz(:,:,:) = hpresx(:,:,:,box)
+		presxy(:,:,:) = 0.
+		presxz(:,:,:) = 0.
+		presyz(:,:,:) = 0.
+	endif
 	
 	d_min=0.001
 	
@@ -231,13 +253,13 @@ subroutine set_speed_agrd( &
 					hpresz(i,j,k,box) = ( presz(ip,j,k)+presz(im,j,k) &
 						+presz(i,jp,k)+presz(i,jm,k)+presz(i,j,kp) &
 						+presz(i,j,km) )/6.
-					hpresxy(i,j,k,box) = ( presxy(ip,j,k) &
+					hpresxy(i,j,k,box) = iso_flag * ( presxy(ip,j,k) &
 						+presxy(im,j,k)+presxy(i,jp,k)+presxy(i,jm,k) &
 						+presxy(i,j,kp)+presxy(i,j,km) )/6.
-					hpresxz(i,j,k,box) = ( presxz(ip,j,k) &
+					hpresxz(i,j,k,box) = iso_flag * ( presxz(ip,j,k) &
 						+presxz(im,j,k)+presxz(i,jp,k)+presxz(i,jm,k) &
 						+presxz(i,j,kp)+presxz(i,j,km) )/6.
-					hpresyz(i,j,k,box) = ( presyz(ip,j,k) &
+					hpresyz(i,j,k,box) = iso_flag * ( presyz(ip,j,k) &
 						+presyz(im,j,k)+presyz(i,jp,k)+presyz(i,jm,k) &
 						+presyz(i,j,kp)+presyz(i,j,km) )/6.
 				endif
@@ -275,6 +297,15 @@ subroutine set_speed_agrd( &
 		enddo
 	enddo
 	
+	if(isotropic) then
+		presx(:,:,:) = opresx(:,:,:,box)
+		presy(:,:,:) = opresx(:,:,:,box)
+		presz(:,:,:) = opresx(:,:,:,box)
+		presxy(:,:,:) = 0.
+		presxz(:,:,:) = 0.
+		presyz(:,:,:) = 0.
+	endif
+
 	d_min=0.001
 	
 	do k=2,nz-1
@@ -318,13 +349,13 @@ subroutine set_speed_agrd( &
 					opresz(i,j,k,box) = ( presz(ip,j,k)+presz(im,j,k) &
 						+presz(i,jp,k)+presz(i,jm,k)+presz(i,j,kp) &
 						+presz(i,j,km) )/6.
-					opresxy(i,j,k,box) = ( presxy(ip,j,k) &
+					opresxy(i,j,k,box) = iso_flag * ( presxy(ip,j,k) &
 						+presxy(im,j,k)+presxy(i,jp,k)+presxy(i,jm,k) &
 						+presxy(i,j,kp)+presxy(i,j,km) )/6.
-					opresxz(i,j,k,box) = ( presxz(ip,j,k) &
+					opresxz(i,j,k,box) = iso_flag * ( presxz(ip,j,k) &
 						+presxz(im,j,k)+presxz(i,jp,k)+presxz(i,jm,k) &
 						+presxz(i,j,kp)+presxz(i,j,km) )/6.
-					opresyz(i,j,k,box) = ( presyz(ip,j,k) &
+					opresyz(i,j,k,box) = iso_flag * ( presyz(ip,j,k) &
 						+presyz(im,j,k)+presyz(i,jp,k)+presyz(i,jm,k) &
 						+presyz(i,j,kp)+presyz(i,j,km) )/6.
 				endif
@@ -339,10 +370,10 @@ subroutine set_speed_agrd( &
 	
 	!	Electron pressure and alfven speed
 	
-	call qvset(0.,bsx,nx*ny*nz)
-	call qvset(0.,bsy,nx*ny*nz)
-	call qvset(0.,bsz,nx*ny*nz)
-	
+	bsx(:,:,:) = 0._dp
+	bsy(:,:,:) = 0._dp
+	bsz(:,:,:) = 0._dp
+
 	call totfld(bx,bx0,bsx,nx,ny,nz,n_grids,box)
 	call totfld(by,by0,bsy,nx,ny,nz,n_grids,box)
 	call totfld(bz,bz0,bsz,nx,ny,nz,n_grids,box)
@@ -355,9 +386,9 @@ subroutine set_speed_agrd( &
 	do k=1,nz
 		do j=1,ny
 			do i=1,nx
-			px(i,j,k)=bx(i,j,k,box)
-			py(i,j,k)=by(i,j,k,box)
-			pz(i,j,k)=bz(i,j,k,box)
+				px(i,j,k)=bx(i,j,k,box)
+				py(i,j,k)=by(i,j,k,box)
+				pz(i,j,k)=bz(i,j,k,box)
 			enddo
 		enddo
 	enddo
@@ -394,9 +425,6 @@ subroutine set_speed_agrd( &
 	enddo
 	
 	pmax=sqrt(pxmax**2+pymax**2+pzmax**2)
-	
-	write(speed_f,195)box,csmax,alfmax,pxmax,pymax,pzmax
-	195 format(1x,i2,5(1x,1pe12.5))
 	
 	fastest=amax1(fastest,sqrt(pxmax**2+pymax**2+pzmax**2 &
 		+csmax**2+alfmax**2))
