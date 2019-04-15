@@ -1058,6 +1058,26 @@ program multifluid
 					grid_minvals(3,:), grid_maxvals(3,:) )
 			enddo
 
+			if(isotropic) then
+				qpresy = qpresx
+				qpresz = qpresx
+				qpresxy = 0.
+				qpresxz = 0.
+				qpresyz = 0.
+
+				opresy = opresx
+				opresz = opresx
+				opresxy = 0.
+				opresxz = 0.
+				opresyz = 0.
+
+				hpresy = hpresx
+				hpresz = hpresx
+				hpresxy = 0.
+				hpresxz = 0.
+				hpresyz = 0.
+			endif
+
 			do box=1,n_grids-1
 				call bndry_corer( &
 					qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
@@ -2182,10 +2202,9 @@ program multifluid
 					
 					!	Find total magnetic field
 					
-					!	write(*,*)'Entering subroutine: totbfld'
-					call totfld(bx,bx0,bsx,nx,ny,nz,n_grids,box)
-					call totfld(by,by0,bsy,nx,ny,nz,n_grids,box)
-					call totfld(bz,bz0,bsz,nx,ny,nz,n_grids,box)
+					bsx(:,:,:) = bx0(:,:,:,box) + bx(:,:,:,box)
+					bsy(:,:,:) = by0(:,:,:,box) + by(:,:,:,box)
+					bsz(:,:,:) = bz0(:,:,:,box) + bz(:,:,:,box)
 					
 					!	Find magnitude of B
 					
@@ -2425,9 +2444,9 @@ program multifluid
 					
 					!	Find total magnetic field
 					
-					call totfld(wrkbx,bx0,bsx,nx,ny,nz,n_grids,box)
-					call totfld(wrkby,by0,bsy,nx,ny,nz,n_grids,box)
-					call totfld(wrkbz,bz0,bsz,nx,ny,nz,n_grids,box)
+					bsx(:,:,:) = bx0(:,:,:,box) + wrkbx(:,:,:,box)
+					bsy(:,:,:) = by0(:,:,:,box) + wrkby(:,:,:,box)
+					bsz(:,:,:) = bz0(:,:,:,box) + wrkbz(:,:,:,box)
 					
 					!	Find magnitude of B
 					
@@ -3073,9 +3092,9 @@ program multifluid
 			tot_h=0.
 			tot_q=0.
 			
-			call totfld(bx,bx0,bsx,nx,ny,nz,n_grids,box)
-			call totfld(by,by0,bsy,nx,ny,nz,n_grids,box)
-			call totfld(bz,bz0,bsz,nx,ny,nz,n_grids,box)
+			bsx(:,:,:) = bx0(:,:,:,box) + bx(:,:,:,box)
+			bsy(:,:,:) = by0(:,:,:,box) + by(:,:,:,box)
+			bsz(:,:,:) = bz0(:,:,:,box) + bz(:,:,:,box)
 			
 			do k=1,nz
 				az = grid_minvals(3,box) + dz * (k-1) - zdip

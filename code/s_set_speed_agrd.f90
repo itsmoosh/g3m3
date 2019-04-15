@@ -370,14 +370,10 @@ subroutine set_speed_agrd( &
 	
 	!	Electron pressure and alfven speed
 	
-	bsx(:,:,:) = 0._dp
-	bsy(:,:,:) = 0._dp
-	bsz(:,:,:) = 0._dp
+	bsx(:,:,:) = bx0(:,:,:,box) + bx(:,:,:,box)
+	bsy(:,:,:) = by0(:,:,:,box) + by(:,:,:,box)
+	bsz(:,:,:) = bz0(:,:,:,box) + bz(:,:,:,box)
 
-	call totfld(bx,bx0,bsx,nx,ny,nz,n_grids,box)
-	call totfld(by,by0,bsy,nx,ny,nz,n_grids,box)
-	call totfld(bz,bz0,bsz,nx,ny,nz,n_grids,box)
-	
 	!	Find magnitude of b
 	
 	call tot_b(btot,bsx,bsy,bsz,nx,ny,nz)

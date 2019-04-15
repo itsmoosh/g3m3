@@ -71,9 +71,9 @@ subroutine visual( &
         !
         add_dip=.false.
         !
-        call totfld(bx,bx0,bsx,nx,ny,nz,n_grids,box)
-        call totfld(by,by0,bsy,nx,ny,nz,n_grids,box)
-        call totfld(bz,bz0,bsz,nx,ny,nz,n_grids,box)
+		bsx(:,:,:) = bx0(:,:,:,box) + bx(:,:,:,box)
+		bsy(:,:,:) = by0(:,:,:,box) + by(:,:,:,box)
+		bsz(:,:,:) = bz0(:,:,:,box) + bz(:,:,:,box)
         !
 		curx(:,:,:) = 0.
 		cury(:,:,:) = 0.
@@ -399,9 +399,9 @@ subroutine visual( &
         !
         !     find total magnetic field
         !
-        call totfld(bx,bx0,bsx,nx,ny,nz,n_grids,box)
-        call totfld(by,by0,bsy,nx,ny,nz,n_grids,box)
-        call totfld(bz,bz0,bsz,nx,ny,nz,n_grids,box)
+		bsx(:,:,:) = bx0(:,:,:,box) + bx(:,:,:,box)
+		bsy(:,:,:) = by0(:,:,:,box) + by(:,:,:,box)
+		bsz(:,:,:) = bz0(:,:,:,box) + bz(:,:,:,box)
         !
 		curx(:,:,:) = 0.
 		cury(:,:,:) = 0.
