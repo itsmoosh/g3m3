@@ -50,6 +50,8 @@ program multifluid
 
 	!	Double precision
 	integer, parameter :: dp = kind(1.d0)
+	!	Small, arbitrary amount to prevent small denominators
+	real(dp), parameter :: smallbit = 1.e-5_dp
 	!	Tab character for output formatting
 	character,parameter	:: tab=char(9)
 	
@@ -1853,7 +1855,7 @@ program multifluid
 			vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
 			rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
 			pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-			vlim,alf_lim,o_conc,fastest,isotropic)
+			vlim,alf_lim,o_conc,fastest,isotropic,smallbit)
 		write(*,speeds_fmt) box,csmax,alfmax,pxmax,pymax,pzmax
 	
 		t_stepnew(box)=amin1( stepsz*xspac(box)/fastest, t_step_max )
@@ -2208,7 +2210,7 @@ program multifluid
 					
 					!	Find magnitude of B
 					
-					call tot_b(btot,bsx,bsy,bsz,nx,ny,nz)
+					btot = amax1( sqrt( bsx**2 + bsy**2 + bsz**2 ), smallbit )
 					
 					!	write(*,*)'Entering subroutine: fnd_evel'
 					call fnd_evel(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
@@ -2410,7 +2412,7 @@ program multifluid
 						vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
 						rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
 						pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-						vlim,alf_lim,o_conc,fastest,isotropic)
+						vlim,alf_lim,o_conc,fastest,isotropic,smallbit)
 
 					!	*******************************
 					!	Lax-Wendroff: Step 2
@@ -2450,7 +2452,7 @@ program multifluid
 					
 					!	Find magnitude of B
 					
-					call tot_b(btot,bsx,bsy,bsz,nx,ny,nz)
+					btot = amax1( sqrt( bsx**2 + bsy**2 + bsz**2 ), smallbit )
 					
 					!	Find the electric field from electron momentum eqn
 					
@@ -2631,7 +2633,7 @@ program multifluid
 						vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
 						rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
 						pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-						vlim,alf_lim,o_conc,fastest,isotropic)
+						vlim,alf_lim,o_conc,fastest,isotropic,smallbit)
 					
 					!	......................
 					!	Try Lapidus smoothing:
@@ -2821,7 +2823,7 @@ program multifluid
 						vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
 						rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
 						pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-						vlim,alf_lim,o_conc,fastest,isotropic)
+						vlim,alf_lim,o_conc,fastest,isotropic,smallbit)
 					
 					!	write(*,*) 'Lapidus smoothing complete.'
 					
@@ -2964,7 +2966,7 @@ program multifluid
 						vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
 						rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
 						pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-						vlim,alf_lim,o_conc,fastest,isotropic)
+						vlim,alf_lim,o_conc,fastest,isotropic,smallbit)
 					
 					t_stepnew(box)= amin1( stepsz*xspac(box)/fastest, &
 						t_step_max )

@@ -12,7 +12,10 @@ subroutine set_speed_agrd( &
 	rho,presx,presy,presz,presxy,presxz,presyz,px,py,pz, &
 	rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
 	pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-	vlim,alf_lim,o_conc,fastest,isotropic)
+	vlim,alf_lim,o_conc,fastest,isotropic,smallbit)
+
+	!	Double precision
+	integer, parameter :: dp = kind(1.d0)
 
 	integer box
 	dimension qrho(nx,ny,nz,n_grids),qpresx(nx,ny,nz,n_grids), &
@@ -46,6 +49,9 @@ subroutine set_speed_agrd( &
 		hrho, hpx,hpy,hpz, hpresx,hpresy,hpresz,hpresxy,hpresxz,hpresyz, &
 		orho, opx,opy,opz, opresx,opresy,opresz,opresxy,opresxz,opresyz, &
 		bx,by,bz, epres, bx0,by0,bz0
+
+	!	Small, arbitrary minimum for B field to keep Alfven speeds manageable
+	real(dp), intent(in) :: smallbit
 
 	!	0 or 1 to efficiently reset pressure tensor cross terms when isotropic
 	real :: iso_flag = 1.
@@ -127,7 +133,7 @@ subroutine set_speed_agrd( &
 				ip=i+1
 				im=i-1
 				
-				arho=qrho(i,j,k,box)+1.e-5
+				arho=qrho(i,j,k,box) + smallbit
 				aqvx=abs(qpx(i,j,k,box)/arho)
 				aqvy=abs(qpy(i,j,k,box)/arho)
 				aqvz=abs(qpz(i,j,k,box)/arho)
@@ -223,7 +229,7 @@ subroutine set_speed_agrd( &
 			do i=2,nx-1
 				ip=i+1
 				im=i-1
-				arho=hrho(i,j,k,box)+1.e-5
+				arho=hrho(i,j,k,box) + smallbit
 				ahvx=abs(hpx(i,j,k,box)/arho)
 				ahvy=abs(hpy(i,j,k,box)/arho)
 				ahvz=abs(hpz(i,j,k,box)/arho)
@@ -319,7 +325,7 @@ subroutine set_speed_agrd( &
 			do i=2,nx-1
 				ip=i+1
 				im=i-1
-				arho=orho(i,j,k,box)+1.e-5
+				arho=orho(i,j,k,box) + smallbit
 				aovx=abs(opx(i,j,k,box)/arho)
 				aovy=abs(opy(i,j,k,box)/arho)
 				aovz=abs(opz(i,j,k,box)/arho)
@@ -374,9 +380,9 @@ subroutine set_speed_agrd( &
 	bsy(:,:,:) = by0(:,:,:,box) + by(:,:,:,box)
 	bsz(:,:,:) = bz0(:,:,:,box) + bz(:,:,:,box)
 
-	!	Find magnitude of b
+	!	Find magnitude of B, enforce arbitrary minimum
 	
-	call tot_b(btot,bsx,bsy,bsz,nx,ny,nz)
+	btot = amax1( sqrt( bsx**2 + bsy**2 + bsz**2 ), smallbit )
 	
 	!$omp  parallel do
 	do k=1,nz
@@ -403,8 +409,7 @@ subroutine set_speed_agrd( &
 				
 				!	Electron pressure
 				
-				arho=qrho(i,j,k,box)+hrho(i,j,k,box)+orho(i,j,k,box) &
-					+ 1.e-5
+				arho=qrho(i,j,k,box)+hrho(i,j,k,box)+orho(i,j,k,box) + smallbit
 				cs=sqrt(epres(i,j,k,box)/arho)
 				if(cs.gt.cslim) then
 					epres(i,j,k,box)=epres(i,j,k,box)*cslim/cs

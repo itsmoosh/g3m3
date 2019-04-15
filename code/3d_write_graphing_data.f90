@@ -353,7 +353,7 @@ subroutine write_graphing_data( &
 		
 		!	Find magnitude of B
 		
-		call tot_b(btot,bxt,byt,bzt,nx,ny,nz)
+		btot = amax1( sqrt( bxt**2 + byt**2 + bzt**2 ), smallbit )
 
 		call fnd_evel(qpx,qpy,qpz,qrho,hpx,hpy,hpz,hrho, &
 			opx,opy,opz,orho,curx,cury,curz, &
