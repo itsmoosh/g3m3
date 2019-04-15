@@ -100,7 +100,7 @@ subroutine write_graphing_data( &
 	integer, intent(in) :: dummy_f
 	logical, intent(in) :: diagnostics
 	logical, intent(in) :: isotropic
-	real(dp), intent(in)	:: smallbit
+	real, intent(in)	:: smallbit
 
 	integer, intent(out) :: nplots
 

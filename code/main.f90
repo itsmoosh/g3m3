@@ -51,7 +51,7 @@ program multifluid
 	!	Double precision
 	integer, parameter :: dp = kind(1.d0)
 	!	Small, arbitrary amount to prevent small denominators
-	real(dp), parameter :: smallbit = 1.e-5_dp
+	real, parameter :: smallbit = 1.e-5
 	!	Tab character for output formatting
 	character,parameter	:: tab=char(9)
 	

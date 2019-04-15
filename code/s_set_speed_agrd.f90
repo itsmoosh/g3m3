@@ -35,7 +35,7 @@ subroutine set_speed_agrd( &
 	integer, intent(in)	:: nx,ny,nz, n_grids, box
 	real, intent(in)	:: rmassq, rmassh, rmasso
 	logical, intent(in)	:: isotropic
-	real(dp), intent(in)	:: smallbit
+	real, intent(in)	:: smallbit
 	real, intent(in)	:: aniso_limit
 	real, intent(in)	:: vlim, qvlim,hvlim,ovlim, qclim,hclim,oclim, cslim
 
