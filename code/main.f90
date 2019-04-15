@@ -83,7 +83,9 @@ program multifluid
 	character*37, parameter :: init_fmt = '(1X,A8,1pe12.5,A4,' &
 		// '1pe12.5,A4,1pe12.5)'
 	
-	!	Notes about grid variables:
+	!	**************
+	!	Grid variables
+	!	**************
 	
 	!	Grid limits are set by grid_minvals grid_maxvals arrays.
 	!	'limit' is the base min/max value for the smallest xy box.
@@ -105,6 +107,7 @@ program multifluid
 	real,parameter	:: o_conc_max=1.0
 	real,parameter	:: cur_min=0.75
 	real,parameter	:: cur_max=20.0
+	real,parameter	:: vlim_factor=0.6	!	Multiply by box to get max CFL speed
 	!	Minimum time step, in sim units. If delt is less than this,
 	!	exit with error because something has gone wrong.
 	real,parameter	:: t_step_min = 1.e-6
@@ -128,6 +131,7 @@ program multifluid
 	real zero_bndry
 	real mid_bndry
 	real srf_bndry
+	real vlim
 	integer,allocatable	:: ijsrf(:,:,:)
 	integer,allocatable	:: ijmid(:,:,:)
 	integer,allocatable	:: ijzero(:,:,:)
@@ -190,7 +194,6 @@ program multifluid
 	real vt
 	real abtot
 	real scale
-	real alf_lim
 
 	!	Number of full rotations for planet and moon
 	integer nrot_planet, nrot_moon
@@ -217,7 +220,8 @@ program multifluid
 	! group 'speeds'
 	real cs_inner, alf_inner1, alf_inner2, &
 		alpha_e, denh_inner, denq_torus, denh_torus, deno_torus, &
-		gravity, ti_te, gamma, reduct, t_torus, aniso_factor
+		gravity, ti_te, gamma, reduct, t_torus, aniso_factor, aniso_limit, &
+		qvlim, hvlim, ovlim, qclim, hclim, oclim, cslim
 	logical ringo, update, reload, divb_lores, divb_hires
 	! group 'windy'
 	real re_wind, cs_wind, &
@@ -551,7 +555,8 @@ program multifluid
 	namelist/speeds/cs_inner,alf_inner1,alf_inner2, &
 		alpha_e,denh_inner,denq_torus,denh_torus,deno_torus, &
 		gravity,ti_te,gamma,ringo,update,reload, &
-		divb_lores,divb_hires,reduct,t_torus,aniso_factor
+		divb_lores,divb_hires,reduct,t_torus,aniso_factor,aniso_limit, &
+		qvlim,hvlim,ovlim,qclim,hclim,oclim,cslim
 	namelist/windy/re_wind,cs_wind,vx_wind1,vx_wind2, &
 		vy_wind1,vy_wind2,vz_wind1,vz_wind2, &
 		alfx_wind1,alfx_wind2, &
@@ -839,7 +844,6 @@ program multifluid
 	erho = denh_inner * rmassh
 	b01 = alf_inner1 * sqrt(erho) * r_inner**3
 	b02 = alf_inner2 * sqrt(erho) * r_inner**3
-	alf_lim = 6.00 * alf_inner1
 	b0 = b01
 	write(*,*)'b0: ',b0
 	
@@ -1154,7 +1158,7 @@ program multifluid
 			ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
 			ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
 			r_inner, run_name, dummy_fg, diagnostics, nplots, &
-			isotropic)
+			isotropic, smallbit)
 	else
 		
 		!	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -1842,20 +1846,26 @@ program multifluid
 	
 		!	Check speeds of individual grids
 	
-		vlim=0.6*box
+		vlim=vlim_factor*box
 
 		!	Find maximum velocity to determine time step
 		call set_speed_agrd( &
-			qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
-			hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
-			orho,opresx,opresy,opresz,opx,opy,opz, &
-			epres,qpresxy,qpresxz,qpresyz, &
-			hpresxy,hpresxz,hpresyz,opresxy,opresxz,opresyz, &
-			bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz,btot, &
-			vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
-			rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
-			pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-			vlim,alf_lim,o_conc,fastest,isotropic,smallbit)
+			nx,ny,nz,n_grids, box, rmassq,rmassh,rmasso, &
+			isotropic, smallbit, &
+			aniso_limit, vlim, qvlim,hvlim,ovlim, &
+			qclim,hclim,oclim, cslim, &
+			bx,by,bz, bx0,by0,bz0, &
+			qrho, qpx,qpy,qpz, &
+			qpresx,qpresy,qpresz, &
+			qpresxy,qpresxz,qpresyz, &
+			hrho, hpx,hpy,hpz, &
+			hpresx,hpresy,hpresz,&
+			hpresxy,hpresxz,hpresyz, &
+			orho, opx,opy,opz, &
+			opresx,opresy,opresz, &
+			opresxy,opresxz,opresyz, &
+			epres, &
+			btot, pxmax,pymax,pzmax, csmax, alfmax, fastest )
 		write(*,speeds_fmt) box,csmax,alfmax,pxmax,pymax,pzmax
 	
 		t_stepnew(box)=amin1( stepsz*xspac(box)/fastest, t_step_max )
@@ -2396,23 +2406,24 @@ program multifluid
 						wrkopresxy,wrkopresxz,wrkopresyz,rmasso, &
 						wrkepres,nx,ny,nz,n_grids,box,o_conc)
 					
-					vlim=0.6*box
+					vlim=vlim_factor*box
 					call set_speed_agrd( &
-						wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
-						wrkqpx,wrkqpy,wrkqpz, &
-						wrkhrho,wrkhpresx,wrkhpresy,wrkhpresz, &
-						wrkhpx,wrkhpy,wrkhpz, &
-						wrkorho,wrkopresx,wrkopresy,wrkopresz, &
-						wrkopx,wrkopy,wrkopz, &
-						wrkepres,wrkqpresxy,wrkqpresxz,wrkqpresyz, &
+						nx,ny,nz,n_grids, box, rmassq,rmassh,rmasso, &
+						isotropic, smallbit, &
+						aniso_limit, vlim, qvlim,hvlim,ovlim, &
+						qclim,hclim,oclim, cslim, &
+						wrkbx,wrkby,wrkbz, bx0,by0,bz0, &
+						wrkqrho, wrkqpx,wrkqpy,wrkqpz, &
+						wrkqpresx,wrkqpresy,wrkqpresz, &
+						wrkqpresxy,wrkqpresxz,wrkqpresyz, &
+						wrkhrho, wrkhpx,wrkhpy,wrkhpz, &
+						wrkhpresx,wrkhpresy,wrkhpresz, &
 						wrkhpresxy,wrkhpresxz,wrkhpresyz, &
+						wrkorho, wrkopx,wrkopy,wrkopz, &
+						wrkopresx,wrkopresy,wrkopresz, &
 						wrkopresxy,wrkopresxz,wrkopresyz, &
-						wrkbx,wrkby,wrkbz,bx0,by0,bz0, &
-						bsx,bsy,bsz,btot, &
-						vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
-						rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
-						pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-						vlim,alf_lim,o_conc,fastest,isotropic,smallbit)
+						wrkepres, &
+						btot, pxmax,pymax,pzmax, csmax, alfmax, fastest )
 
 					!	*******************************
 					!	Lax-Wendroff: Step 2
@@ -2622,18 +2633,24 @@ program multifluid
 						opresxy,opresxz,opresyz,rmasso, &
 						epres,nx,ny,nz,n_grids,box,o_conc)
 					
-					vlim=0.6*box
+					vlim=vlim_factor*box
 					call set_speed_agrd( &
-						qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
-						hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
-						orho,opresx,opresy,opresz,opx,opy,opz, &
-						epres,qpresxy,qpresxz,qpresyz, &
-						hpresxy,hpresxz,hpresyz,opresxy,opresxz,opresyz, &
-						bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz,btot, &
-						vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
-						rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
-						pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-						vlim,alf_lim,o_conc,fastest,isotropic,smallbit)
+						nx,ny,nz,n_grids, box, rmassq,rmassh,rmasso, &
+						isotropic, smallbit, &
+						aniso_limit, vlim, qvlim,hvlim,ovlim, &
+						qclim,hclim,oclim, cslim, &
+						bx,by,bz, bx0,by0,bz0, &
+						qrho, qpx,qpy,qpz, &
+						qpresx,qpresy,qpresz, &
+						qpresxy,qpresxz,qpresyz, &
+						hrho, hpx,hpy,hpz, &
+						hpresx,hpresy,hpresz,&
+						hpresxy,hpresxz,hpresyz, &
+						orho, opx,opy,opz, &
+						opresx,opresy,opresz, &
+						opresxy,opresxz,opresyz, &
+						epres, &
+						btot, pxmax,pymax,pzmax, csmax, alfmax, fastest )
 					
 					!	......................
 					!	Try Lapidus smoothing:
@@ -2807,23 +2824,24 @@ program multifluid
 						wrkopresxy,wrkopresxz,wrkopresyz,rmasso, &
 						wrkepres,nx,ny,nz,n_grids,box,o_conc)
 					
-					vlim=0.6*box
+					vlim=vlim_factor*box
 					call set_speed_agrd( &
-						wrkqrho,wrkqpresx,wrkqpresy,wrkqpresz, &
-						wrkqpx,wrkqpy,wrkqpz, &
-						wrkhrho,wrkhpresx,wrkhpresy,wrkhpresz, &
-						wrkhpx,wrkhpy,wrkhpz, &
-						wrkorho,wrkopresx,wrkopresy,wrkopresz, &
-						wrkopx,wrkopy,wrkopz, &
-						wrkepres,wrkqpresxy,wrkqpresxz,wrkqpresyz, &
+						nx,ny,nz,n_grids, box, rmassq,rmassh,rmasso, &
+						isotropic, smallbit, &
+						aniso_limit, vlim, qvlim,hvlim,ovlim, &
+						qclim,hclim,oclim, cslim, &
+						wrkbx,wrkby,wrkbz, bx0,by0,bz0, &
+						wrkqrho, wrkqpx,wrkqpy,wrkqpz, &
+						wrkqpresx,wrkqpresy,wrkqpresz, &
+						wrkqpresxy,wrkqpresxz,wrkqpresyz, &
+						wrkhrho, wrkhpx,wrkhpy,wrkhpz, &
+						wrkhpresx,wrkhpresy,wrkhpresz, &
 						wrkhpresxy,wrkhpresxz,wrkhpresyz, &
+						wrkorho, wrkopx,wrkopy,wrkopz, &
+						wrkopresx,wrkopresy,wrkopresz, &
 						wrkopresxy,wrkopresxz,wrkopresyz, &
-						wrkbx,wrkby,wrkbz,bx0,by0,bz0, &
-						bsx,bsy,bsz,btot, &
-						vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
-						rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
-						pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-						vlim,alf_lim,o_conc,fastest,isotropic,smallbit)
+						wrkepres, &
+						btot, pxmax,pymax,pzmax, csmax, alfmax, fastest )
 					
 					!	write(*,*) 'Lapidus smoothing complete.'
 					
@@ -2955,18 +2973,24 @@ program multifluid
 						opresxy,opresxz,opresyz,rmasso, &
 						epres,nx,ny,nz,n_grids,box,o_conc)
 					
-					vlim=0.6*box
+					vlim=vlim_factor*box
 					call set_speed_agrd( &
-						qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
-						hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
-						orho,opresx,opresy,opresz,opx,opy,opz, &
-						epres,qpresxy,qpresxz,qpresyz, &
-						hpresxy,hpresxz,hpresyz,opresxy,opresxz,opresyz, &
-						bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz,btot, &
-						vvx,tvx,tvy,tvz,evx,evy,evz,curx,cury,curz, &
-						rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
-						pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-						vlim,alf_lim,o_conc,fastest,isotropic,smallbit)
+						nx,ny,nz,n_grids, box, rmassq,rmassh,rmasso, &
+						isotropic, smallbit, &
+						aniso_limit, vlim, qvlim,hvlim,ovlim, &
+						qclim,hclim,oclim, cslim, &
+						bx,by,bz, bx0,by0,bz0, &
+						qrho, qpx,qpy,qpz, &
+						qpresx,qpresy,qpresz, &
+						qpresxy,qpresxz,qpresyz, &
+						hrho, hpx,hpy,hpz, &
+						hpresx,hpresy,hpresz,&
+						hpresxy,hpresxz,hpresyz, &
+						orho, opx,opy,opz, &
+						opresx,opresy,opresz, &
+						opresxy,opresxz,opresyz, &
+						epres, &
+						btot, pxmax,pymax,pzmax, csmax, alfmax, fastest )
 					
 					t_stepnew(box)= amin1( stepsz*xspac(box)/fastest, &
 						t_step_max )
@@ -3056,7 +3080,7 @@ program multifluid
 				ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
 				ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
 				r_inner, run_name, dummy_fg, diagnostics, nplots, &
-				isotropic)
+				isotropic, smallbit)
 		
 			!	NCAR graphics disabled.
 			!	call visual(qrho,qpresx,qpresy,qpresz,qpresxy, &

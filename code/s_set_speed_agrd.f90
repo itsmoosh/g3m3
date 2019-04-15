@@ -1,57 +1,68 @@
 !
-!	Checks for minimum rho and negative pressure
-!	and resets value if necessary
+!	Applies limits to various plasma quantities, and if those limits are
+!	exceeded, averages plasma quantities between adjacent grid points.
+!	Also determines maximum speeds within the given box.
 !
 subroutine set_speed_agrd( &
-	qrho,qpresx,qpresy,qpresz,qpx,qpy,qpz, &
-	hrho,hpresx,hpresy,hpresz,hpx,hpy,hpz, &
-	orho,opresx,opresy,opresz,opx,opy,opz, &
-	epres,qpresxy,qpresxz,qpresyz, &
-	hpresxy,hpresxz,hpresyz,opresxy,opresxz,opresyz, &
-	bx,by,bz,bx0,by0,bz0,bsx,bsy,bsz,btot, &
-	rho,presx,presy,presz,presxy,presxz,presyz,px,py,pz, &
-	rmassq,rmassh,rmasso,nx,ny,nz,n_grids,box, &
-	pxmax,pymax,pzmax,pmax,csmax,alfmax,gamma, &
-	vlim,alf_lim,o_conc,fastest,isotropic,smallbit)
+	nx,ny,nz,n_grids, box, rmassq,rmassh,rmasso, &
+	isotropic, smallbit, &
+	aniso_limit, vlim, qvlim,hvlim,ovlim, &
+	qclim,hclim,oclim, cslim, &
+	bx,by,bz, bx0,by0,bz0, &
+	qrho, qpx,qpy,qpz, &
+	qpresx,qpresy,qpresz, &
+	qpresxy,qpresxz,qpresyz, &
+	hrho, hpx,hpy,hpz, &
+	hpresx,hpresy,hpresz,&
+	hpresxy,hpresxz,hpresyz, &
+	orho, opx,opy,opz, &
+	opresx,opresy,opresz, &
+	opresxy,opresxz,opresyz, &
+	epres, &
+	btot, pxmax,pymax,pzmax, csmax, alfmax, fastest )
+
+	implicit none
+	
+	!	Critical parameters
 
 	!	Double precision
 	integer, parameter :: dp = kind(1.d0)
 
-	integer box
-	dimension qrho(nx,ny,nz,n_grids),qpresx(nx,ny,nz,n_grids), &
-	qpresy(nx,ny,nz,n_grids),qpresz(nx,ny,nz,n_grids), &
-	qpresxy(nx,ny,nz,n_grids), &
-	qpresxz(nx,ny,nz,n_grids),qpresyz(nx,ny,nz,n_grids), &
-	qpx(nx,ny,nz,n_grids),qpy(nx,ny,nz,n_grids),qpz(nx,ny,nz,n_grids), &
-	
-	hrho(nx,ny,nz,n_grids),hpresx(nx,ny,nz,n_grids), &
-	hpresy(nx,ny,nz,n_grids),hpresz(nx,ny,nz,n_grids), &
-	hpresxy(nx,ny,nz,n_grids), &
-	hpresxz(nx,ny,nz,n_grids),hpresyz(nx,ny,nz,n_grids), &
-	hpx(nx,ny,nz,n_grids),hpy(nx,ny,nz,n_grids),hpz(nx,ny,nz,n_grids), &
-	
-	orho(nx,ny,nz,n_grids),opresx(nx,ny,nz,n_grids), &
-	opresy(nx,ny,nz,n_grids),opresz(nx,ny,nz,n_grids), &
-	opresxy(nx,ny,nz,n_grids), &
-	opresxz(nx,ny,nz,n_grids),opresyz(nx,ny,nz,n_grids), &
-	opx(nx,ny,nz,n_grids),opy(nx,ny,nz,n_grids),opz(nx,ny,nz,n_grids), &
-	epres(nx,ny,nz,n_grids)
-	
-	dimension rho(nx,ny,nz),presx(nx,ny,nz),presy(nx,ny,nz), &
-	presz(nx,ny,nz),px(nx,ny,nz),py(nx,ny,nz),pz(nx,ny,nz), &
-	presxy(nx,ny,nz),presxz(nx,ny,nz),presyz(nx,ny,nz)
-	dimension bx(nx,ny,nz,n_grids),by(nx,ny,nz,n_grids),bz(nx,ny,nz,n_grids), &
-	bx0(nx,ny,nz,n_grids),by0(nx,ny,nz,n_grids),bz0(nx,ny,nz,n_grids), &
-	bsx(nx,ny,nz),bsy(nx,ny,nz),bsz(nx,ny,nz),btot(nx,ny,nz)
+	!	*********
+	!	Arguments
+	!	*********
+
+	integer, intent(in)	:: nx,ny,nz, n_grids, box
+	real, intent(in)	:: rmassq, rmassh, rmasso
+	logical, intent(in)	:: isotropic
+	real(dp), intent(in)	:: smallbit
+	real, intent(in)	:: aniso_limit
+	real, intent(in)	:: vlim, qvlim,hvlim,ovlim, qclim,hclim,oclim, cslim
+
+	real, intent(in), dimension(nx,ny,nz,n_grids)	:: bx,by,bz, bx0,by0,bz0
 	
 	real, intent(inout), dimension(nx,ny,nz,n_grids) :: &
 		qrho, qpx,qpy,qpz, qpresx,qpresy,qpresz,qpresxy,qpresxz,qpresyz, &
 		hrho, hpx,hpy,hpz, hpresx,hpresy,hpresz,hpresxy,hpresxz,hpresyz, &
 		orho, opx,opy,opz, opresx,opresy,opresz,opresxy,opresxz,opresyz, &
-		bx,by,bz, epres, bx0,by0,bz0
+		epres
 
-	!	Small, arbitrary minimum for B field to keep Alfven speeds manageable
-	real(dp), intent(in) :: smallbit
+	real, intent(out), dimension(nx,ny,nz)	:: btot
+	real, intent(out)	:: pxmax,pymax,pzmax, csmax, alfmax, fastest
+
+	!	***************
+	!	Local variables
+	!	***************
+
+	integer i,ip,im, j,jp,jm, k,kp,km
+
+	!	Work arrays for averaging
+	real, dimension(nx,ny,nz) :: rho, presx, presy, presz, presxy, &
+		presxz, presyz, px, py, pz, bsx, bsy, bsz
+
+	!	Per-point work values for speed checks
+	real apres, arho, aqvx,aqvy,aqvz, vq,cq, ahvx,ahvy,ahvz, vh,ch, &
+		aovx,aovy,aovz, vo,co, cs
 
 	!	0 or 1 to efficiently reset pressure tensor cross terms when isotropic
 	real :: iso_flag = 1.
@@ -63,27 +74,14 @@ subroutine set_speed_agrd( &
 	!	Multiply off-diagonal pressure tensor components by 0 if isotropic
 	if(isotropic) iso_flag = 0.
 
-	!	Determine speeds on the code and changes accordingly	
+	!	Reset max values for this iteration
 
 	fastest=0.
-	
 	pxmax=0.
 	pymax=0.
 	pzmax=0.
-	pmax=0.
 	csmax=0.
 	alfmax=0.
-	
-	vqlim=vlim
-	vhlim=1.4*vlim
-	volim=2.*vlim
-	
-	cqlim=1.0*vqlim
-	chlim=1.0*vhlim
-	colim=4.0*volim
-	cslim=vlim
-	
-	ani=0.9995
 	
 	!	Find bulk velocities: species 1
 	
@@ -98,14 +96,17 @@ subroutine set_speed_agrd( &
 				
 				!	Limit anisotropy
 				
-				apres=(qpresx(i,j,k,box) + qpresy(i,j,k,box) &
+				apres = (qpresx(i,j,k,box) + qpresy(i,j,k,box) &
 					+ qpresz(i,j,k,box))/3.0
-				presx(i,j,k)=ani*qpresx(i,j,k,box)+(1.-ani)*apres
-				presy(i,j,k)=ani*qpresy(i,j,k,box)+(1.-ani)*apres
-				presz(i,j,k)=ani*qpresz(i,j,k,box)+(1.-ani)*apres
-				presxy(i,j,k)=ani*qpresxy(i,j,k,box)
-				presxz(i,j,k)=ani*qpresxz(i,j,k,box)
-				presyz(i,j,k)=ani*qpresyz(i,j,k,box)
+				presx(i,j,k) = aniso_limit*qpresx(i,j,k,box) &
+					+ (1.-aniso_limit)*apres
+				presy(i,j,k) = aniso_limit*qpresy(i,j,k,box) &
+					+ (1.-aniso_limit)*apres
+				presz(i,j,k) = aniso_limit*qpresz(i,j,k,box) &
+					+ (1.-aniso_limit)*apres
+				presxy(i,j,k) = aniso_limit*qpresxy(i,j,k,box)
+				presxz(i,j,k) = aniso_limit*qpresxz(i,j,k,box)
+				presyz(i,j,k) = aniso_limit*qpresyz(i,j,k,box)
 			enddo
 		enddo
 	enddo
@@ -118,8 +119,6 @@ subroutine set_speed_agrd( &
 		presxz(:,:,:) = 0.
 		presyz(:,:,:) = 0.
 	endif
-	
-	d_min=0.0333
 	
 	do k=2,nz-1
 		kp=k+1
@@ -141,7 +140,9 @@ subroutine set_speed_agrd( &
 				cq=sqrt(0.33*(qpresx(i,j,k,box)+qpresy(i,j,k,box) &
 					+ qpresz(i,j,k,box))/arho)
 				
-				if ((vq.gt.vqlim).or.(cq.gt.cqlim))then
+				if (( vq.gt.(vlim*qvlim) ) &
+					.or. (cq.gt.vlim*qvlim*qclim) ) then
+
 					qrho(i,j,k,box) = ( rho(ip,j,k)+rho(im,j,k) &
 						+rho(i,jp,k)+rho(i,jm,k)+rho(i,j,kp) &
 						+rho(i,j,km) )/6.
@@ -197,12 +198,15 @@ subroutine set_speed_agrd( &
 				
 				apres = ( hpresx(i,j,k,box)+hpresy(i,j,k,box) &
 					+hpresz(i,j,k,box) )/3.0
-				presx(i,j,k)=ani*hpresx(i,j,k,box)+(1.-ani)*apres
-				presy(i,j,k)=ani*hpresy(i,j,k,box)+(1.-ani)*apres
-				presz(i,j,k)=ani*hpresz(i,j,k,box)+(1.-ani)*apres
-				presxy(i,j,k)=ani*hpresxy(i,j,k,box)
-				presxz(i,j,k)=ani*hpresxz(i,j,k,box)
-				presyz(i,j,k)=ani*hpresyz(i,j,k,box)
+				presx(i,j,k) = aniso_limit*hpresx(i,j,k,box) &
+					+ (1.-aniso_limit)*apres
+				presy(i,j,k) = aniso_limit*hpresy(i,j,k,box) &
+					+ (1.-aniso_limit)*apres
+				presz(i,j,k) = aniso_limit*hpresz(i,j,k,box) &
+					+ (1.-aniso_limit)*apres
+				presxy(i,j,k) = aniso_limit*hpresxy(i,j,k,box)
+				presxz(i,j,k) = aniso_limit*hpresxz(i,j,k,box)
+				presyz(i,j,k) = aniso_limit*hpresyz(i,j,k,box)
 			enddo
 		enddo
 	enddo
@@ -215,8 +219,6 @@ subroutine set_speed_agrd( &
 		presxz(:,:,:) = 0.
 		presyz(:,:,:) = 0.
 	endif
-	
-	d_min=0.001
 	
 	do k=2,nz-1
 		kp=k+1
@@ -237,7 +239,9 @@ subroutine set_speed_agrd( &
 				ch=sqrt(0.33*(hpresx(i,j,k,box)+hpresy(i,j,k,box) &
 					+hpresz(i,j,k,box))/arho)
 				
-				if ((vh.gt.vhlim).or.(ch.gt.chlim)) then
+				if (( vh.gt.(vlim*hvlim) ) &
+					.or.(ch.gt.vlim*hvlim*hclim) ) then
+
 					hrho(i,j,k,box) = ( rho(ip,j,k)+rho(im,j,k) &
 						+rho(i,jp,k)+rho(i,jm,k)+rho(i,j,kp) &
 						+rho(i,j,km) )/6.
@@ -293,12 +297,15 @@ subroutine set_speed_agrd( &
 				
 				apres = ( opresx(i,j,k,box)+opresy(i,j,k,box) &
 					+opresz(i,j,k,box) )/3.0
-				presx(i,j,k)=ani*opresx(i,j,k,box)+(1.-ani)*apres
-				presy(i,j,k)=ani*opresy(i,j,k,box)+(1.-ani)*apres
-				presz(i,j,k)=ani*opresz(i,j,k,box)+(1.-ani)*apres
-				presxy(i,j,k)=ani*opresxy(i,j,k,box)
-				presxz(i,j,k)=ani*opresxz(i,j,k,box)
-				presyz(i,j,k)=ani*opresyz(i,j,k,box)
+				presx(i,j,k) = aniso_limit*opresx(i,j,k,box) &
+					+ (1.-aniso_limit)*apres
+				presy(i,j,k) = aniso_limit*opresy(i,j,k,box) &
+					+ (1.-aniso_limit)*apres
+				presz(i,j,k) = aniso_limit*opresz(i,j,k,box) &
+					+ (1.-aniso_limit)*apres
+				presxy(i,j,k) = aniso_limit*opresxy(i,j,k,box)
+				presxz(i,j,k) = aniso_limit*opresxz(i,j,k,box)
+				presyz(i,j,k) = aniso_limit*opresyz(i,j,k,box)
 			enddo
 		enddo
 	enddo
@@ -311,8 +318,6 @@ subroutine set_speed_agrd( &
 		presxz(:,:,:) = 0.
 		presyz(:,:,:) = 0.
 	endif
-
-	d_min=0.001
 	
 	do k=2,nz-1
 		kp=k+1
@@ -333,7 +338,8 @@ subroutine set_speed_agrd( &
 				co=sqrt(0.33*(opresx(i,j,k,box)+opresy(i,j,k,box) &
 					+opresz(i,j,k,box))/arho)
 				
-				if ((vo.gt.volim).or.(co.gt.colim))then
+				if (( vo.gt.(vlim*ovlim) ) &
+					.or. (co.gt.vlim*ovlim*oclim) ) then
 					orho(i,j,k,box) = ( rho(ip,j,k)+rho(im,j,k) &
 						+rho(i,jp,k)+rho(i,jm,k)+rho(i,j,kp) &
 						+rho(i,j,km) )/6.
@@ -411,24 +417,19 @@ subroutine set_speed_agrd( &
 				
 				arho=qrho(i,j,k,box)+hrho(i,j,k,box)+orho(i,j,k,box) + smallbit
 				cs=sqrt(epres(i,j,k,box)/arho)
-				if(cs.gt.cslim) then
+				if( cs .gt. cslim ) then
 					epres(i,j,k,box)=epres(i,j,k,box)*cslim/cs
 				endif
 				
-				!	Find alfven speed
+				!	Find max Alfven speed
 				
-				abfld=sqrt(bsx(i,j,k)**2+bsy(i,j,k)**2 &
-					+bsz(i,j,k)**2)
-				alf=abfld/sqrt(arho)
-				alfmax=amax1(alfmax,alf)
+				alfmax = amax1( alfmax, btot(i,j,k)/sqrt(arho) )
 			enddo
 		enddo
 	enddo
 	
-	pmax=sqrt(pxmax**2+pymax**2+pzmax**2)
-	
-	fastest=amax1(fastest,sqrt(pxmax**2+pymax**2+pzmax**2 &
-		+csmax**2+alfmax**2))
+	fastest = amax1(  fastest, &
+		sqrt( pxmax**2+pymax**2+pzmax**2+csmax**2+alfmax**2 )  )
 	
 	return
 end subroutine set_speed_agrd

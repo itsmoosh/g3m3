@@ -16,7 +16,8 @@ $speeds
 	gravity=10.44 ti_te=5. gamma=1.6666
 	ringo=.t. update=.f. reload=.f.
 	divb_lores=.t. divb_hires=.f. reduct=1.
-	t_torus=0.25 aniso_factor=0.0625
+	t_torus=0.25 aniso_factor=0.0625 aniso_limit=0.9995
+	qvlim=1.0 hvlim=1.4 ovlim=2.0 qclim=1.0 hclim=1.0 oclim=4.0 cslim=1.0
 $end
 
 $windy

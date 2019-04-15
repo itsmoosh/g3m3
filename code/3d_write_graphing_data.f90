@@ -26,7 +26,7 @@ subroutine write_graphing_data( &
 	ncraft, xcraft, re_equiv, b_equiv, v_equiv, t_equiv, &
 	ti_te, rho_equiv, planet_rad, planet_per, moon_rad, &
 	r_inner, run_name, dummy_f, diagnostics, nplots, &
-	isotropic)
+	isotropic, smallbit)
 
 	use astrometry
 
@@ -100,6 +100,7 @@ subroutine write_graphing_data( &
 	integer, intent(in) :: dummy_f
 	logical, intent(in) :: diagnostics
 	logical, intent(in) :: isotropic
+	real(dp), intent(in)	:: smallbit
 
 	integer, intent(out) :: nplots
 

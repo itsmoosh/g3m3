@@ -36,7 +36,7 @@ $speeds
 cs_inner - sound speed of ‘heavy’ species at inner boundary (sets ion temperature)
 alf_inner1 - initial alfven speed at equator of inner boundary for this exec (sets dipole strength). alfven speed in sim units = B/sqrt()
 alf_inner2 - final alfven speed at equator of inner boundary  for this exec (sets dipole strength)
-alpha_e - exponent for latitudinal density scaling at inner boundary (‘top hat’ (?) distribution)
+alpha_e - exponent for latitudinal density scaling at inner boundary (‘top hat’ distribution)
 denh_inner - number density in sim units for ‘heavy’ species at planetary inner boundary for this exec. denh_inner*rho_equiv = n_h (in cm^-3)
 denq_torus - number density in sim units for 'proton' species at moon inner boundary for this exec 
 denh_torus - number density in sim units for 'heavy' species at moon inner boundary for this exec 
@@ -52,6 +52,10 @@ divb_hires - ensure that div B is zero in moon grid
 reduct - multiplier for torus injected plasma momentum
 t_torus - fraction of corotation energy to pickup ions in torus (\propto corotation vel^2)
 aniso_factor - scale z pressure component of injected torus plasma (0 = purely perpendicular aniso, 1 = isotropic)
+aniso_limit - maximum amount of anisotropy allowed for a given component of the pressure tensor, relative to the average diagonal component
+q,v,h vlim factors - multiplied by vlim to give Alfven speed limit enforced in set_speed_agrd
+q,v,h clim factors - as above, but multiplied by Alfven speed limit for thermal speeds
+cslim - thermal speed limit applied to electrons
 ani_q - deprecated (originally used to set definable aniso ratios per ion, I think?)
 ani_h - deprecated (originally used to set definable aniso ratios per ion, I think?)
 ani_o - deprecated (originally used to set definable aniso ratios per ion, I think?)
