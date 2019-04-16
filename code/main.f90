@@ -42,7 +42,7 @@ program multifluid
 	!	And some physical constants, including pi
 	use astrometry
 	
-	!implicit none
+	implicit none
 
 	!	*******************
 	!	Critical parameters
@@ -72,6 +72,9 @@ program multifluid
 	real,parameter :: wind_adjust=5./4.
 	real xspac(n_grids)
 	real grid_minvals(3,n_grids), grid_maxvals(3,n_grids)
+	real csmax, alfmax, pxmax, pymax, pzmax
+
+	integer i,ix,iy,iz, j,k
 
 	!	***********************
 	!	Log file format strings
@@ -154,9 +157,9 @@ program multifluid
 	integer,parameter :: muvwp2=63
 	integer,parameter :: mz2=16
 	
-	!	*********************
-	!	Coordinate variables:
-	!	*********************
+	!	*************************
+	!	Coordinate work variables
+	!	*************************
 
 	!	Used for differences between points in various checks
 	!	(stand-in for xspac)
@@ -178,6 +181,16 @@ program multifluid
 	real rx, ry, rz, rd
 	!	Velocity variables derived from rotational motion
 	real rvx,rvy,rvz
+	!	Used as placeholders in various comparisons
+	real apres, arho, astep, atilt, atime, old_tilt, told, ts1, ut2, tstep, &
+		volume
+	integer nsteps, nvx
+	real hden, hflux_in, hflux_out, tot_h, &
+		oden, oflux_in, oflux_out, ofrac, tot_o, &
+		qden, qflux_in, qflux_out, tot_q
+	!	Placeholders for input_fluid from upwind spacecraft
+	real b_perp, bmag, delay, delt1, delt2, delt_old, dfrac, displace, &
+		distance, dscale, dut, abtot, erho, dtilt, vut, rut, spd, wind_bnd
 	
 	!	Corotation speed for current distance
 	real corotate
@@ -185,6 +198,8 @@ program multifluid
 	real ar_tmid
 	!	Distance from center of torus to current point
 	real dr_tmid
+	!	Corotation change for each time step
+	real del_qp, del_hp, del_op
 	real ar_iono
 	real r_equat
 	real rerg_sphere
@@ -192,13 +207,12 @@ program multifluid
 	real zheight
 	real rho_iono
 	real vt
-	real abtot
-	real scale
+	real scale, range, rscale, zscale
 
 	!	Number of full rotations for planet and moon
-	integer nrot_planet, nrot_moon
+	integer nrot_planet, nrot_moon, nrot2
 	!	Number of hours into current local day/moon orbit
-	real rot_hrs, rot_hrs_moon
+	real rot_hrs, rot_hrs_moon, rot_hr2
 	real rot_angle, rot_angle_moon
 	real sin_rot, cos_rot, sin_rot_moon, cos_rot_moon
 	
@@ -362,7 +376,7 @@ program multifluid
 	real, dimension(ny,nz) :: bxf,byf,bzf, rhof, svxf,svyf,svzf, &
 		bxp,byp,bzp, rhop, svxp,svyp,svzp, future,past
 	real bfld(ncts,4), rplas(ncts), svel(ncts,3)
-	integer ncount(ny,nz)
+	integer ncount(ny,nz), nc
 	
 	real, dimension(mx,my,mz) :: tx,ty,tz, tg1,tt
 	real tg2(mx,my,mz2), work(muvwp2,muvwp2)
@@ -401,7 +415,7 @@ program multifluid
 	real epress, eerg, spress, serg
 	real rho_wind1, rho_wind2
 	real srho, delrho
-	real svelx, svely, svelz
+	real svelx, svely, svelz, zvelx, zvely, zvelz
 	real spx, spy, spz
 	
 	real delvx_wind, delvy_wind, delvz_wind
@@ -520,7 +534,7 @@ program multifluid
 	integer	ndef_craft
 	integer	naux_craft
 	integer nheadlines
-	integer vals
+	integer n_vals
 	
 	!	For formatting spacecraft .dat file output:
 	character*2 :: num_inst_char
@@ -3242,7 +3256,6 @@ program multifluid
 			!	volume in cubic meters
 			volume=(re_equiv*planet_rad*1.e3)**3
 			atime=deltinj*t_equiv
-			proton_mass=1.67e-27
 			write(*,*)'ut,volume,t_equiv,atime',ut,volume,t_equiv,atime
 			write(concs_f,*)'ut,volume,t_equiv,atime',ut,volume, &
 				t_equiv,atime
@@ -3254,9 +3267,9 @@ program multifluid
 			write(concs_f,*)'tot torus ions/s q,h,o',ut,tot_q,tot_h, &
 				tot_o
 			
-			tot_q=tot_q*proton_mass*rmassq
-			tot_h=tot_h*proton_mass*rmassh
-			tot_o=tot_o*proton_mass*rmasso
+			tot_q=tot_q*m_prot*rmassq
+			tot_h=tot_h*m_prot*rmassh
+			tot_o=tot_o*m_prot*rmasso
 			write(*,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
 			write(concs_f,*)'tot torus kg/s',ut,tot_q,tot_h,tot_o
 			
