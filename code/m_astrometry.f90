@@ -282,11 +282,11 @@ contains
 				r_lim = eur_rad
 				torus_infall = 0.0
 				torus_dist = 5*eur_rad	!	Arbitrary distance
-				planet_tilt = 0.00001
+				planet_tilt = vsmall
 				planet_init_long = eur_init_rot
 				planet_xdip = 0.0
 				planet_ydip = 0.0
-				planet_zdip = 1e-6
+				planet_zdip = vsmall
 				moon_synodic = eur_synodic
 
 			case default
@@ -376,8 +376,8 @@ contains
 					'Tracking a surface point.'
 				moon_orbit_rad = planet_rad
 				moon_per = planet_per
-				moon_rad = 1e-6
-				moon_mass = 1e-6
+				moon_rad = vsmall
+				moon_mass = vsmall
 				moon_incl = planet_obliq
 				moon_init_rot = planet_init_long
 
