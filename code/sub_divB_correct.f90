@@ -22,8 +22,8 @@
 !
 !	size of array abd hard wired to be nband,nx*ny*nz=npts
 !
-subroutine divB_correct( &
-	nx,ny,nz,n_grids, box, nbands, divB_band_pos, xspac, divB_errlim, &
+subroutine divB_correct( nx,ny,nz,n_grids, box, nbands, &
+	divB_band_pos, xspac, divB_errlim, &
 	bx,by,bz )
 
 	implicit none
