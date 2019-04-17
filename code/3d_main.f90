@@ -53,23 +53,23 @@ program multifluid
 	!	Small, arbitrary amount to prevent small denominators
 	real, parameter :: smallbit = 1.e-5
 	!	Tab character for output formatting
-	character,parameter	:: tab=char(9)
+	character, parameter	:: tab=char(9)
 	
 	!	*******************
 	!	Gridding parameters
 	!	*******************
 
-	real,parameter :: limit=60.	! Typically 60
-	integer,parameter :: nx=2*limit+1	! Typically 121
-	integer,parameter :: ny=2*limit+1
-	integer,parameter :: nz=limit+1
-	integer,parameter :: num_pts(3)=[nx,ny,nz]
-	integer,parameter :: n_grids=5
-	integer,parameter :: division=2	! Scaling between adjacent grids
-	integer,parameter :: mbndry=1	!	Box for inner boundary
-	integer,parameter :: ncts=281	!	Number of set_imf points
+	real, parameter :: limit=60.	! Typically 60
+	integer, parameter :: nx=2*limit+1	! Typically 121
+	integer, parameter :: ny=2*limit+1
+	integer, parameter :: nz=limit+1
+	integer, parameter :: num_pts(3)=[nx,ny,nz]
+	integer, parameter :: n_grids=5
+	integer, parameter :: division=2	! Scaling between adjacent grids
+	integer, parameter :: mbndry=1	!	Box for inner boundary
+	integer, parameter :: ncts=281	!	Number of set_imf points
 	!	wind_adjust * limit must yield a whole number
-	real,parameter :: wind_adjust=5./4.
+	real, parameter :: wind_adjust=5./4.
 	real xspac(n_grids)
 	real grid_minvals(3,n_grids), grid_maxvals(3,n_grids)
 	real csmax, alfmax, pxmax, pymax, pzmax
@@ -105,22 +105,22 @@ program multifluid
 	!	UT = 0 is chosen to keep values relatively low for Europa sims,
 	!	1996-12-02T14:24:00.000
 	
-	real,parameter	:: d_min=0.01	!	Minimum plasma density
-	real,parameter	:: o_conc_min=0.01
-	real,parameter	:: o_conc_max=1.0
-	real,parameter	:: cur_min=0.75
-	real,parameter	:: cur_max=20.0
-	real,parameter	:: vlim_factor=0.6	!	Multiply by box to get max CFL speed
+	real, parameter	:: d_min=0.01	!	Minimum plasma density
+	real, parameter	:: o_conc_min=0.01
+	real, parameter	:: o_conc_max=1.0
+	real, parameter	:: cur_min=0.75
+	real, parameter	:: cur_max=20.0
+	real, parameter	:: vlim_factor=0.6	!	Multiply by box to get max CFL speed
 	!	Minimum time step, in sim units. If delt is less than this,
 	!	exit with error because something has gone wrong.
-	real,parameter	:: t_step_min = 1.e-6
+	real, parameter	:: t_step_min = 1.e-6
 	
 	!	Scale lengths for plasma sheet population
-	real,parameter	:: sheet_den=0.25
-	real,parameter	:: alpha_s=4.
+	real, parameter	:: sheet_den=0.25
+	real, parameter	:: alpha_s=4.
 	
 	!	Number of quantities to zero inside inner boundary
-	integer,parameter :: num_zqt = 7
+	integer, parameter :: num_zqt = 7
 	!	Number of grid points to zero inside innermost boundary
 	integer mzero
 	!	Number of grid points in 'mid' region between inner boundary and
@@ -128,22 +128,39 @@ program multifluid
 	integer mmid
 	!	Number of grid points on inner boundary surface
 	integer msrf
-	real,parameter	:: zero_bndry_offset = -1.5
-	real,parameter	:: mid_bndry_offset = -0.5
-	real,parameter	:: srf_bndry_offset = 0.6
+	real, parameter	:: zero_bndry_offset = -1.5
+	real, parameter	:: mid_bndry_offset = -0.5
+	real, parameter	:: srf_bndry_offset = 0.6
 	real zero_bndry
 	real mid_bndry
 	real srf_bndry
 	real vlim
-	integer,allocatable	:: ijsrf(:,:,:)
-	integer,allocatable	:: ijmid(:,:,:)
-	integer,allocatable	:: ijzero(:,:,:)
+	integer, allocatable	:: ijsrf(:,:,:)
+	integer, allocatable	:: ijmid(:,:,:)
+	integer, allocatable	:: ijzero(:,:,:)
 	integer	numsrf(mbndry)
 	integer	nummid(mbndry)
 	integer	numzero(mbndry)
-	real,allocatable	:: parm_srf(:,:,:)
-	real,allocatable	:: parm_mid(:,:,:)
-	real,allocatable	:: parm_zero(:,:,:)
+	real, allocatable	:: parm_srf(:,:,:)
+	real, allocatable	:: parm_mid(:,:,:)
+	real, allocatable	:: parm_zero(:,:,:)
+
+	!	***************
+	!	divB parameters
+	!	***************
+
+	!	Note: If the configuration of the bands is changed, divB_correct
+	!	will need to be edited. Some band info is hard-coded.
+
+	!	Number of matrix bands for solving divB algebra
+	integer, parameter	:: nbands = 7
+	!	Band order is lower1, lower2, lower3, diag, upper1, upper2, upper3.
+	integer, parameter	:: divB_bands(nbands) = [5, 6, 7, 4, 3, 2, 1]
+	!	Position of each band in # grid points
+	integer, parameter	:: divB_band_pos(nbands) &
+		= [nx*ny, nx, 1, 0, -1, -nx, -nx*ny]
+	!	Roundoff error limit for divB recursive solver
+	real, parameter :: divB_errlim = 1.0e-4
 	
 	!	********************
 	!	Graphics parameters:
@@ -151,11 +168,11 @@ program multifluid
 
 	!	Note: muvwp2=amax(mx,my,mz)+2,mz2=(mz-1)/2+1
 	!	Deprecated; needed for NCAR graphics subroutines
-	integer,parameter :: mx=61
-	integer,parameter :: my=61
-	integer,parameter :: mz=31
-	integer,parameter :: muvwp2=63
-	integer,parameter :: mz2=16
+	integer, parameter :: mx=61
+	integer, parameter :: my=61
+	integer, parameter :: mz=31
+	integer, parameter :: muvwp2=63
+	integer, parameter :: mz2=16
 	
 	!	*************************
 	!	Coordinate work variables
@@ -269,8 +286,8 @@ program multifluid
 	!		100-109	Dummy files
 	!		110-150	Figure plotting
 
-	integer,parameter :: input_f=1
-	integer,parameter :: inp_o_f=2
+	integer, parameter :: input_f=1
+	integer, parameter :: inp_o_f=2
 	integer :: fluxs_f=21
 	integer :: speed_f=22
 	integer :: concs_f=23
@@ -278,25 +295,25 @@ program multifluid
 	integer :: recdt_f=29
 	integer :: fluid_f=10
 	integer :: offset_f=-10
-	integer,parameter :: scin=30
-	integer,parameter :: scout=60
-	integer,parameter :: git_f=100
-	integer,parameter :: dummy_f=101
-	integer,parameter :: dummy_fg=102
+	integer, parameter :: scin=30
+	integer, parameter :: scout=60
+	integer, parameter :: git_f=100
+	integer, parameter :: dummy_f=101
+	integer, parameter :: dummy_fg=102
 	
-	character*5,parameter	:: fname_input='input'
-	character*9,parameter	:: fname_inp_o='input_out'
-	character*10,parameter	:: fname_fluxs='fluxes.dat'
-	character*10,parameter	:: fname_speed='speeds.dat'
-	character*8,parameter	:: fname_concs='conc.dat'
-	character*7,parameter	:: fluid_pre='fluid'
-	character*11,parameter	:: fname_restart='fluid_start'
+	character*5, parameter	:: fname_input='input'
+	character*9, parameter	:: fname_inp_o='input_out'
+	character*10, parameter	:: fname_fluxs='fluxes.dat'
+	character*10, parameter	:: fname_speed='speeds.dat'
+	character*8, parameter	:: fname_concs='conc.dat'
+	character*7, parameter	:: fluid_pre='fluid'
+	character*11, parameter	:: fname_restart='fluid_start'
 	character*7		:: fname_reload=fluid_pre//'00'
 	character*7		:: fname_fluid=''
 	
-	character*60,parameter	:: flux_header='main grid'//tab// &
+	character*60, parameter	:: flux_header='main grid'//tab// &
 		'UT'//tab//'box'//tab//'qflux'//tab//'hflux'//tab//'oflux'
-	character*12,parameter	:: git_hash_file='git_hash.txt'
+	character*12, parameter	:: git_hash_file='git_hash.txt'
 	
 	!	************************************
 	!	Physics plasma quantities: Main grid
@@ -1052,12 +1069,12 @@ program multifluid
 			write(*,*)'Range for divb taper: ',torus_inj_dist,range
 			do box=n_grids,1,-1
 				write(*,*)'divb on box: ',box
-				call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
-					curx,cury,curz,efldx,efldy,efldz, &
-					7,nx*ny*nz,nx,ny,nz,n_grids,box,xspac)
-				call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
-					curx,cury,curz,efldx,efldy,efldz, &
-					7,nx*ny*nz,nx,ny,nz,n_grids,box,xspac)
+				call divB_correct( nx,ny,nz,n_grids, box, nbands, &
+					divB_band_pos, xspac, divB_errlim, &
+					bx,by,bz )
+				call divB_correct( nx,ny,nz,n_grids, box, nbands, &
+					divB_band_pos, xspac, divB_errlim, &
+					bx,by,bz )
 				write(*,*)'Completed divb on box: ',box
 			enddo !end box loop
 			
@@ -2242,8 +2259,8 @@ program multifluid
 						tvx,tvy,tvz,nx,ny,nz,n_grids,box, &
 						rmassq,rmassh,rmasso,reynolds)
 					
-					!	write(*,*)'Entering subroutine: bande'
-					call bande(efldx,efldy,efldz,bsx,bsy,bsz, &
+					!	write(*,*)'Entering subroutine: BandE'
+					call BandE(efldx,efldy,efldz,bsx,bsy,bsz, &
 						curx,cury,curz,evx,evy,evz,btot, &
 						epres,qrho,hrho,orho,resistive,resist,reynolds, &
 						nx,ny,nz,n_grids,box,rmassq,rmassh,rmasso, &
@@ -2488,7 +2505,7 @@ program multifluid
 						tvx,tvy,tvz,nx,ny,nz,n_grids,box, &
 						rmassq,rmassh,rmasso,reynolds)
 					
-					call bande(efldx,efldy,efldz,bsx,bsy,bsz, &
+					call BandE(efldx,efldy,efldz,bsx,bsy,bsz, &
 						curx,cury,curz,evx,evy,evz,btot, &
 						wrkepres,wrkqrho,wrkhrho,wrkorho, &
 						resistive,resist,reynolds, &
@@ -3349,12 +3366,12 @@ program multifluid
 
 				do box=n_grids,1,-1
 					write(*,*)'divb on box: ',box
-					call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
-						curx,cury,curz,efldx,efldy,efldz, &
-						7,nx*ny*nz,nx,ny,nz,n_grids,box,xspac)
-					call divb_correct(bx,by,bz,bsx,bsy,bsz,btot, &
-						curx,cury,curz,efldx,efldy,efldz, &
-						7,nx*ny*nz,nx,ny,nz,n_grids,box,xspac)
+					call divB_correct( nx,ny,nz,n_grids, box, nbands, &
+						divB_band_pos, xspac, divB_errlim, &
+						bx,by,bz )
+					call divB_correct( nx,ny,nz,n_grids, box, nbands, &
+						divB_band_pos, xspac, divB_errlim, &
+						bx,by,bz )
 					write(*,*)'Completed divb on box: ',box
 				enddo	! end box loop
 				
