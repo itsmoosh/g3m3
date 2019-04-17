@@ -2,7 +2,7 @@
 !	Calculates the surface magnetic field bs
 !	and the body electric field eb
 !
-subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
+subroutine BandE(efldx,efldy,efldz,bsx,bsy,bsz, &
 	curx,cury,curz,evx,evy,evz,btot, &
 	epres,qrho,hrho,orho,rst,resist,reynolds, &
 	nx,ny,nz,n_grids,box,rmassq,rmassh,rmasso, &
@@ -159,4 +159,4 @@ subroutine bande(efldx,efldy,efldz,bsx,bsy,bsz, &
 	enddo
 	
 	return
-end subroutine bande
+end subroutine BandE
