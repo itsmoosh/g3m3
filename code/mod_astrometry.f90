@@ -74,8 +74,7 @@ module astrometry
 		!	eur_orbit_rad units: jupiter_rad
 		real,parameter :: eur_orbit_rad	= 671.079E+03/jupiter_rad
 		real,parameter :: eur_sid_per	= 3.551810*24.
-		real,parameter :: eur_per		= eur_sid_per * ( 1 + &
-			eur_sid_per/jupiter_year )
+		real,parameter :: eur_per		= 1. / ( 1./eur_sid_per - 1./jupiter_year )
 		!	eur_rad note: R_Eur defined as 1560. in Galileo spacecraft data.
 		!	Accepted value: 1565.
 		real,parameter :: eur_rad		= 1560.	
@@ -84,15 +83,13 @@ module astrometry
 		real,parameter :: eur_init_rot	= ( atan((-2.379801E-03)/ &
 			(-3.751687E-03)) + pi - jupiter_init_long ) / (2.0*pi) * &
 			eur_per
-		real,parameter :: eur_synodic	= jupiter_per * ( 1 + &
-			jupiter_per/eur_sid_per )
+		real,parameter :: eur_synodic	= 1. / ( 1./jupiter_per - 1./eur_sid_per )
 
 	!	Moons: Ganymede
 		!	gany_orbit_rad units: jupiter_rad
 		real,parameter :: gany_orbit_rad	= 1070.0428E+03/jupiter_rad
 		real,parameter :: gany_sid_per		= 7.154553*24.
-		real,parameter :: gany_per			= gany_sid_per * ( 1 + &
-			gany_sid_per/jupiter_year )
+		real,parameter :: gany_per			= 1. / ( 1./jupiter_per - 1./gany_sid_per )
 		real,parameter :: gany_rad			= 2634.
 		real,parameter :: gany_mass			= 1482.0E+20
 		real,parameter :: gany_incl			= 0.186*pi/180.
@@ -104,8 +101,7 @@ module astrometry
 		!	call_orbit_rad units: jupiter_rad
 		real,parameter :: call_orbit_rad	= 1883.0E+03/jupiter_rad
 		real,parameter :: call_sid_per		= 16.689018*24.
-		real,parameter :: call_per			= call_sid_per * ( 1 + &
-			call_sid_per/jupiter_year )
+		real,parameter :: call_per			= 1. / ( 1./jupiter_per - 1./call_sid_per )
 		real,parameter :: call_rad			= 2403.
 		real,parameter :: call_mass			= 1076.0E+20
 		real,parameter :: call_incl			= 0.281*pi/180.
@@ -135,8 +131,7 @@ module astrometry
 		!	encel_orbit_rad units: saturn_rad
 		real,parameter :: encel_orbit_rad	= 238.04E+03/saturn_rad
 		real,parameter :: encel_sid_per		= 1.370218*24.
-		real,parameter :: encel_per			= encel_sid_per * ( 1 + &
-			encel_sid_per/saturn_year )
+		real,parameter :: encel_per			= 1. / ( 1./encel_sid_per - 1./saturn_year )
 		real,parameter :: encel_rad			= 252.3
 		real,parameter :: encel_mass		= 10.805E+19
 		real,parameter :: encel_incl		= 0.009*pi/180.
@@ -148,8 +143,7 @@ module astrometry
 		!	titan_orbit_rad units: saturn_rad
 		real,parameter :: titan_orbit_rad	= 1221.87E+03/saturn_rad
 		real,parameter :: titan_sid_per		= 15.945421*24.
-		real,parameter :: titan_per			= titan_sid_per * ( 1 + &
-			titan_sid_per/saturn_year )
+		real,parameter :: titan_per			= 1. / ( 1./titan_sid_per - 1./saturn_year )
 		real,parameter :: titan_rad			= 2575.5
 		real,parameter :: titan_mass		= 13455.3E+19
 		real,parameter :: titan_incl		= 0.28
@@ -182,8 +176,7 @@ module astrometry
 		!	luna_orbit_rad units: earth_rad
 		real,parameter :: luna_orbit_rad	= 384400.0/earth_rad
 		real,parameter :: luna_sid_per		= 27.321582*24.
-		real,parameter :: luna_per			= luna_sid_per * ( 1 + &
-			luna_sid_per/earth_year )
+		real,parameter :: luna_per			= 1. / ( 1./luna_sid_per - 1./earth_year )
 		real,parameter :: luna_rad			= 1737.4
 		real,parameter :: luna_mass			= 734.9E+20
 		real,parameter :: luna_incl			= 5.145*pi/180.
